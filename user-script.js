@@ -1,10 +1,15 @@
 /* if multiple passenger provide comma separated passenger name
 (name should match with irctc master data ) */
+
 const username = '';
 const password = '';
 let passengerNames = 'Deepak';
-let trainNumber = '11071';
-let accommodationClass = 'SL';
+let trainNumber = '12559';
+let from = 'BSBS';
+let to = 'NDLS';
+let quotaType = 'TATKAL';
+let accommodationClass = '3A';
+let dateString = '22/04/2024';
 let refreshTime = 5000; // 5 seconds;
 const paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / net banking
 const paymentMethod = 'BHIM/ UPI/ USSD';
@@ -55,7 +60,6 @@ async function waitForElementToAppear(selector) {
     }, 500); // Adjust the interval as needed
   });
 }
-
 // Function to introduce a small delay
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -64,7 +68,6 @@ function delay(ms) {
 function textIncludes(text, searchText) {
   return text.trim().toLowerCase().includes(searchText.trim().toLowerCase());
 }
-
 function scrollToElement(element) {
   return new Promise((resolve) => {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -90,7 +93,6 @@ async function simulateTyping(element, text) {
   // Trigger blur event to simulate losing focus
   element.dispatchEvent(new Event('blur', { bubbles: true }));
 }
-
 async function fillLoginCaptcha() {
   // Find the captcha input element
   var captchaInput = document.querySelector('app-captcha #captcha');
@@ -114,7 +116,7 @@ async function login() {
     await loginButton.click();
   }
   await waitForElementToAppear('app-login');
-  await waitForElementToAppear('app-captcha');
+  await waitForElementToAppear('app-captcha .captcha-img');
 
   const loginModal = document.querySelector('app-login');
 
@@ -132,6 +134,120 @@ async function login() {
 
   const signInButton = loginModal.querySelector('button[type="submit"]');
   await signInButton.click();
+}
+async function autoComplete(element, value) {
+  // Focus on the autocomplete input to trigger the generation of options
+  element.focus();
+
+  // Set the input value
+  element.value = value;
+
+  // Simulate an input event to trigger the autocomplete options
+  var inputEvent = new Event('input', {
+    bubbles: true,
+    cancelable: true,
+  });
+  element.dispatchEvent(inputEvent);
+
+  // Wait for a short delay to ensure the options are generated
+  await delay(500);
+
+  var firstItem = document.querySelector('.ui-autocomplete-items li');
+  if (firstItem) {
+    await firstItem.click();
+  }
+}
+async function selectDate() {
+  // Find the input element of the PrimeNG calendar
+  const calendarInput = document.querySelector('#jDate input');
+
+  // Set the value of the input field to the desired date string
+  calendarInput.value = dateString;
+
+  // Wait for a short delay to ensure the date picker UI reacts to the changes
+  await delay(500);
+
+  // Dispatch various events to simulate user interaction
+  calendarInput.dispatchEvent(new Event('input')); // Trigger input event
+  calendarInput.dispatchEvent(new Event('keydown')); // Trigger keydown event
+  calendarInput.dispatchEvent(new Event('focus')); // Trigger focus event
+  calendarInput.dispatchEvent(new Event('click')); // Trigger click event
+  calendarInput.dispatchEvent(new Event('blur')); // Trigger blur event
+}
+async function typeDate(element, mydate) {
+  if (!element) return;
+
+  // Trigger focus event
+  element.dispatchEvent(new Event('focus', { bubbles: true }));
+
+  // Clear the input field
+  element.value = '';
+
+  // Trigger input event after clearing the input field
+  element.dispatchEvent(new Event('input', { bubbles: true }));
+
+  // Iterate over each character of the date string and type it
+  for (const char of mydate) {
+    // Set the value of the input field to the current character
+    element.value += char;
+
+    // Trigger input event after typing each character
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Trigger keydown event with the current character
+    element.dispatchEvent(new KeyboardEvent('keydown', { key: char }));
+
+    // Wait for a short delay before typing the next character
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+
+  // Trigger blur event to simulate losing focus
+  element.dispatchEvent(new Event('blur', { bubbles: true }));
+}
+async function selectQuota(element,value) {
+
+   await element.click();
+
+   // Simulate an onChange event to trigger the autocomplete options
+   var inputEvent = new Event('onChange', {
+     bubbles: true,
+     cancelable: true,
+   });
+
+   element.dispatchEvent(inputEvent);
+
+   delay(500);
+
+  // Get all list items within the autocomplete dropdown
+  var listItems = document.querySelectorAll('#journeyQuota p-dropdownitem span');
+
+  // Loop through each list item
+  for (let item of listItems) {
+    // Get the text content of the list item
+    const itemText = item.textContent.trim();
+
+    // Check if the text content contains the name substring (case-insensitive)
+    if (itemText.toLowerCase().includes(value.toLowerCase())) {
+      // Select the list item by simulating a click
+      item.click();
+      break;
+    }
+  }
+}
+// Function to fill Journey Details
+async function searchTrain(){
+  let journeyInput = document.querySelector('app-jp-input');
+  let origin = journeyInput.querySelector('#origin input');
+  let destination = journeyInput.querySelector('#destination input');
+  let quota = journeyInput.querySelector('#journeyQuota>div');
+  let jDate = journeyInput.querySelector('#jDate input');
+
+  await autoComplete(origin,from);
+  await autoComplete(destination,to);
+  await typeDate(jDate,dateString);
+  await selectQuota(quota,quotaType);
+  const searchButton = journeyInput.querySelector('button[type="submit"]');
+  await searchButton.click();
 }
 // Function to click the "Modify Search" button
 async function reloadTrainLists() {
@@ -241,7 +357,7 @@ async function bookTicket() {
 
   if (bookNowButton) {
     clearInterval(intervalId);
-    await bookNowButton.click();
+    bookNowButton.click();
     return true;
   }
 
@@ -311,30 +427,28 @@ function fillInputData(index = 0, name = passengerNames) {
     });
     passengerNameInput.dispatchEvent(inputEvent);
 
-    // Wait for a short delay to ensure the options are generated
-    setTimeout(() => {
-      // Get all list items within the autocomplete dropdown
-      var listItems = document.querySelectorAll('.ui-autocomplete-items li');
+    delay(500);
 
-      // Loop through each list item
-      for (let item of listItems) {
-        // Get the text content of the list item
-        const itemText = item.textContent.trim();
+    // Get all list items within the autocomplete dropdown
+    var listItems = document.querySelectorAll('app-passenger .ui-autocomplete-items li');
 
-        // Check if the text content contains the name substring (case-insensitive)
-        if (itemText.toLowerCase().includes(name.toLowerCase())) {
-          // Select the list item by simulating a click
-          selectPassenger(index, item)
-            .then(() => {
-              resolve(); // Resolve the Promise once passenger is selected
-            })
-            .catch((error) => {
-              reject(error); // Reject the Promise if there's an error
-            });
-          break;
-        }
+    for (let item of listItems) {
+      // Get the text content of the list item
+      const itemText = item.textContent.trim();
+
+      // Check if the text content contains the name substring (case-insensitive)
+      if (itemText.toLowerCase().includes(name.toLowerCase())) {
+        // Select the list item by simulating a click
+        selectPassenger(index, item)
+          .then(() => {
+            resolve(); // Resolve the Promise once passenger is selected
+          })
+          .catch((error) => {
+            reject(error); // Reject the Promise if there's an error
+          });
+        break;
       }
-    }, 500); // Adjust the delay as needed
+    }
   });
 }
 function processInput() {
@@ -522,10 +636,12 @@ async function clickPayButton() {
     console.log("No button found containing 'Pay'.");
   }
 }
-
 async function executeFunctions() {
-  // for now home page we have to fill and search
-  // from train list page script will execute
+  // wait for home page to load
+  await waitForElementToAppear('app-header');
+  // login page
+  await login();
+  await searchTrain();
 
   // wait for train list page to load
   await waitForElementToAppear('app-train-list');
