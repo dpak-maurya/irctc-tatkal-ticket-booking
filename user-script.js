@@ -1,5 +1,7 @@
 /* if multiple passenger provide comma separated passenger name
 (name should match with irctc master data ) */
+const username = '';
+const password = '';
 let passengerNames = 'Deepak';
 let trainNumber = '11071';
 let accommodationClass = 'SL';
@@ -12,14 +14,6 @@ const payButton = 'Pay & Book ';
 var intervalId;
 let copyPassengerNames = '';
 
-// Function to introduce a small delay
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-// Function to check if searchText exists in text
-function textIncludes(text, searchText) {
-  return text.trim().toLowerCase().includes(searchText.trim().toLowerCase());
-}
 // Function to wait for the insertion of elements with a specific class
 function waitForElementInsertion(className) {
   return new Promise((resolve) => {
@@ -48,6 +42,96 @@ function waitForElementInsertion(className) {
       subtree: true, // Include all descendants of the body
     });
   });
+}
+// Define a function to wait for an element to appear on the page
+async function waitForElementToAppear(selector) {
+  return new Promise((resolve) => {
+    const interval = setInterval(() => {
+      const element = document.querySelector(selector);
+      if (element) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 500); // Adjust the interval as needed
+  });
+}
+
+// Function to introduce a small delay
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+// Function to check if searchText exists in text
+function textIncludes(text, searchText) {
+  return text.trim().toLowerCase().includes(searchText.trim().toLowerCase());
+}
+
+function scrollToElement(element) {
+  return new Promise((resolve) => {
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Wait for a brief moment for the scroll animation to complete
+    setTimeout(resolve, 1000);
+  });
+}
+async function simulateTyping(element, text) {
+  if (!element) return;
+
+  // Trigger compositionstart event
+  element.dispatchEvent(new Event('compositionstart', { bubbles: true }));
+
+  // Set the value of the input field
+  element.value = text;
+
+  // Trigger input event
+  element.dispatchEvent(new Event('input', { bubbles: true }));
+
+  // Trigger compositionend event
+  element.dispatchEvent(new Event('compositionend', { bubbles: true }));
+
+  // Trigger blur event to simulate losing focus
+  element.dispatchEvent(new Event('blur', { bubbles: true }));
+}
+
+async function fillLoginCaptcha() {
+  // Find the captcha input element
+  var captchaInput = document.querySelector('app-captcha #captcha');
+
+  // Scroll the captcha input field into view smoothly
+  if (captchaInput) {
+    await scrollToElement(captchaInput);
+  }
+  var captchaValue = prompt('Please enter the Captcha:');
+
+  // Fill the captcha input field with the provided value
+  if (captchaInput && captchaValue) {
+    await simulateTyping(captchaInput, captchaValue);
+    await delay(50);
+  }
+}
+// Function to Login
+async function login() {
+  let loginButton = document.querySelector('app-header a.loginText')
+  if(loginButton){
+    await loginButton.click();
+  }
+  await waitForElementToAppear('app-login');
+  await waitForElementToAppear('app-captcha');
+
+  const loginModal = document.querySelector('app-login');
+
+  if (!loginModal) return;
+
+  const usernameInput = loginModal.querySelector(
+    'input[formcontrolname="userid"]'
+  );
+  const passwordInput = loginModal.querySelector(
+    'input[formcontrolname="password"]'
+  );
+  await simulateTyping(usernameInput, username);
+  await simulateTyping(passwordInput, password);
+  await fillLoginCaptcha();
+
+  const signInButton = loginModal.querySelector('button[type="submit"]');
+  await signInButton.click();
 }
 // Function to click the "Modify Search" button
 async function reloadTrainLists() {
@@ -350,31 +434,6 @@ async function addPassengerInputAndContinue() {
     console.log('Continue button not found.');
   }
 }
-function scrollToElement(element) {
-  return new Promise((resolve) => {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // Wait for a brief moment for the scroll animation to complete
-    setTimeout(resolve, 1000);
-  });
-}
-async function simulateTyping(element, text) {
-  if (!element) return;
-
-  // Trigger compositionstart event
-  element.dispatchEvent(new Event('compositionstart', { bubbles: true }));
-
-  // Set the value of the input field
-  element.value = text;
-
-  // Trigger input event
-  element.dispatchEvent(new Event('input', { bubbles: true }));
-
-  // Trigger compositionend event
-  element.dispatchEvent(new Event('compositionend', { bubbles: true }));
-
-  // Trigger blur event to simulate losing focus
-  element.dispatchEvent(new Event('blur', { bubbles: true }));
-}
 async function handleCaptchaAndContinue() {
   // Find the captcha input element
   var captchaInput = document.getElementById('captcha');
@@ -463,18 +522,7 @@ async function clickPayButton() {
     console.log("No button found containing 'Pay'.");
   }
 }
-// Define a function to wait for an element to appear on the page
-async function waitForElementToAppear(selector) {
-  return new Promise((resolve) => {
-    const interval = setInterval(() => {
-      const element = document.querySelector(selector);
-      if (element) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 500); // Adjust the interval as needed
-  });
-}
+
 async function executeFunctions() {
   // for now home page we have to fill and search
   // from train list page script will execute
