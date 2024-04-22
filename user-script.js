@@ -4,12 +4,12 @@
 const username = '';
 const password = '';
 let passengerNames = 'Deepak';
-let trainNumber = '12560';
-let from = 'NDLS';
-let to = 'BSBS';
-let quotaType = 'GENERAL';
+let trainNumber = '11061';
+let from = 'LTT';
+let to = 'BSB';
+let quotaType = 'TATKAL';
 let accommodationClass = '3A';
-let dateString = '22/04/2024';
+let dateString = '23/04/2024';
 let refreshTime = 5000; // 5 seconds;
 const paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / net banking
 const paymentMethod = 'BHIM/ UPI/ USSD';
@@ -18,6 +18,7 @@ const payButton = 'Pay & Book ';
 
 var intervalId;
 let copyPassengerNames = '';
+let trainFoundAtPosition = -1;
 
 // Function to wait for the insertion of elements with a specific class
 function waitForElementInsertion(className) {
@@ -54,6 +55,7 @@ async function waitForElementToAppear(selector) {
     const interval = setInterval(() => {
       const element = document.querySelector(selector);
       if (element) {
+        console.log('element loaded',element);
         clearInterval(interval);
         resolve();
       }
@@ -118,7 +120,7 @@ async function login() {
   await waitForElementToAppear('app-login');
   await waitForElementToAppear('app-captcha .captcha-img');
 
-  const loginModal = document.querySelector('app-login');
+  let loginModal = document.querySelector('app-login');
 
   if (!loginModal) return;
 
@@ -134,6 +136,7 @@ async function login() {
 
   const signInButton = loginModal.querySelector('button[type="submit"]');
   await signInButton.click();
+  delay(1000);
 }
 async function autoComplete(element, value) {
   // Focus on the autocomplete input to trigger the generation of options
@@ -249,7 +252,6 @@ async function searchTrain(){
   const searchButton = journeyInput.querySelector('button[type="submit"]');
   await searchButton.click();
 }
-
 // Function to update Journey Details
 async function modifySearchTrain(){
   let journeyInput = document.querySelector('app-modify-search');
@@ -265,7 +267,6 @@ async function modifySearchTrain(){
   const searchButton = journeyInput.querySelector('button[type="submit"]');
   await searchButton.click();
 }
-
 async function callSearchTrainComponent(){
   let journeyComponent = document.querySelector('app-jp-input');
   
@@ -275,23 +276,6 @@ async function callSearchTrainComponent(){
   else{
     await modifySearchTrain();
   }
-}
-// Function to click the "Modify Search" button
-async function reloadTrainLists() {
-  // Find the current date element
-  // var currentDateElement = document.querySelector('app-header .h_head1 > span');
-
-  // Find the "Modify Search" button
-  var modifySearchButton = document.querySelector(
-    'app-modify-search button[type="submit"]'
-  );
-
-  if (modifySearchButton) {
-    // Simulate a click on the button
-    await modifySearchButton.click();
-    return;
-  }
-  console.log('Modify Search button not found.');
 }
 async function findRootTrain() {
   const trainHeadingElements = document.querySelectorAll(
@@ -304,10 +288,12 @@ async function findRootTrain() {
   }
 
   let rootElement = null;
-  for (let trainHeadingElement of trainHeadingElements) {
+  for (let i = 0; i < trainHeadingElements.length; i++) {
+    const trainHeadingElement = trainHeadingElements[i];
     if (textIncludes(trainHeadingElement.textContent, trainNumber)) {
       rootElement = trainHeadingElement.closest('app-train-avl-enq');
       console.log('Found train number:', trainNumber);
+      trainFoundAtPosition = i; // Store the index of the found train
       break;
     }
   }
@@ -318,10 +304,9 @@ async function findRootTrain() {
   }
   return rootElement;
 }
-async function scrollToAndClickTrainLink() {
-  let rootElement = await findRootTrain();
+async function scrollToFoundTrainAndSelectClass() {
 
-  if (!rootElement) return;
+  let rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
 
   rootElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
@@ -355,52 +340,67 @@ async function scrollToAndClickTrainLink() {
     accommodationClass
   );
 }
-async function clickAccommodationClass() {
-  let rootElement = await findRootTrain();
+// select first available date in selected Class
+async function selectAvailableTicket() {
+  let rootElement=document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
 
-  if (!rootElement) return;
+  // Select the first available date
+  const availableDate = rootElement.querySelector('.pre-avl');
 
-  const availableDates = rootElement.querySelectorAll('.pre-avl');
-
-  if (availableDates && availableDates.length > 0) {
-    // click first train for choosen date
-    await availableDates[0].click();
+  if (availableDate) {
+    await availableDate.click();
   }
+}
+// refresh the train by clicking selected open class tab
+async function refreshTrain() {
+  try {
+    const rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
 
-  let bookNowButton = rootElement.querySelector(
-    'button.btnDefault.train_Search'
-  );
-  if (bookNowButton && !bookNowButton.classList.contains('disable-book')) {
-    return bookNowButton;
+    const selectedTab = rootElement.querySelector(
+      'p-tabmenu li[role="tab"][aria-selected="true"][aria-expanded="true"] a>div'
+    );
+
+    // Simulate a click on the selected tab
+    if (selectedTab) {
+      await selectedTab.click();
+    } else {
+      console.warn('Selected accommodation tab not found.');
+    }
+  } catch (error) {
+    console.error('An error occurred while refreshing the train:', error);
   }
-  return null;
 }
 async function bookTicket() {
-  await scrollToAndClickTrainLink();
+  await findRootTrain();
+
+  // No train found;
+  if (trainFoundAtPosition === -1) return;
+
+  await scrollToFoundTrainAndSelectClass();
 
   await delay(500);
 
-  let bookNowButton = await clickAccommodationClass();
+  let rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
 
-  if (bookNowButton) {
-    clearInterval(intervalId);
-    bookNowButton.click();
-    return true;
+  let bookTicketButton = rootElement.querySelector('button.btnDefault.train_Search');
+
+  while (bookTicketButton) {
+    await selectAvailableTicket(); // Select available ticket
+
+    rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition]; // Update the root element reference
+    bookTicketButton = rootElement.querySelector('button.btnDefault.train_Search'); // Update the button reference
+    
+    if (!bookTicketButton.classList.contains('disable-book')) {
+      // If the button is enabled, break the loop
+      break;
+    } else {
+      await refreshTrain(); // If button is disabled, refresh the train
+      await delay(refreshTime); // Add a delay before checking the button state again
+    }
   }
 
-  return false;
-}
-async function startBookingProcess() {
-  let isBookButton = false;
-
-  // Start the interval and store its ID
-  intervalId = setInterval(async function () {
-    console.log(intervalId);
-    isBookButton = await bookTicket();
-    if (!isBookButton) {
-      await reloadTrainLists();
-    }
-  }, refreshTime); // 1000 milliseconds = 1 second
+  // Proceed with booking the ticket
+  bookTicketButton.click();
 }
 // Function to check for the presence of the popup and close it if it exists
 function closePopupIfPresent() {
@@ -500,7 +500,7 @@ async function fillAllPassenger() {
   processInput();
   if (copyPassengerNames.length === 1) {
     fillInputData();
-    delay(1000);
+    delay(500);
     return;
   }
 
@@ -512,7 +512,7 @@ async function fillAllPassenger() {
   for (let index = 0; index < copyPassengerNames.length; index++) {
     await addNextRow();
     await fillInputData(index, copyPassengerNames[index]);
-    delay(1000);
+    delay(500);
   }
 }
 async function selectPaymentType() {
@@ -669,17 +669,14 @@ async function executeFunctions() {
   await waitForElementToAppear('app-header');
   // login page
   await login();
+
   await callSearchTrainComponent();
+
   // wait for train list page to load
   await waitForElementToAppear('app-train-list');
 
   // select train and accommodation class < Page 1 >
-
-  // try untill book now button enabled
-  await startBookingProcess();
-
-  // single time BookNow click
-  //await bookTicket(trainNumber, accommodationClass);
+  await bookTicket();
 
   // Wait for passenger page to load
   await waitForElementToAppear('app-passenger-input');
