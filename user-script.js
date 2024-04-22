@@ -4,10 +4,10 @@
 const username = '';
 const password = '';
 let passengerNames = 'Deepak';
-let trainNumber = '12559';
-let from = 'BSBS';
-let to = 'NDLS';
-let quotaType = 'TATKAL';
+let trainNumber = '12560';
+let from = 'NDLS';
+let to = 'BSBS';
+let quotaType = 'GENERAL';
 let accommodationClass = '3A';
 let dateString = '22/04/2024';
 let refreshTime = 5000; // 5 seconds;
@@ -68,7 +68,7 @@ function delay(ms) {
 function textIncludes(text, searchText) {
   return text.trim().toLowerCase().includes(searchText.trim().toLowerCase());
 }
-function scrollToElement(element) {
+ function scrollToElement(element) {
   return new Promise((resolve) => {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     // Wait for a brief moment for the scroll animation to complete
@@ -150,7 +150,7 @@ async function autoComplete(element, value) {
   element.dispatchEvent(inputEvent);
 
   // Wait for a short delay to ensure the options are generated
-  await delay(500);
+  await delay(600);
 
   var firstItem = document.querySelector('.ui-autocomplete-items li');
   if (firstItem) {
@@ -249,6 +249,33 @@ async function searchTrain(){
   const searchButton = journeyInput.querySelector('button[type="submit"]');
   await searchButton.click();
 }
+
+// Function to update Journey Details
+async function modifySearchTrain(){
+  let journeyInput = document.querySelector('app-modify-search');
+  let origin = journeyInput.querySelector('#origin input');
+  let destination = journeyInput.querySelector('#destination input');
+  let quota = journeyInput.querySelector('#journeyQuota>div');
+  let jDate = journeyInput.querySelector('#journeyDate input');
+
+  await autoComplete(origin,from);
+  await autoComplete(destination,to);
+  await typeDate(jDate,dateString);
+  await selectQuota(quota,quotaType);
+  const searchButton = journeyInput.querySelector('button[type="submit"]');
+  await searchButton.click();
+}
+
+async function callSearchTrainComponent(){
+  let journeyComponent = document.querySelector('app-jp-input');
+  
+  if(journeyComponent){
+    await searchTrain();
+  }
+  else{
+    await modifySearchTrain();
+  }
+}
 // Function to click the "Modify Search" button
 async function reloadTrainLists() {
   // Find the current date element
@@ -256,7 +283,7 @@ async function reloadTrainLists() {
 
   // Find the "Modify Search" button
   var modifySearchButton = document.querySelector(
-    'app-modify-search button.hidden-xs.search_btn'
+    'app-modify-search button[type="submit"]'
   );
 
   if (modifySearchButton) {
@@ -549,6 +576,7 @@ async function addPassengerInputAndContinue() {
   }
 }
 async function handleCaptchaAndContinue() {
+  await waitForElementToAppear('app-captcha .captcha-img');
   // Find the captcha input element
   var captchaInput = document.getElementById('captcha');
 
@@ -556,7 +584,7 @@ async function handleCaptchaAndContinue() {
   if (captchaInput) {
     await scrollToElement(captchaInput);
   }
-
+  delay(100);
   // Prompt the user to enter the captcha value
   var trainHeader = document.querySelector('app-train-header');
   var available = trainHeader.querySelector('.AVAILABLE');
@@ -641,8 +669,7 @@ async function executeFunctions() {
   await waitForElementToAppear('app-header');
   // login page
   await login();
-  await searchTrain();
-
+  await callSearchTrainComponent();
   // wait for train list page to load
   await waitForElementToAppear('app-train-list');
 
