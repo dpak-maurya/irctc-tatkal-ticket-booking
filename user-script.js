@@ -457,52 +457,6 @@ async function selectPassenger(index, item) {
     console.error('Error selecting item:', error);
   }
 }
-function fillInputData(index = 0, name = passengerNames) {
-  return new Promise((resolve, reject) => {
-    // Find the autocomplete input element
-    var rows = document.querySelectorAll('app-passenger');
-
-    var passengerNameInput = rows[index].querySelector(
-      'p-autocomplete[formcontrolname="passengerName"] input'
-    );
-
-    // Focus on the autocomplete input to trigger the generation of options
-    passengerNameInput.focus();
-
-    // Set the input value
-    passengerNameInput.value = name;
-
-    // Simulate an input event to trigger the autocomplete options
-    var inputEvent = new Event('input', {
-      bubbles: true,
-      cancelable: true,
-    });
-    passengerNameInput.dispatchEvent(inputEvent);
-
-    delay(500);
-
-    // Get all list items within the autocomplete dropdown
-    var listItems = document.querySelectorAll('app-passenger .ui-autocomplete-items li');
-
-    for (let item of listItems) {
-      // Get the text content of the list item
-      const itemText = item.textContent.trim();
-
-      // Check if the text content contains the name substring (case-insensitive)
-      if (itemText.toLowerCase().includes(name.toLowerCase())) {
-        // Select the list item by simulating a click
-        selectPassenger(index, item)
-          .then(() => {
-            resolve(); // Resolve the Promise once passenger is selected
-          })
-          .catch((error) => {
-            reject(error); // Reject the Promise if there's an error
-          });
-        break;
-      }
-    }
-  });
-}
 function processInput() {
   copyPassengerNames = passengerNames.split(',');
 
@@ -521,11 +475,60 @@ async function addNextRow() {
     console.log('Span text does not match or element not found.');
   }
 }
+
+//autocomplete function
+function selectAutocompleteOption(index=0,name = passengerNames) {
+  var rows = document.querySelectorAll('app-passenger');
+  // Find the autocomplete input element
+  var autocompleteInput = rows[index].querySelector('p-autocomplete input');
+
+  // Clear the current value of the autocomplete input field
+  autocompleteInput.value = '';
+
+  // Focus on the autocomplete input to trigger the generation of options
+  autocompleteInput.focus();
+
+  // Simulate user input by dispatching input events
+  for (var i = 0; i < name.length; i++) {
+      // Create and dispatch an input event with each character of the name
+      var inputEvent = new Event('input', {
+          bubbles: true,
+          cancelable: true
+      });
+      // Append the current character of the name to the input value
+      autocompleteInput.value += name[i];
+      // Dispatch the input event
+      autocompleteInput.dispatchEvent(inputEvent);
+  }
+
+  // Wait for a short delay to ensure the options are generated
+  setTimeout(function() {
+      // Get all list items within the autocomplete dropdown
+      var listItems = document.querySelectorAll('.ui-autocomplete-items li');
+
+      // Loop through each list item
+      listItems.forEach(function(item) {
+          // Get the text content of the list item
+          var itemText = item.textContent.trim();
+          
+          // Check if the text content contains the name substring
+          if (itemText.toLowerCase().includes(name.toLowerCase())) {
+              // Select the list item by simulating a click
+              item.click();
+              console.log("Selected item:", itemText);
+              // Exit the loop after selecting the item
+              return;
+          }
+      });
+  }, 500); // Adjust the delay as needed
+}
 async function fillAllPassenger() {
+  // Process the input (if needed)
   processInput();
+
+  // If there's only one passenger name, fill the input data and return
   if (copyPassengerNames.length === 1) {
-    fillInputData();
-    delay(500);
+    selectAutocompleteOption();
     return;
   }
 
@@ -536,8 +539,8 @@ async function fillAllPassenger() {
 
   for (let index = 0; index < copyPassengerNames.length; index++) {
     await addNextRow();
-    await fillInputData(index, copyPassengerNames[index]);
-    delay(500);
+    selectAutocompleteOption(index, copyPassengerNames[index]);
+    await delay(1000);
   }
 }
 async function selectPaymentType() {
@@ -752,7 +755,7 @@ async function executeFunctions() {
   // Payment Selection <Page 4>
   await selectPaymentMethod();
   await selectPaymentProvider();
-  await clickPayButton();
+  // await clickPayButton();
   // now scan the QR and do the the payment
 }
 
