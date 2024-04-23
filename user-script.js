@@ -3,13 +3,14 @@
 
 const username = '';
 const password = '';
+let targetTime ='10:00:10'
 let passengerNames = 'Deepak';
 let trainNumber = '11061';
 let from = 'LTT';
 let to = 'BSB';
 let quotaType = 'TATKAL';
 let accommodationClass = '3A';
-let dateString = '23/04/2024';
+let dateString = '25/04/2024';
 let refreshTime = 5000; // 5 seconds;
 const paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / net banking
 const paymentMethod = 'BHIM/ UPI/ USSD';
@@ -55,7 +56,7 @@ async function waitForElementToAppear(selector) {
     const interval = setInterval(() => {
       const element = document.querySelector(selector);
       if (element) {
-        console.log('element loaded',element);
+        console.log('element loaded: ',selector);
         clearInterval(interval);
         resolve();
       }
@@ -136,7 +137,6 @@ async function login() {
 
   const signInButton = loginModal.querySelector('button[type="submit"]');
   await signInButton.click();
-  delay(1000);
 }
 async function autoComplete(element, value) {
   // Focus on the autocomplete input to trigger the generation of options
@@ -237,6 +237,33 @@ async function selectQuota(element,value) {
     }
   }
 }
+// Function to wait for the app-login element to disappear
+async function waitForAppLoginToDisappear() {
+  // Select the app-login element
+  const appLogin = document.querySelector('app-login');
+
+  // If the app-login element is not found, return immediately
+  if (!appLogin) {
+    return;
+  }
+
+  // Create a promise to track the disappearance of the app-login element
+  return new Promise((resolve, reject) => {
+    // Create a mutation observer to watch for changes in the DOM
+    const observer = new MutationObserver((mutationsList, observer) => {
+      // Check if the app-login element is still in the DOM
+      if (!document.contains(appLogin)) {
+        // If the app-login element has been removed, resolve the promise
+        resolve();
+        // Disconnect the observer
+        observer.disconnect();
+      }
+    });
+
+    // Start observing changes in the DOM, targeting the removal of the app-login element
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+}
 // Function to fill Journey Details
 async function searchTrain(){
   let journeyInput = document.querySelector('app-jp-input');
@@ -249,8 +276,6 @@ async function searchTrain(){
   await autoComplete(destination,to);
   await typeDate(jDate,dateString);
   await selectQuota(quota,quotaType);
-  const searchButton = journeyInput.querySelector('button[type="submit"]');
-  await searchButton.click();
 }
 // Function to update Journey Details
 async function modifySearchTrain(){
@@ -269,7 +294,7 @@ async function modifySearchTrain(){
 }
 async function callSearchTrainComponent(){
   let journeyComponent = document.querySelector('app-jp-input');
-  
+
   if(journeyComponent){
     await searchTrain();
   }
@@ -331,6 +356,7 @@ async function scrollToFoundTrainAndSelectClass() {
     console.log('No matching accommodation class found:', accommodationClass);
     return;
   }
+  delay(200);
   await selectedClass.click();
 
   console.log(
@@ -355,11 +381,10 @@ async function selectAvailableTicket() {
 async function refreshTrain() {
   try {
     const rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
-
     const selectedTab = rootElement.querySelector(
       'p-tabmenu li[role="tab"][aria-selected="true"][aria-expanded="true"] a>div'
     );
-
+    delay(100);
     // Simulate a click on the selected tab
     if (selectedTab) {
       await selectedTab.click();
@@ -378,7 +403,7 @@ async function bookTicket() {
 
   await scrollToFoundTrainAndSelectClass();
 
-  await delay(500);
+  await delay(1000);
 
   let rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
 
@@ -386,10 +411,10 @@ async function bookTicket() {
 
   while (bookTicketButton) {
     await selectAvailableTicket(); // Select available ticket
-
+    delay(100);
     rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition]; // Update the root element reference
     bookTicketButton = rootElement.querySelector('button.btnDefault.train_Search'); // Update the button reference
-    
+
     if (!bookTicketButton.classList.contains('disable-book')) {
       // If the button is enabled, break the loop
       break;
@@ -517,24 +542,21 @@ async function fillAllPassenger() {
 }
 async function selectPaymentType() {
   // Find all input elements of type radio
-  var inputs = document.querySelectorAll(
+  var input = document.querySelectorAll(
     'input[type="radio"][name="paymentType"]'
-  );
+  )[1];
 
-  if (inputs) {
-    // Loop through each input element using for...of loop
-    for (let input of inputs) {
-      // Get the corresponding label element
-      var label = input && input.closest('label');
+  // Get the corresponding label element
+  var label = input && input.closest('label');
 
-      // Check if the label element exists and its text content matches the specified text
-      if (label && textIncludes(label.textContent, paymentType)) {
-        // Trigger a click event on the input radio element
-        await input.click();
-        console.log('Clicked on radio button for:', paymentType);
-        return; // Exit the loop after clicking the input radio
-      }
-    }
+  // Check if the label element exists and its text content matches the specified text
+  if (label && textIncludes(label.textContent, paymentType)) {
+    scrollToElement(input);
+    delay(50);
+    // Trigger a click event on the input radio element
+    await input.click();
+    console.log('Clicked on radio button for:', paymentType);
+    return; // Exit the loop after clicking the input radio
   }
 }
 async function waitForPassengerAgeInput() {
@@ -542,7 +564,6 @@ async function waitForPassengerAgeInput() {
   var ageInput = document.querySelector(
     'input[formcontrolname="passengerAge"]'
   );
-
   // Wait until the age input field is not empty
   while (ageInput && ageInput.value === '') {
     // Wait for 500 milliseconds before checking again
@@ -561,6 +582,7 @@ async function addPassengerInputAndContinue() {
 
   // Call the function to select the radio button
   await selectPaymentType();
+  delay(1000);
 
   // Find the "Continue" button
   var continueButton = document.querySelector(
@@ -569,6 +591,7 @@ async function addPassengerInputAndContinue() {
 
   // Check if the button exists
   if (continueButton) {
+    continueButton.focus();
     // Simulate a click on the button
     await continueButton.click();
   } else {
@@ -664,14 +687,47 @@ async function clickPayButton() {
     console.log("No button found containing 'Pay'.");
   }
 }
+function waitForTargetTime() {
+  // Define the interval function
+  intervalId = setInterval(() => {
+    // Extract the current time element
+    const currentTimeElement = document.querySelector('app-header .h_head1>span strong');
+
+    if (!currentTimeElement) {
+      console.error('Current time element not found.');
+      return;
+    }
+
+    // Extract the current time string from the element
+    const currentTimeString = currentTimeElement.textContent.trim();
+    const [, timeString] = currentTimeString.match(/\[(\d+:\d+:\d+)\]/);
+
+    // Split the current time string and target time string on ":"
+    const [currentHour, currentMinute, currentSecond] = timeString.split(':').map(Number);
+    const [targetHour, targetMinute, targetSecond] = targetTime.split(':').map(Number);
+
+    // Compare the current time with the target time
+    if (currentHour >= targetHour && currentMinute >= targetMinute && currentSecond >= targetSecond) {
+      const searchButton = document.querySelector('button[type="submit"][label="Find Trains"].search_btn.train_Search');
+      if (searchButton) {
+        searchButton.click();
+        clearInterval(intervalId); // Stop the interval once the action is triggered
+      } else {
+        console.error('Search button not found.');
+      }
+    }
+  }, 1000); // Interval set to 1 second (1000 milliseconds)
+}
 async function executeFunctions() {
   // wait for home page to load
   await waitForElementToAppear('app-header');
-  // login page
+
+  // login page < Page 0 > (a prompt will appear to fill captcha)
   await login();
-
+  await waitForAppLoginToDisappear();
   await callSearchTrainComponent();
-
+  waitForTargetTime();
+  
   // wait for train list page to load
   await waitForElementToAppear('app-train-list');
 
@@ -687,7 +743,7 @@ async function executeFunctions() {
   // Wait for the ticket review and Captcha page load
   await waitForElementToAppear('app-review-booking');
 
-  // Review and Captcha <Page 3>
+  // Review and Captcha <Page 3>   (a prompt will appear to fill captcha)
   await handleCaptchaAndContinue();
 
   // Wait for the app-payment-options element to appear on the page after the transition
@@ -696,7 +752,8 @@ async function executeFunctions() {
   // Payment Selection <Page 4>
   await selectPaymentMethod();
   await selectPaymentProvider();
-  //await clickPayButton();
+  await clickPayButton();
+  // now scan the QR and do the the payment
 }
 
 executeFunctions();
