@@ -1,8 +1,8 @@
 /* if multiple passenger provide comma separated passenger name
 (name should match with irctc master data ) */
 
-const username = '';
-const password = '';
+let username = '';
+let password = '';
 let targetTime ='10:00:10'
 let passengerNames = 'Deepak';
 let trainNumber = '11061';
@@ -12,14 +12,15 @@ let quotaType = 'TATKAL';
 let accommodationClass = '3A';
 let dateString = '25/04/2024';
 let refreshTime = 5000; // 5 seconds;
-const paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / net banking
-const paymentMethod = 'BHIM/ UPI/ USSD';
-const paymentProvider = 'PAYTM'; // paytm or amazon
-const payButton = 'Pay & Book ';
+let paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / net banking
+let paymentMethod = 'BHIM/ UPI/ USSD';
+let paymentProvider = 'PAYTM'; // paytm or amazon
+let payButton = 'Pay & Book ';
 
 var intervalId;
 let copyPassengerNames = '';
 let trainFoundAtPosition = -1;
+
 
 // Function to wait for the insertion of elements with a specific class
 function waitForElementInsertion(className) {
@@ -133,10 +134,11 @@ async function login() {
   );
   await simulateTyping(usernameInput, username);
   await simulateTyping(passwordInput, password);
-  await fillLoginCaptcha();
-
-  const signInButton = loginModal.querySelector('button[type="submit"]');
-  await signInButton.click();
+  if(username && password){
+    await fillLoginCaptcha();
+    const signInButton = loginModal.querySelector('button[type="submit"]');
+    await signInButton.click();
+  }
 }
 async function autoComplete(element, value) {
   // Focus on the autocomplete input to trigger the generation of options
@@ -254,6 +256,7 @@ async function waitForAppLoginToDisappear() {
       // Check if the app-login element is still in the DOM
       if (!document.contains(appLogin)) {
         // If the app-login element has been removed, resolve the promise
+        console.log('app-login disappear');
         resolve();
         // Disconnect the observer
         observer.disconnect();
@@ -721,7 +724,56 @@ function waitForTargetTime() {
     }
   }, 1000); // Interval set to 1 second (1000 milliseconds)
 }
-async function executeFunctions() {
+function getSettings() {
+  // Read data from Chrome storage
+  chrome.storage.local.get(
+    {
+      username: username,
+      password: password,
+      targetTime: targetTime,
+      passengerNames: passengerNames,
+      trainNumber: trainNumber,
+      from: from,
+      to: to,
+      quotaType: quotaType,
+      accommodationClass: accommodationClass,
+      dateString: dateString,
+      refreshTime: refreshTime,
+    },
+    function (items) {
+      username = items.username;
+      password = items.password;
+      targetTime = items.targetTime;
+      passengerNames = items.passengerNames;
+      trainNumber = items.trainNumber;
+      from = items.from;
+      to = items.to;
+      quotaType = items.quotaType;
+      accommodationClass = items.accommodationClass;
+      dateString = items.dateString;
+      refreshTime = items.refreshTime;
+    }
+  );
+
+  chrome.storage.local.get(
+    {
+      paymentType: paymentType,
+      paymentMethod: paymentMethod,
+      paymentProvider: paymentProvider,
+      payButton: payButton,
+    },
+    function (items) {
+      paymentType = items.paymentType;
+      paymentMethod = items.paymentMethod;
+      paymentProvider = items.paymentProvider;
+      payButton = items.payButton;
+    }
+  );
+}
+async function executeFunctions() { 
+  // read the user data
+  getSettings();
+  console.log('username: '+username+',quota type: '+quotaType);
   // wait for home page to load
   await waitForElementToAppear('app-header');
 

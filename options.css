@@ -18,44 +18,46 @@ html {
   padding: 0 10px;
 }
 
-#warning {
-  display: none;
-  margin-bottom: 30px;
-}
+  /* Add custom styles here */
+  body {
+    background-color: #080f1b;
+    color: #ffffff;
+  }
 
-label {
-  display: flex;
-  align-items: center;
-}
+  .form-section {
+    margin-bottom: 20px;
+  }
 
-label input {
-  margin-right: 10px;
-}
+  .form-group label {
+    color: #99a5bf;
+  }
 
-textarea {
-  resize: none;
-  width: calc(100% - 35px);
-  border: 2px solid black;
-  background: rgb(34, 34, 34);
-  padding: 15px;
-  color: white;
-}
+      .form-group input, .form-group textarea, .form-group select {
+    background-color: #1d253b;
+    border-color: #39465e;
+    color: #ffffff;
+  }
 
-textarea:focus {
-  border: 2px solid grey;
-  outline: none;
-}
+      .form-group input::placeholder, .form-group textarea::placeholder, .form-group select::placeholder {
+    color: #99a5bf;
+  }
 
-button {
-  margin: 20px 0;
-}
+  .btn-primary {
+    background-color: #3498db;
+    border-color: #3498db;
+  }
 
-/* Hide custom script textarea by default */
-#custom-script-wrapper {
-  display: none;
-}
+  .btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+  }
+  /* Update payment information styles */
+      #paymentInfo .form-group input, #paymentInfo .form-group select {
+    background-color: #1d253b;
+    border-color: #39465e;
+    color: #ffffff;
+  }
 
-/* Only show custom script textarea when custom type is selected */
-form:has(input[name='type'][value='custom']:checked) #custom-script-wrapper {
-  display: block;
+      #paymentInfo .form-group input::placeholder, #paymentInfo .form-group select::placeholder {
+    color: #99a5bf;
 }
