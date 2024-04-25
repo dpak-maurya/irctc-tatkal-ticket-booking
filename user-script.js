@@ -1,22 +1,29 @@
 /* if multiple passenger provide comma separated passenger name
 (name should match with irctc master data ) */
-
+let automationStatus = false;
 let username = '';
 let password = '';
-let targetTime ='10:00:10'
-let passengerNames = 'Deepak';
-let trainNumber = '11061';
-let from = 'LTT';
-let to = 'BSB';
-let quotaType = 'TATKAL';
-let accommodationClass = '3A';
-let dateString = '25/04/2024';
+let targetTime ='10:00:00'
+let passengerNames = '';
+let trainNumber = '';
+let from = '';
+let to = '';
+let quotaType = '';
+let accommodationClass = '';
+let dateString = '';
 let refreshTime = 5000; // 5 seconds;
 let paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / net banking
 let paymentMethod = 'BHIM/ UPI/ USSD';
 let paymentProvider = 'PAYTM'; // paytm or amazon
-let payButton = 'Pay & Book ';
+let autoPay = false;  // auto click on pay button
 
+const allKeys = [
+  "username", "password", "targetTime", "passengerNames", "trainNumber",
+  "from", "to", "quotaType", "accommodationClass", "dateString", "refreshTime",
+  "autoPay", "paymentType", "paymentMethod", "paymentProvider"
+];
+
+const payButton = 'Pay & Book ';
 var intervalId;
 let copyPassengerNames = '';
 let trainFoundAtPosition = -1;
@@ -64,6 +71,27 @@ async function waitForElementToAppear(selector) {
     }, 500); // Adjust the interval as needed
   });
 }
+async function waitForElementToAppear(selector) {
+  const startTime = new Date(); // Record the start time
+  return new Promise((resolve) => {
+    const interval = setInterval(() => {
+      const element = document.querySelector(selector);
+      if (element) {
+        clearInterval(interval);
+        const endTime = new Date(); // Record the end time
+        console.log(
+          'Element loaded:',
+          selector,
+          'Time taken:',
+          endTime - startTime,
+          'ms'
+        );
+        resolve();
+      }
+    }, 500);
+  });
+}
+
 // Function to introduce a small delay
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -399,6 +427,7 @@ async function refreshTrain() {
   }
 }
 async function bookTicket() {
+  const startTime = new Date(); // Record the start time
   await findRootTrain();
 
   // No train found;
@@ -426,7 +455,9 @@ async function bookTicket() {
       await delay(refreshTime); // Add a delay before checking the button state again
     }
   }
-
+  const endTime = new Date(); // Record the end time
+  console.log('Search Train and Select Class Page Time taken:', endTime - startTime, 'ms');
+  console.log(endTime);
   // Proceed with booking the ticket
   bookTicketButton.click();
 }
@@ -573,7 +604,7 @@ async function waitForPassengerAgeInput() {
   // Wait until the age input field is not empty
   while (ageInput && ageInput.value === '') {
     // Wait for 500 milliseconds before checking again
-    await delay(200);
+    await delay(1000);
   }
 }
 async function addPassengerInputAndContinue() {
@@ -652,7 +683,7 @@ async function selectPaymentMethod() {
       if (textIncludes(element.textContent, paymentMethod)) {
         // Click on the element
         await element.click();
-        console.log('Clicked on element:', element);
+        console.log('Clicked on :', paymentMethod);
         return; // Exit the loop after clicking the element
       }
     }
@@ -678,7 +709,7 @@ async function selectPaymentProvider() {
       }
     }
   }
-  console.log("No text found containing 'PAYTM'.");
+  console.log("No text found containing",paymentProvider);
 }
 async function clickPayButton() {
   // Find the button with the class "btn-primary" and "ng-star-inserted"
@@ -725,55 +756,50 @@ function waitForTargetTime() {
   }, 1000); // Interval set to 1 second (1000 milliseconds)
 }
 function getSettings() {
-  // Read data from Chrome storage
-  chrome.storage.local.get(
-    {
-      username: username,
-      password: password,
-      targetTime: targetTime,
-      passengerNames: passengerNames,
-      trainNumber: trainNumber,
-      from: from,
-      to: to,
-      quotaType: quotaType,
-      accommodationClass: accommodationClass,
-      dateString: dateString,
-      refreshTime: refreshTime,
-    },
-    function (items) {
-      username = items.username;
-      password = items.password;
-      targetTime = items.targetTime;
-      passengerNames = items.passengerNames;
-      trainNumber = items.trainNumber;
-      from = items.from;
-      to = items.to;
-      quotaType = items.quotaType;
-      accommodationClass = items.accommodationClass;
-      dateString = items.dateString;
-      refreshTime = items.refreshTime;
-    }
-  );
 
-  chrome.storage.local.get(
-    {
-      paymentType: paymentType,
-      paymentMethod: paymentMethod,
-      paymentProvider: paymentProvider,
-      payButton: payButton,
-    },
-    function (items) {
-      paymentType = items.paymentType;
-      paymentMethod = items.paymentMethod;
-      paymentProvider = items.paymentProvider;
-      payButton = items.payButton;
+  chrome.storage.local.get(allKeys, function (items,error) {
+    if (error) {
+      console.error("Error retrieving settings:", error);
+      // Handle the error here, maybe use default values
+      return;
     }
-  );
+    username = items.username;
+    password = items.password;
+    targetTime = items.targetTime;
+    passengerNames = items.passengerNames;
+    trainNumber = items.trainNumber;
+    from = items.from;
+    to = items.to;
+    quotaType = items.quotaType;
+    accommodationClass = items.accommodationClass;
+    dateString = items.dateString;
+    refreshTime = items.refreshTime;
+    autoPay = items.autoPay;
+    paymentType = items.paymentType;
+    paymentMethod = items.paymentMethod;
+    paymentProvider = items.paymentProvider;
+  });
 }
+function getAutomationStatus() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(
+      {
+        automationStatus: false, // Default value if not found
+      },
+      function (items) {
+        const automationStatus = items.automationStatus;
+        resolve(automationStatus);
+      }
+    );
+  });
+}
+
 async function executeFunctions() { 
-  // read the user data
+  const currentAutomationStatus = await getAutomationStatus();
+  if (!currentAutomationStatus) return;
+  // read the passenger information for ticket booking
   getSettings();
-  console.log('username: '+username+',quota type: '+quotaType);
+
   // wait for home page to load
   await waitForElementToAppear('app-header');
 
@@ -807,8 +833,12 @@ async function executeFunctions() {
   // Payment Selection <Page 4>
   await selectPaymentMethod();
   await selectPaymentProvider();
-  // await clickPayButton();
-  // now scan the QR and do the the payment
+
+  if(autoPay){
+    await clickPayButton();
+    // now scan the QR and do the the payment
+  }
+ 
 }
 
 executeFunctions();
