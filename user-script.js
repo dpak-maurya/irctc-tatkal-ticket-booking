@@ -27,7 +27,8 @@ const payButton = 'Pay & Book ';
 var intervalId;
 let copyPassengerNames = '';
 let trainFoundAtPosition = -1;
-
+let isAvlEnquiryCompleted = false;
+let mutationCompletionCounter = 1;
 
 // Function to wait for the insertion of elements with a specific class
 function waitForElementInsertion(className) {
@@ -71,6 +72,7 @@ async function waitForElementToAppear(selector) {
     }, 500); // Adjust the interval as needed
   });
 }
+// Define a function to wait for an element to appear on the page
 async function waitForElementToAppear(selector) {
   const startTime = new Date(); // Record the start time
   return new Promise((resolve) => {
@@ -91,7 +93,14 @@ async function waitForElementToAppear(selector) {
     }, 500);
   });
 }
-
+// Function to convert month abbreviation to number
+function monthToNumber(month) {
+  const monthMap = {
+    'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
+    'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+  };
+  return monthMap[month];
+}
 // Function to introduce a small delay
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -334,6 +343,7 @@ async function callSearchTrainComponent(){
   }
 }
 async function findRootTrain() {
+  delay(500);
   const trainHeadingElements = document.querySelectorAll(
     'app-train-avl-enq .train-heading'
   );
@@ -371,7 +381,7 @@ async function scrollToFoundTrainAndSelectClass() {
     console.log('No available classes found.');
     return;
   }
-
+  delay(500);
   let selectedClass = null;
   for (let availableClass of availableClasses) {
     const classNameElement = availableClass.querySelector('strong');
@@ -397,17 +407,6 @@ async function scrollToFoundTrainAndSelectClass() {
     accommodationClass
   );
 }
-// select first available date in selected Class
-async function selectAvailableTicket() {
-  let rootElement=document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
-
-  // Select the first available date
-  const availableDate = rootElement.querySelector('.pre-avl');
-
-  if (availableDate) {
-    await availableDate.click();
-  }
-}
 // refresh the train by clicking selected open class tab
 async function refreshTrain() {
   try {
@@ -426,6 +425,64 @@ async function refreshTrain() {
     console.error('An error occurred while refreshing the train:', error);
   }
 }
+async function selectAvailableTicket() {
+  let rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
+
+  // Select the first available date
+  const availableDateElement = rootElement.querySelector('.pre-avl');
+
+  if (availableDateElement) {
+    // Extract the date string from the first strong element
+    const avlDate = availableDateElement.querySelector('strong').textContent;
+    
+    // Parse the date string to extract day and month
+    const [day, month] = avlDate.split(', ')[1].split(' ');
+    const [tday,tmonth,_]= dateString.split('/');
+
+    // Check if the formatted date matches the desired date '25/04'
+    if (day === tday && monthToNumber(month)===tmonth) {
+      await availableDateElement.click(); // Click on the available date
+      await delay(100); // Adjust the delay as needed
+
+      // Check if the book ticket button is available
+      const bookTicketButton = rootElement.querySelector('button.btnDefault.train_Search');
+      if (bookTicketButton && !bookTicketButton.classList.contains('disable-book')) {
+        await bookTicketButton.click(); // Click on the book ticket button
+        return true; // Indicate that the ticket is selected
+      }
+    }
+  }
+  return false; // Indicate that the ticket selection failed
+}
+// Create a new MutationObserver
+const observer = new MutationObserver((mutationsList, observer) => {
+  // Check if any mutations occurred
+  for (let mutation of mutationsList) {
+    // Check if nodes were added 
+    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+      mutationCompletionCounter++;
+      // Iterate over added nodes
+      for (let node of mutation.addedNodes) {
+        // Check if node matches the selector
+        if (node.matches('.link.ng-star-inserted')) {
+          // Call selectAvailableTicket function
+          selectAvailableTicket()
+            .then((ticketSelected) => {
+              if (ticketSelected) {
+                isAvlEnquiryCompleted = true;
+                return;
+              }
+              // If ticket selection failed, reset the completion flag
+              isAvlEnquiryCompleted = false;
+            });
+          // For example, you can click on the element or store a reference to it
+          console.log('Found element:', node);
+        }
+      }
+    }
+  }
+});
+
 async function bookTicket() {
   const startTime = new Date(); // Record the start time
   await findRootTrain();
@@ -439,27 +496,23 @@ async function bookTicket() {
 
   let rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
 
-  let bookTicketButton = rootElement.querySelector('button.btnDefault.train_Search');
+  // Start observing mutations on the parent element
+  observer.observe(rootElement, { childList: true, subtree: true });
 
-  while (bookTicketButton) {
-    await selectAvailableTicket(); // Select available ticket
-    delay(100);
-    rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition]; // Update the root element reference
-    bookTicketButton = rootElement.querySelector('button.btnDefault.train_Search'); // Update the button reference
-
-    if (!bookTicketButton.classList.contains('disable-book')) {
-      // If the button is enabled, break the loop
-      break;
-    } else {
-      await refreshTrain(); // If button is disabled, refresh the train
-      await delay(refreshTime); // Add a delay before checking the button state again
+  while (!isAvlEnquiryCompleted) {
+    // Check if any new mutations occurred since the last refresh
+    if (mutationCompletionCounter > 0) {
+      // Reset the counters
+      mutationCompletionCounter = 0;
+      await refreshTrain(); // Refresh the train
     }
+    await delay(refreshTime); // Adjust the delay as needed
   }
+
+  // Proceed with booking the ticket
   const endTime = new Date(); // Record the end time
   console.log('Search Train and Select Class Page Time taken:', endTime - startTime, 'ms');
   console.log(endTime);
-  // Proceed with booking the ticket
-  bookTicketButton.click();
 }
 // Function to check for the presence of the popup and close it if it exists
 function closePopupIfPresent() {
@@ -529,6 +582,7 @@ function selectAutocompleteOption(index=0,name = passengerNames) {
           bubbles: true,
           cancelable: true
       });
+      delay(100);
       // Append the current character of the name to the input value
       autocompleteInput.value += name[i];
       // Dispatch the input event
@@ -613,19 +667,20 @@ async function addPassengerInputAndContinue() {
 
   // for single and multiple passengers separated by commas and matching unique with master data
   await fillAllPassenger();
+  delay(600);
 
   // Wait for the age input field to be filled
   await waitForPassengerAgeInput();
 
   // Call the function to select the radio button
   await selectPaymentType();
-  delay(1000);
+  delay(200);
 
   // Find the "Continue" button
   var continueButton = document.querySelector(
     'app-passenger-input button.btnDefault.train_Search'
   );
-
+  delay(200);
   // Check if the button exists
   if (continueButton) {
     continueButton.focus();
