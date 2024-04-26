@@ -4,7 +4,7 @@ let automationStatus = false;
 let username = '';
 let password = '';
 let targetTime ='10:00:00'
-let passengerNames = '';
+let passengerList = [];
 let trainNumber = '';
 let from = '';
 let to = '';
@@ -16,19 +16,19 @@ let paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / ne
 let paymentMethod = 'BHIM/ UPI/ USSD';
 let paymentProvider = 'PAYTM'; // paytm or amazon
 let autoPay = false;  // auto click on pay button
+let autoProcessPopup = false;
 
 const allKeys = [
-  "username", "password", "targetTime", "passengerNames", "trainNumber",
+  "username", "password", "targetTime", "passengerList", "trainNumber",
   "from", "to", "quotaType", "accommodationClass", "dateString", "refreshTime",
   "autoPay", "paymentType", "paymentMethod", "paymentProvider"
 ];
 
 const payButton = 'Pay & Book ';
 var intervalId;
-let copyPassengerNames = '';
 let trainFoundAtPosition = -1;
 let isAvlEnquiryCompleted = false;
-let mutationCompletionCounter = 1;
+let mutationCompletionCounter = 0;
 
 // Function to wait for the insertion of elements with a specific class
 function waitForElementInsertion(className) {
@@ -460,21 +460,11 @@ const observer = new MutationObserver((mutationsList, observer) => {
   for (let mutation of mutationsList) {
     // Check if nodes were added 
     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-      mutationCompletionCounter++;
       // Iterate over added nodes
       for (let node of mutation.addedNodes) {
         // Check if node matches the selector
         if (node.matches('.link.ng-star-inserted')) {
-          // Call selectAvailableTicket function
-          selectAvailableTicket()
-            .then((ticketSelected) => {
-              if (ticketSelected) {
-                isAvlEnquiryCompleted = true;
-                return;
-              }
-              // If ticket selection failed, reset the completion flag
-              isAvlEnquiryCompleted = false;
-            });
+          mutationCompletionCounter++;
           // For example, you can click on the element or store a reference to it
           console.log('Found element:', node);
         }
@@ -489,66 +479,57 @@ async function bookTicket() {
 
   // No train found;
   if (trainFoundAtPosition === -1) return;
-
+  let rootElement =
+  document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
+  // Start observing mutations on the parent element
+  observer.observe(rootElement, { childList: true, subtree: true });
+  
   await scrollToFoundTrainAndSelectClass();
 
   await delay(1000);
 
-  let rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
-
-  // Start observing mutations on the parent element
-  observer.observe(rootElement, { childList: true, subtree: true });
-
   while (!isAvlEnquiryCompleted) {
     // Check if any new mutations occurred since the last refresh
     if (mutationCompletionCounter > 0) {
-      // Reset the counters
-      mutationCompletionCounter = 0;
-      await refreshTrain(); // Refresh the train
+        try {
+            const ticketSelected = await selectAvailableTicket();
+            if (ticketSelected) {
+                isAvlEnquiryCompleted = true;
+            } else {
+                // If ticket selection failed, reset the completion flag
+                isAvlEnquiryCompleted = false;
+                // Reset the counters
+                mutationCompletionCounter = 0;
+                await refreshTrain(); // Refresh the train
+            }
+        } catch (error) {
+            // Handle any errors that occur during ticket selection or train refresh
+            console.error("An error occurred:", error);
+            // Optionally, you can choose to break the loop or handle the error differently
+        }
     }
     await delay(refreshTime); // Adjust the delay as needed
-  }
+}
 
   // Proceed with booking the ticket
   const endTime = new Date(); // Record the end time
-  console.log('Search Train and Select Class Page Time taken:', endTime - startTime, 'ms');
+  console.log(
+    'Search Train and Select Class Page Time taken:',
+    endTime - startTime,
+    'ms'
+  );
   console.log(endTime);
 }
 // Function to check for the presence of the popup and close it if it exists
-function closePopupIfPresent() {
-  let popup = document.querySelector('.popup-element');
+function closePopupToProceed() {
+  let popup = document.querySelector('p-confirmdialog[key="tofrom"]');
+  
   if (popup) {
     // Close the popup by clicking the close button or any other suitable action
-    popup.querySelector('.close-button').click();
+    document.querySelector('.ui-confirmdialog-acceptbutton').click();
     console.log('Popup closed.');
   } else {
     console.log('Popup not found.');
-  }
-}
-async function selectPassenger(index, item) {
-  try {
-    if (item) {
-      var ageInput = document.querySelectorAll(
-        'app-passenger input[formcontrolname="passengerAge"]'
-      )[index];
-
-      // Wait until the age input field is not empty
-      while (ageInput && ageInput.value === '') {
-        await item.click();
-        // Wait for 500 milliseconds before checking again
-        await delay(200);
-      }
-      console.log('selected item:', item.textContent.trim());
-    }
-  } catch (error) {
-    console.error('Error selecting item:', error);
-  }
-}
-function processInput() {
-  copyPassengerNames = passengerNames.split(',');
-
-  if (copyPassengerNames.length === 0) {
-    console.log('No passenger names found.');
   }
 }
 async function addNextRow() {
@@ -562,118 +543,81 @@ async function addNextRow() {
     console.log('Span text does not match or element not found.');
   }
 }
-
-//autocomplete function
-function selectAutocompleteOption(index=0,name = passengerNames) {
-  var rows = document.querySelectorAll('app-passenger');
-  // Find the autocomplete input element
-  var autocompleteInput = rows[index].querySelector('p-autocomplete input');
-
-  // Clear the current value of the autocomplete input field
-  autocompleteInput.value = '';
-
-  // Focus on the autocomplete input to trigger the generation of options
-  autocompleteInput.focus();
-
-  // Simulate user input by dispatching input events
-  for (var i = 0; i < name.length; i++) {
-      // Create and dispatch an input event with each character of the name
-      var inputEvent = new Event('input', {
-          bubbles: true,
-          cancelable: true
-      });
-      delay(100);
-      // Append the current character of the name to the input value
-      autocompleteInput.value += name[i];
-      // Dispatch the input event
-      autocompleteInput.dispatchEvent(inputEvent);
-  }
-
-  // Wait for a short delay to ensure the options are generated
-  setTimeout(function() {
-      // Get all list items within the autocomplete dropdown
-      var listItems = document.querySelectorAll('.ui-autocomplete-items li');
-
-      // Loop through each list item
-      listItems.forEach(function(item) {
-          // Get the text content of the list item
-          var itemText = item.textContent.trim();
-          
-          // Check if the text content contains the name substring
-          if (itemText.toLowerCase().includes(name.toLowerCase())) {
-              // Select the list item by simulating a click
-              item.click();
-              console.log("Selected item:", itemText);
-              // Exit the loop after selecting the item
-              return;
-          }
-      });
-  }, 500); // Adjust the delay as needed
-}
-async function fillAllPassenger() {
-  // Process the input (if needed)
-  processInput();
-
-  // If there's only one passenger name, fill the input data and return
-  if (copyPassengerNames.length === 1) {
-    selectAutocompleteOption();
-    return;
-  }
-
+async function removeFirstRow(){
+  // delete the first row
   const firstRow = document.querySelector(
     'app-passenger-input p-panel a.fa-remove'
   );
-  await firstRow.click();
+  if(firstRow){
+    await firstRow.click();
+  }
+}
+async function addPassengerList() {
+  
+  await removeFirstRow();
+  // Iterate over each passenger in the passengerList array
+  for (var i = 0; i < passengerList.length; i++) {
+    if(!passengerList[i].isSelected) continue;
 
-  for (let index = 0; index < copyPassengerNames.length; index++) {
+    var passenger = passengerList[i];
+    // Add a new row for each passenger
     await addNextRow();
-    selectAutocompleteOption(index, copyPassengerNames[index]);
-    await delay(1000);
+    delay(100);
+    // Select the last added row
+    var rows = document.querySelectorAll('app-passenger');
+    var currentRow = rows[rows.length - 1];
+
+    // Fill passenger details into the newly added row
+    var nameInput = currentRow.querySelector('p-autocomplete[formcontrolname="passengerName"] input');
+    nameInput.value = passenger.name;
+
+    var ageInput = currentRow.querySelector('input[formcontrolname="passengerAge"]');
+    ageInput.value = passenger.age;
+
+    var genderSelect = currentRow.querySelector('select[formcontrolname="passengerGender"]');
+    genderSelect.value = passenger.gender;
+
+    var preferenceSelect = currentRow.querySelector('select[formcontrolname="passengerBerthChoice"]');
+    preferenceSelect.value = passenger.preference;
+
+    // Emit appropriate events for filling passenger details
+    nameInput.dispatchEvent(new Event('input'));
+    ageInput.dispatchEvent(new Event('input'));
+    genderSelect.dispatchEvent(new Event('change'));
+    preferenceSelect.dispatchEvent(new Event('change'));
+    delay(200);
   }
 }
 async function selectPaymentType() {
   // Find all input elements of type radio
-  var input = document.querySelectorAll(
+  var inputs = document.querySelectorAll(
     'input[type="radio"][name="paymentType"]'
-  )[1];
-
-  // Get the corresponding label element
-  var label = input && input.closest('label');
-
-  // Check if the label element exists and its text content matches the specified text
-  if (label && textIncludes(label.textContent, paymentType)) {
-    scrollToElement(input);
-    delay(50);
-    // Trigger a click event on the input radio element
-    await input.click();
-    console.log('Clicked on radio button for:', paymentType);
-    return; // Exit the loop after clicking the input radio
-  }
-}
-async function waitForPassengerAgeInput() {
-  // Find the age input field
-  var ageInput = document.querySelector(
-    'input[formcontrolname="passengerAge"]'
   );
-  // Wait until the age input field is not empty
-  while (ageInput && ageInput.value === '') {
-    // Wait for 500 milliseconds before checking again
-    await delay(1000);
+
+  if (inputs) {
+    // Loop through each input element using for...of loop
+    for (let input of inputs) {
+      // Get the corresponding label element
+      var label = input && input.closest('label');
+
+      // Check if the label element exists and its text content matches the specified text
+      if (label && textIncludes(label.textContent, paymentType)) {
+        // Trigger a click event on the input radio element
+        await input.click();
+        console.log('Clicked on radio button for:', paymentType);
+        return; // Exit the loop after clicking the input radio
+      }
+    }
   }
 }
 async function addPassengerInputAndContinue() {
-  // Call the function to fill passenger name in autocomplete field
-  //await fillInputData();
-
-  // for single and multiple passengers separated by commas and matching unique with master data
-  await fillAllPassenger();
-  delay(600);
-
-  // Wait for the age input field to be filled
-  await waitForPassengerAgeInput();
 
   // Call the function to select the radio button
   await selectPaymentType();
+  delay(200);
+
+  // fill all passenger list
+  await addPassengerList();
   delay(200);
 
   // Find the "Continue" button
@@ -818,21 +762,21 @@ function getSettings() {
       // Handle the error here, maybe use default values
       return;
     }
-    username = items.username;
-    password = items.password;
-    targetTime = items.targetTime;
-    passengerNames = items.passengerNames;
-    trainNumber = items.trainNumber;
-    from = items.from;
-    to = items.to;
-    quotaType = items.quotaType;
-    accommodationClass = items.accommodationClass;
-    dateString = items.dateString;
-    refreshTime = items.refreshTime;
-    autoPay = items.autoPay;
-    paymentType = items.paymentType;
-    paymentMethod = items.paymentMethod;
-    paymentProvider = items.paymentProvider;
+    username = items.username || '';
+    password = items.password || '';
+    targetTime = items.targetTime || '10:00:00';
+    passengerList = items.passengerList || [];
+    trainNumber = items.trainNumber || '';
+    from = items.from || '';
+    to = items.to || '';
+    quotaType = items.quotaType || '';
+    accommodationClass = items.accommodationClass || '';
+    dateString = items.dateString || '';
+    refreshTime = items.refreshTime || 5000;
+    autoPay = items.autoPay || false;
+    paymentType = items.paymentType || 'BHIM/UPI' ;
+    paymentMethod = items.paymentMethod || 'BHIM/ UPI/ USSD';
+    paymentProvider = items.paymentProvider || 'PAYTM';
   });
 }
 function getAutomationStatus() {
@@ -869,6 +813,10 @@ async function executeFunctions() {
 
   // select train and accommodation class < Page 1 >
   await bookTicket();
+
+  if(autoProcessPopup){
+    closePopupToProceed();
+  }
 
   // Wait for passenger page to load
   await waitForElementToAppear('app-passenger-input');

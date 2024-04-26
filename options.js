@@ -4,7 +4,6 @@ const initialFormValues = {
   username: '',
   password: '',
   targetTime: '10:00:10',
-  passengerNames: '',
   refreshTime: '5000',
   trainNumber: '11061',
   from: 'LTT',
@@ -170,6 +169,129 @@ async function updateButtonText() {
     button.textContent = 'Go To IRCTC Website';
   }
 }
+// Function to display passengerList in a table
+function displayPassengers() {
+  var passengerListTable = document.getElementById("passengerList");
+  passengerListTable.innerHTML = ""; // Clear previous content
+  
+  chrome.storage.local.get("passengerList", function(data) {
+    if (data.passengerList && data.passengerList.length > 0) {
+      data.passengerList.forEach(function(passenger, index) {
+        var row = passengerListTable.insertRow();
+        
+        var cellSelect = row.insertCell(0);
+        var cellName = row.insertCell(1);
+        var cellAge = row.insertCell(2);
+        var cellGender = row.insertCell(3);
+        var cellPreference = row.insertCell(4);
+        var cellAction = row.insertCell(5);
+        
+        cellSelect.innerHTML = `<input type="checkbox" class="passengerCheckbox" ${passenger.isSelected ? 'checked' : ''}>`;
+        cellName.textContent = passenger.name;
+        cellAge.textContent = passenger.age;
+        cellGender.textContent = passenger.gender;
+        cellPreference.textContent = passenger.preference;
+        cellAction.innerHTML = `<button class="deleteBtn btn btn-danger">Delete</button>`;
+      });
+    } else {
+      var row = passengerListTable.insertRow();
+      var cell = row.insertCell(0);
+      cell.colSpan = 6;
+      cell.textContent = "No passengers found.";
+    }
+  });
+}
+// Function to add event listeners for passengers
+function addEventListeners() {  
+  
+  var passengerTable = document.getElementById("passengerTable");
 
-// Call the function to update the button text when the page loads
-document.addEventListener('DOMContentLoaded', updateButtonText);
+   // Add event listener for checkbox selection
+   passengerTable.addEventListener("change", function(event) {
+    var target = event.target;
+    if (target.classList.contains("passengerCheckbox")) {
+      var index = target.closest("tr").rowIndex - 1; // Adjust index due to header row
+      updateCheckboxSelection(index, target.checked);
+    }
+  });
+
+  // Add event listeners for "Delete" buttons dynamically
+  passengerTable.addEventListener("click", function(event) {
+    var target = event.target;
+    if (target.classList.contains("deleteBtn")) {
+      var index = target.closest("tr").rowIndex - 1; // Adjust index due to header row
+      deletePassenger(index);
+    }
+  });
+  
+}
+// Function to update checkbox selection in Chrome storage
+function updateCheckboxSelection(index, isSelected) {
+  chrome.storage.local.get("passengerList", function(data) {
+    var passengerList = data.passengerList || [];
+    if (index >= 0 && index < passengerList.length) {
+      passengerList[index].isSelected = isSelected;
+      chrome.storage.local.set({ passengerList: passengerList }, function() {
+        // Optionally, you can perform any additional actions after updating the storage
+      });
+    } else {
+      console.error("Invalid index.");
+    }
+  });
+}
+// Function to delete a passenger
+function deletePassenger(index) {
+  chrome.storage.local.get("passengerList", function(data) {
+    var passengerList = data.passengerList || [];
+    if (index >= 0 && index < passengerList.length) {
+      passengerList.splice(index, 1);
+      chrome.storage.local.set({ passengerList: passengerList }, function() {
+        displayPassengers();
+      });
+    } else {
+      console.error("Invalid index.");
+    }
+  });
+}
+// Function to add event listener to the form
+function addFormEventListener() {
+  var addPassengerForm = document.getElementById("addPassengerForm");
+  addPassengerForm.addEventListener("submit", function(event) {
+    event.preventDefault(); // Prevent form submission
+    
+    // Get form values
+    var name = document.getElementById("name").value;
+    var age = parseInt(document.getElementById("age").value);
+    var gender = document.getElementById("gender").value;
+    var preference = document.getElementById("preference").value;
+    
+    if (name && !isNaN(age) && gender) {
+      var passenger = {
+        isSelected:true,
+        name: name,
+        age: age,
+        gender: gender,
+        preference: preference
+      };
+      
+      chrome.storage.local.get("passengerList", function(data) {
+        var passengerList = data.passengerList || [];
+        passengerList.push(passenger);
+        chrome.storage.local.set({ passengerList: passengerList }, function() {
+          displayPassengers();
+        });
+      });
+      
+      // Reset form fields
+      addPassengerForm.reset();
+    } else {
+      alert("Please fill in all fields correctly.");
+    }
+  });
+}
+// Call displayPassengers and addEventListeners when the page loads
+window.addEventListener("load", function() {
+  displayPassengers();
+  addEventListeners();
+  addFormEventListener();
+});

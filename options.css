@@ -120,5 +120,29 @@ input:checked + .slider.round:before {
   color: #99a5bf;
 }
 
+#container {
+  margin-top: 20px;
+}
+
+/* Update table styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #0b0f27; /* Darker background color */
+}
+
+th, td {
+  border: 1px solid #294b73; /* Darker border color */
+  padding: 10px;
+  text-align: center; /* Center-align cell contents */
+  vertical-align: middle; /* Center-align vertically */
+}
+
+th {
+  background-color: #0f3d6b; /* Darker header background color */
+  color: #fff;
+}
+
 
 

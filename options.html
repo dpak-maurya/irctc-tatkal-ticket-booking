@@ -31,7 +31,7 @@
       <div class="row">
         <div class="col-md-4">
           <div class="form-section" id="loginInfo">
-            <h3 class="text-info">Login Information</h3>
+            <h3 class="text-info">Login Details</h3>
             <div class="form-group">
               <label for="username">Username:</label>
               <input type="text" class="form-control" id="username" placeholder="Enter Irctc username">
@@ -44,7 +44,7 @@
 
           </div>
           <div class="form-section mt-5" id="sessionInfo">
-            <h3 class="text-info">Timer Information</h3>
+            <h3 class="text-info">Timer Details</h3>
             <div class="form-group">
               <label for="targetTime">Tatkal Start Timer:</label>
                         <input type="text" class="form-control" id="targetTime" placeholder="Enter Tatkal Start Timer i.e. 10:00:10"
@@ -61,7 +61,7 @@
         </div>
         <div class="col-md-4">
           <div class="form-section" id="trainInfo">
-            <h3 class="text-info">Train Information</h3>
+            <h3 class="text-info">Train Details</h3>
             <div class="form-group">
               <label for="dateString">Date:</label>
               <input type="date" class="form-control" id="dateString" value="2024-04-24">
@@ -101,16 +101,8 @@
           </div>
         </div>
         <div class="col-md-4">
-          <div class="form-section" id="passengerInfo">
-            <h3 class="text-info">Passenger Information</h3>
-            <div class="form-group">
-                    <label for="passengerNames">Passenger Names:</label>
-                    <textarea class="form-control" id="passengerNames" placeholder="Enter passenger names (separate multiple names with commas, e.g., Ajay, Deepak). just type your first name so that it can match with IRCTC master data." rows="5"></textarea>
-            </div>
-          </div>
-          <div class="mt-5"></div>
           <div class="form-section" id="paymentInfo">
-            <h3 class="text-info">Payment Information</h3>
+            <h3 class="text-info">Payment Details</h3>
             <div class="form-group">
               <label for="paymentType">Payment Type:</label>
                         <input type="text" class="form-control" id="paymentType" placeholder="Enter payment type"
@@ -139,6 +131,61 @@
      
       
     </form>
+    <!-- Passenger Table -->
+    <div class="form-section mt-5">
+      <h3 class="text-info">Passenger List</h3>
+      <table id="passengerTable">
+        <thead>
+          <tr>
+            <th>Select</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Preference</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="passengerList"></tbody>
+      </table>
+    </div>
+
+    <!-- Add Passenger Form -->
+    <div class="form-section mt-5">
+      <h3 class="text-info">Add Passenger</h3>
+      <form id="addPassengerForm">
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="age">Age:</label>
+          <input type="number" id="age" name="age" required>
+        </div>
+        <div class="form-group">
+          <label for="gender">Gender:</label>
+          <select id="gender" name="gender" required>
+            <option value="">Select</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+            <option value="T">Transgender</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="preference">Preference:</label>
+          <select id="preference" name="preference">
+            <option value="">No Preference</option>
+            <option value="LB">Lower</option>
+            <option value="MB">Middle</option>
+            <option value="UB">Upper</option>
+            <option value="SL">Side Lower</option>
+            <option value="SU">Side Upper</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-info p-2">Add Passenger</button>
+      </form>
+    </div>
+  </div>
+    
   </div>
 
   <script src="options.js"></script>
