@@ -149,41 +149,39 @@
       </table>
     </div>
 
-    <!-- Add Passenger Form -->
     <div class="form-section mt-5">
       <h3 class="text-info">Add Passenger</h3>
       <form id="addPassengerForm">
-        <div class="form-group">
-          <label for="name">Name:</label>
-          <input type="text" id="name" name="name" required>
-        </div>
-        <div class="form-group">
-          <label for="age">Age:</label>
-          <input type="number" id="age" name="age" required>
-        </div>
-        <div class="form-group">
-          <label for="gender">Gender:</label>
-          <select id="gender" name="gender" required>
-            <option value="">Select</option>
-            <option value="M">Male</option>
-            <option value="F">Female</option>
-            <option value="T">Transgender</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="preference">Preference:</label>
-          <select id="preference" name="preference">
-            <option value="">No Preference</option>
-            <option value="LB">Lower</option>
-            <option value="MB">Middle</option>
-            <option value="UB">Upper</option>
-            <option value="SL">Side Lower</option>
-            <option value="SU">Side Upper</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-info p-2">Add Passenger</button>
+        <table>
+          <tr>
+            <td><input type="text" id="name" name="name" placeholder="Enter Passenger name" required></td>
+            <td><input type="number" id="age" name="age" placeholder="Enter Passenger age" required></td>
+            <td>
+              <select id="gender" name="gender" required>
+                <option value="">Select Gender</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+                <option value="T">Transgender</option>
+              </select>
+            </td>
+            <td>
+              <select id="preference" name="preference">
+                <option value="">No Preference</option>
+                <option value="LB">Lower</option>
+                <option value="MB">Middle</option>
+                <option value="UB">Upper</option>
+                <option value="SL">Side Lower</option>
+                <option value="SU">Side Upper</option>
+              </select>
+            </td>
+            <td>
+              <button type="submit" class="btn btn-info p-2">Add Passenger</button>
+            </td>
+          </tr>
+        </table>
       </form>
     </div>
+    
   </div>
     
   </div>

@@ -156,23 +156,6 @@ async function autoComplete(element, value) {
     await firstItem.click();
   }
 }
-async function selectDate() {
-  // Find the input element of the PrimeNG calendar
-  const calendarInput = document.querySelector('#jDate input');
-
-  // Set the value of the input field to the desired date string
-  calendarInput.value = dateString;
-
-  // Wait for a short delay to ensure the date picker UI reacts to the changes
-  await delay(500);
-
-  // Dispatch various events to simulate user interaction
-  calendarInput.dispatchEvent(new Event('input')); // Trigger input event
-  calendarInput.dispatchEvent(new Event('keydown')); // Trigger keydown event
-  calendarInput.dispatchEvent(new Event('focus')); // Trigger focus event
-  calendarInput.dispatchEvent(new Event('click')); // Trigger click event
-  calendarInput.dispatchEvent(new Event('blur')); // Trigger blur event
-}
 async function typeDate(element, mydate) {
   if (!element) return;
 
@@ -516,20 +499,20 @@ function fillPassengerDetails(passenger, row = null) {
   }
 
   var nameInput = row.querySelector('p-autocomplete[formcontrolname="passengerName"] input');
-  nameInput.value = passenger.name;
-  nameInput.dispatchEvent(new Event('input'));
-
   var ageInput = row.querySelector('input[formcontrolname="passengerAge"]');
-  ageInput.value = passenger.age;
-  ageInput.dispatchEvent(new Event('input'));
-
   var genderSelect = row.querySelector('select[formcontrolname="passengerGender"]');
+  var preferenceSelect = row.querySelector('select[formcontrolname="passengerBerthChoice"]');
+  
+  nameInput.value = passenger.name;
+  ageInput.value = passenger.age;
   genderSelect.value = passenger.gender;
+  preferenceSelect.value = passenger.preference;
+
+  nameInput.dispatchEvent(new Event('input'));
+  ageInput.dispatchEvent(new Event('input'));
+  preferenceSelect.dispatchEvent(new Event('change'));
   genderSelect.dispatchEvent(new Event('change'));
 
-  var preferenceSelect = row.querySelector('select[formcontrolname="passengerBerthChoice"]');
-  preferenceSelect.value = passenger.preference;
-  preferenceSelect.dispatchEvent(new Event('change'));
 }
 async function addPassengerList() {
   // If there's only one passenger in the list and the row is already available, fill it directly
@@ -580,6 +563,7 @@ async function selectPaymentType() {
   }
 }
 async function addPassengerInputAndContinue() {
+  const startTime = new Date(); // Record the start time
   // fill all passenger list
   await addPassengerList();
   delay(100);
@@ -600,6 +584,14 @@ async function addPassengerInputAndContinue() {
   } else {
     console.log('Continue button not found.');
   }
+   // Proceed with booking the ticket
+   const endTime = new Date(); // Record the end time
+   console.log(
+     'Add Passenger Input Page Time taken:',
+     endTime - startTime,
+     'ms'
+   );
+   console.log(endTime);
 }
 async function handleCaptchaAndContinue() {
   await waitForElementToAppear('app-captcha .captcha-img');

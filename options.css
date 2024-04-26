@@ -144,5 +144,10 @@ th {
   color: #fff;
 }
 
+table input[type="text"],table input[type="number"],
+  table select {
+    width: 100%;
+    height: 40px;
+  }
 
 
