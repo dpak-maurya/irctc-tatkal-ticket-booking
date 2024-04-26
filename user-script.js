@@ -1,5 +1,4 @@
-/* if multiple passenger provide comma separated passenger name
-(name should match with irctc master data ) */
+
 let automationStatus = false;
 let username = '';
 let password = '';
@@ -30,48 +29,6 @@ let trainFoundAtPosition = -1;
 let isAvlEnquiryCompleted = false;
 let mutationCompletionCounter = 0;
 
-// Function to wait for the insertion of elements with a specific class
-function waitForElementInsertion(className) {
-  return new Promise((resolve) => {
-    // Create a new mutation observer
-    const observer = new MutationObserver((mutations) => {
-      // Loop through the mutations
-      mutations.forEach((mutation) => {
-        // Check if any nodes were added
-        if (mutation.addedNodes.length > 0) {
-          // Check if any of the added nodes match the specified class
-          const matchingNode = Array.from(mutation.addedNodes).find((node) =>
-            node.classList.contains(className)
-          );
-          if (matchingNode) {
-            // If a matching node is found, stop observing and resolve the promise
-            observer.disconnect();
-            resolve();
-          }
-        }
-      });
-    });
-
-    // Start observing the document for mutations
-    observer.observe(document.body, {
-      childList: true, // Observe changes to the children of the body
-      subtree: true, // Include all descendants of the body
-    });
-  });
-}
-// Define a function to wait for an element to appear on the page
-async function waitForElementToAppear(selector) {
-  return new Promise((resolve) => {
-    const interval = setInterval(() => {
-      const element = document.querySelector(selector);
-      if (element) {
-        console.log('element loaded: ',selector);
-        clearInterval(interval);
-        resolve();
-      }
-    }, 500); // Adjust the interval as needed
-  });
-}
 // Define a function to wait for an element to appear on the page
 async function waitForElementToAppear(selector) {
   const startTime = new Date(); // Record the start time
@@ -109,7 +66,7 @@ function delay(ms) {
 function textIncludes(text, searchText) {
   return text.trim().toLowerCase().includes(searchText.trim().toLowerCase());
 }
- function scrollToElement(element) {
+function scrollToElement(element) {
   return new Promise((resolve) => {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     // Wait for a brief moment for the scroll animation to complete
@@ -574,7 +531,6 @@ function fillPassengerDetails(passenger, row = null) {
   preferenceSelect.value = passenger.preference;
   preferenceSelect.dispatchEvent(new Event('change'));
 }
-
 async function addPassengerList() {
   // If there's only one passenger in the list and the row is already available, fill it directly
   if (passengerList.length === 1 && passengerList[0].isSelected) {
@@ -803,7 +759,6 @@ function getAutomationStatus() {
     );
   });
 }
-
 async function executeFunctions() { 
   const currentAutomationStatus = await getAutomationStatus();
   if (!currentAutomationStatus) return;
