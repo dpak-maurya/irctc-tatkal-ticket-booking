@@ -466,7 +466,7 @@ const observer = new MutationObserver((mutationsList, observer) => {
         if (node.matches('.link.ng-star-inserted')) {
           mutationCompletionCounter++;
           // For example, you can click on the element or store a reference to it
-          console.log('Found element:', node);
+          console.log('element refreshed : available accommodation classes' );
         }
       }
     }
@@ -552,40 +552,52 @@ async function removeFirstRow(){
     await firstRow.click();
   }
 }
+function fillPassengerDetails(passenger, row = null) {
+  // If row is not provided, select the last added row
+  if (!row) {
+    row = document.querySelector('app-passenger');
+  }
+
+  var nameInput = row.querySelector('p-autocomplete[formcontrolname="passengerName"] input');
+  nameInput.value = passenger.name;
+  nameInput.dispatchEvent(new Event('input'));
+
+  var ageInput = row.querySelector('input[formcontrolname="passengerAge"]');
+  ageInput.value = passenger.age;
+  ageInput.dispatchEvent(new Event('input'));
+
+  var genderSelect = row.querySelector('select[formcontrolname="passengerGender"]');
+  genderSelect.value = passenger.gender;
+  genderSelect.dispatchEvent(new Event('change'));
+
+  var preferenceSelect = row.querySelector('select[formcontrolname="passengerBerthChoice"]');
+  preferenceSelect.value = passenger.preference;
+  preferenceSelect.dispatchEvent(new Event('change'));
+}
+
 async function addPassengerList() {
-  
-  await removeFirstRow();
-  // Iterate over each passenger in the passengerList array
-  for (var i = 0; i < passengerList.length; i++) {
-    if(!passengerList[i].isSelected) continue;
+  // If there's only one passenger in the list and the row is already available, fill it directly
+  if (passengerList.length === 1 && passengerList[0].isSelected) {
+    fillPassengerDetails(passengerList[0]);
+  } else {
+    // Remove the default row if there's more than one passenger
+    await removeFirstRow();
+    delay(50);
+    // Iterate over each passenger in the passengerList array
+    for (var i = 0; i < passengerList.length; i++) {
+      if (!passengerList[i].isSelected) continue;
 
-    var passenger = passengerList[i];
-    // Add a new row for each passenger
-    await addNextRow();
-    delay(100);
-    // Select the last added row
-    var rows = document.querySelectorAll('app-passenger');
-    var currentRow = rows[rows.length - 1];
+      var passenger = passengerList[i];
+      // Add a new row for each passenger
+      await addNextRow();
+      delay(50);
+      var rows = document.querySelectorAll('app-passenger');
+      var currentRow = rows[rows.length - 1];
 
-    // Fill passenger details into the newly added row
-    var nameInput = currentRow.querySelector('p-autocomplete[formcontrolname="passengerName"] input');
-    nameInput.value = passenger.name;
+      fillPassengerDetails(passenger, currentRow);
 
-    var ageInput = currentRow.querySelector('input[formcontrolname="passengerAge"]');
-    ageInput.value = passenger.age;
-
-    var genderSelect = currentRow.querySelector('select[formcontrolname="passengerGender"]');
-    genderSelect.value = passenger.gender;
-
-    var preferenceSelect = currentRow.querySelector('select[formcontrolname="passengerBerthChoice"]');
-    preferenceSelect.value = passenger.preference;
-
-    // Emit appropriate events for filling passenger details
-    nameInput.dispatchEvent(new Event('input'));
-    ageInput.dispatchEvent(new Event('input'));
-    genderSelect.dispatchEvent(new Event('change'));
-    preferenceSelect.dispatchEvent(new Event('change'));
-    delay(200);
+      delay(100);
+    }
   }
 }
 async function selectPaymentType() {
@@ -602,6 +614,7 @@ async function selectPaymentType() {
 
       // Check if the label element exists and its text content matches the specified text
       if (label && textIncludes(label.textContent, paymentType)) {
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         // Trigger a click event on the input radio element
         await input.click();
         console.log('Clicked on radio button for:', paymentType);
@@ -611,20 +624,18 @@ async function selectPaymentType() {
   }
 }
 async function addPassengerInputAndContinue() {
+  // fill all passenger list
+  await addPassengerList();
+  delay(100);
 
   // Call the function to select the radio button
   await selectPaymentType();
-  delay(200);
-
-  // fill all passenger list
-  await addPassengerList();
-  delay(200);
+  delay(50);
 
   // Find the "Continue" button
   var continueButton = document.querySelector(
     'app-passenger-input button.btnDefault.train_Search'
   );
-  delay(200);
   // Check if the button exists
   if (continueButton) {
     continueButton.focus();
