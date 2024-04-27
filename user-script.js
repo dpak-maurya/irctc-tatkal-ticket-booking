@@ -2,7 +2,7 @@
 let automationStatus = false;
 let username = '';
 let password = '';
-let targetTime ='10:00:00'
+let targetTime ='09:59:45'
 let passengerList = [];
 let trainNumber = '';
 let from = '';
@@ -314,7 +314,7 @@ async function scrollToFoundTrainAndSelectClass() {
 
   let rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
 
-  rootElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  await scrollToElement(rootElement);
 
   const availableClasses = rootElement.querySelectorAll('.pre-avl');
   if (!availableClasses || !availableClasses.length) {
@@ -435,6 +435,7 @@ async function bookTicket() {
             const ticketSelected = await selectAvailableTicket();
             if (ticketSelected) {
                 isAvlEnquiryCompleted = true;
+                return;
             } else {
                 // If ticket selection failed, reset the completion flag
                 isAvlEnquiryCompleted = false;
@@ -504,15 +505,20 @@ function fillPassengerDetails(passenger, row = null) {
   var preferenceSelect = row.querySelector('select[formcontrolname="passengerBerthChoice"]');
   
   nameInput.value = passenger.name;
-  ageInput.value = passenger.age;
-  genderSelect.value = passenger.gender;
-  preferenceSelect.value = passenger.preference;
-
   nameInput.dispatchEvent(new Event('input'));
-  ageInput.dispatchEvent(new Event('input'));
-  preferenceSelect.dispatchEvent(new Event('change'));
-  genderSelect.dispatchEvent(new Event('change'));
+  delay(100);
 
+  ageInput.value = passenger.age;
+  ageInput.dispatchEvent(new Event('input'));
+  delay(100);
+
+  genderSelect.value = passenger.gender;
+  genderSelect.dispatchEvent(new Event('change'));
+  delay(100);
+
+  preferenceSelect.value = passenger.preference;
+  preferenceSelect.dispatchEvent(new Event('change'));
+  delay(100);
 }
 async function addPassengerList() {
   // If there's only one passenger in the list and the row is already available, fill it directly

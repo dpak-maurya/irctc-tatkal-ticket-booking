@@ -8,14 +8,17 @@
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="options.css">
 </head>
+
 <body>
 
   <div class="container mt-5">
     <div class="row align-items-center">
       <div class="col">
-        <h2 class="text-info">IRCTC Booking Form</h2>
+        <h2>IRCTC Booking Form</h2>
       </div>
-      
+      <div id="countdown" class="mr-3 pr-3">
+
+      </div>
       <div class="row align-items-center mr-3">
         <h3 class="label-text">Automation</h3>
         <label class="switch">
@@ -23,15 +26,15 @@
           <span class="slider round"></span>
         </label>
       </div>
-      
-      
+
+
     </div>
-    
+
     <form id="settingsForm" class="mt-5">
       <div class="row">
         <div class="col-md-4">
           <div class="form-section" id="loginInfo">
-            <h3 class="text-info">Login Details</h3>
+            <h3>Login Details</h3>
             <div class="form-group">
               <label for="username">Username:</label>
               <input type="text" class="form-control" id="username" placeholder="Enter Irctc username">
@@ -44,11 +47,11 @@
 
           </div>
           <div class="form-section mt-5" id="sessionInfo">
-            <h3 class="text-info">Timer Details</h3>
+            <h3>Timer Details</h3>
             <div class="form-group">
               <label for="targetTime">Tatkal Start Timer:</label>
-                        <input type="text" class="form-control" id="targetTime" placeholder="Enter Tatkal Start Timer i.e. 10:00:10"
-                               value="10:00:10">
+              <input type="text" class="form-control" id="targetTime"
+                placeholder="Enter Tatkal Start Timer i.e. 09:59:45" value="09:59:45">
             </div>
 
             <div class="form-group">
@@ -56,12 +59,12 @@
               <input type="text" class="form-control" id="refreshTime" placeholder="Enter refresh time(milli seconds)"
                 value="5000">
             </div>
-                  
+
           </div>
         </div>
         <div class="col-md-4">
           <div class="form-section" id="trainInfo">
-            <h3 class="text-info">Train Details</h3>
+            <h3>Train Details</h3>
             <div class="form-group">
               <label for="dateString">Date:</label>
               <input type="date" class="form-control" id="dateString" value="2024-04-24">
@@ -69,18 +72,15 @@
 
             <div class="form-group">
               <label for="trainNumber">Train Number:</label>
-                        <input type="text" class="form-control" id="trainNumber" placeholder="Enter train number"
-                               value="11061">
+              <input type="text" class="form-control" id="trainNumber" placeholder="Enter train number i.e. 11061 ">
             </div>
             <div class="form-group">
               <label for="from">From:</label>
-                        <input type="text" class="form-control" id="from" placeholder="Enter origin station code"
-                               value="LTT">
+              <input type="text" class="form-control" id="from" placeholder="Enter origin station code i.e. LTT ">
             </div>
             <div class="form-group">
               <label for="to">To:</label>
-                        <input type="text" class="form-control" id="to" placeholder="Enter destination station code"
-                               value="BSB">
+              <input type="text" class="form-control" id="to" placeholder="Enter destination station code i.e. BSB" >
             </div>
             <div class="form-group">
               <label for="quotaType">Quota Type:</label>
@@ -102,11 +102,11 @@
         </div>
         <div class="col-md-4">
           <div class="form-section" id="paymentInfo">
-            <h3 class="text-info">Payment Details</h3>
+            <h3>Payment Details</h3>
             <div class="form-group">
               <label for="paymentType">Payment Type:</label>
-                        <input type="text" class="form-control" id="paymentType" placeholder="Enter payment type"
-                               value="BHIM/UPI" disabled>
+              <input type="text" class="form-control" id="paymentType" placeholder="Enter payment type" value="BHIM/UPI"
+                disabled>
             </div>
             <div class="form-group">
               <label for="paymentMethod">Payment Method:</label>
@@ -125,65 +125,63 @@
           </div>
         </div>
       </div>
-      
-        <button type="button" id="save-train" class="btn btn-info p-2 mr-2">Save Settings</button>
-        <a type="button" href="https://www.irctc.co.in/nget/train-search" target="_blank" id="book-train" class="btn btn-warning p-2">Book Ticket On IRCTC</a>
-     
-      
-    </form>
-    <!-- Passenger Table -->
-    <div class="form-section mt-5">
-      <h3 class="text-info">Passenger List</h3>
-      <table id="passengerTable">
-        <thead>
-          <tr>
-            <th>Select</th>
-            <th>Name</th>
-            <th>Age</th>
-            <th>Gender</th>
-            <th>Preference</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="passengerList"></tbody>
-      </table>
-    </div>
 
-    <div class="form-section mt-5">
-      <h3 class="text-info">Add Passenger</h3>
-      <form id="addPassengerForm">
-        <table>
-          <tr>
-            <td><input type="text" id="name" name="name" placeholder="Enter Passenger name" required></td>
-            <td><input type="number" id="age" name="age" placeholder="Enter Passenger age" required></td>
-            <td>
-              <select id="gender" name="gender" required>
-                <option value="">Select Gender</option>
-                <option value="M">Male</option>
-                <option value="F">Female</option>
-                <option value="T">Transgender</option>
-              </select>
-            </td>
-            <td>
-              <select id="preference" name="preference">
-                <option value="">No Preference</option>
-                <option value="LB">Lower</option>
-                <option value="MB">Middle</option>
-                <option value="UB">Upper</option>
-                <option value="SL">Side Lower</option>
-                <option value="SU">Side Upper</option>
-              </select>
-            </td>
-            <td>
-              <button type="submit" class="btn btn-info p-2">Add Passenger</button>
-            </td>
-          </tr>
+      <button type="button" id="save-train" class="btn btn-custom-primary p-2 mr-2">Save Settings</button>
+      <!-- <a type="button" href="https://www.irctc.co.in/nget/train-search" target="_blank" id="book-train"
+        class="btn btn-custom-primary p-2">Book Ticket On IRCTC</a> -->
+      <button type="button" id="book-train" class="btn btn-custom-primary p-2">Book Ticket On IRCTC</button>
+
+    </form>
+    <div class="passengers-container mt-5">
+      <!-- Passenger Table -->
+      <div class="form-section">
+        <h3>Passenger List</h3>
+        <table id="passengerTable">
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Gender</th>
+              <th>Preference</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="passengerList"></tbody>
         </table>
-      </form>
+        <form id="addPassengerForm">
+          <table>
+            <tr>
+              <td><input type="text" id="name" name="name" placeholder="Enter Passenger name" required></td>
+              <td><input type="number" id="age" name="age" placeholder="Enter Passenger age" required></td>
+              <td>
+                <select id="gender" name="gender" required>
+                  <option value="">Select Gender</option>
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                  <option value="T">Transgender</option>
+                </select>
+              </td>
+              <td>
+                <select id="preference" name="preference">
+                  <option value="">No Preference</option>
+                  <option value="LB">Lower</option>
+                  <option value="MB">Middle</option>
+                  <option value="UB">Upper</option>
+                  <option value="SL">Side Lower</option>
+                  <option value="SU">Side Upper</option>
+                </select>
+              </td>
+              <td>
+                <button type="submit" class="btn btn-custom-tertiary p-2">Add Passenger</button>
+              </td>
+            </tr>
+          </table>
+        </form>
+      </div>
     </div>
-    
   </div>
-    
+
   </div>
 
   <script src="options.js"></script>
