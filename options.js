@@ -237,8 +237,8 @@ function startBookingCountdown() {
           clickTime
         );
         if(timeDifferenceInSeconds<0){
-          alert('Please set correct tatkal start timer, keep it 15 seconds before the actual tatkal time');
-          chrome.storage.local.set({automationStatus:false});
+          // alert('Please set correct tatkal start timer, keep it 15 seconds before the actual tatkal time');
+          // chrome.storage.local.set({automationStatus:false});
           return;
         } 
         setTimeout(clickBookTicketButton, timeDifferenceInSeconds * 1000); // Convert seconds to milliseconds
