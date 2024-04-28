@@ -716,7 +716,7 @@ function waitForTargetTime(targetTimeString) {
       if (searchButton) {
         searchButton.click();
       } else {
-        console.error('Search button not found.');
+        console.log('Search button not found.');
       }
       clearInterval(intervalId); // Stop the interval once the action is triggered
     }
