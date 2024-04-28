@@ -154,6 +154,8 @@ document.addEventListener('DOMContentLoaded',startBookingCountdown);
 
 // Register listener for save button click.
 document.getElementById('save-train').addEventListener('click', saveSettings);
+document.getElementById('save-train').addEventListener('click', startBookingCountdown);
+
 
 let intervalId;
 document.getElementById('book-train').addEventListener('click', function() {
@@ -166,13 +168,13 @@ document
   .getElementById('automationStatus')
   .addEventListener('change', function () {
     chrome.storage.local.set({ automationStatus: this.checked });
-    clearInterval(intervalId);
     startBookingCountdown();
     updateButtonText();
   });
 
 // Function to start the countdown timer for booking
 function startBookingCountdown() {
+  clearInterval(intervalId);
   // Function to click the "Book Ticket on IRCTC" button
   function clickBookTicketButton() {
     const button = document.getElementById('book-train');
