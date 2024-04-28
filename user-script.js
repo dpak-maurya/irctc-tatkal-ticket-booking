@@ -31,6 +31,7 @@ let mutationCompletionCounter = 0;
 
 // Define a function to wait for an element to appear on the page
 async function waitForElementToAppear(selector) {
+  if(intervalId) clearInterval(intervalId);
   const startTime = new Date(); // Record the start time
   return new Promise((resolve) => {
     const interval = setInterval(() => {
@@ -688,9 +689,9 @@ async function clickPayButton() {
     console.log("No button found containing 'Pay'.");
   }
 }
-function waitForTargetTime() {
+function waitForTargetTime(targetTimeString) {
   // Define the interval function
-  intervalId = setInterval(() => {
+  const intervalId = setInterval(() => {
     // Extract the current time element
     const currentTimeElement = document.querySelector('app-header .h_head1>span strong');
 
@@ -700,25 +701,28 @@ function waitForTargetTime() {
     }
 
     // Extract the current time string from the element
-    const currentTimeString = currentTimeElement.textContent.trim();
-    const [, timeString] = currentTimeString.match(/\[(\d+:\d+:\d+)\]/);
+    const currentDateTimeString = currentTimeElement.textContent.trim();
+    const [, currentTimeString] = currentDateTimeString.match(/\[(\d+:\d+:\d+)\]/);
 
     // Split the current time string and target time string on ":"
-    const [currentHour, currentMinute, currentSecond] = timeString.split(':').map(Number);
-    const [targetHour, targetMinute, targetSecond] = targetTime.split(':').map(Number);
+    const [currentHour, currentMinute, currentSecond] = currentTimeString.split(':').map(Number);
+    const [targetHour, targetMinute, targetSecond] = targetTimeString.split(':').map(Number);
 
     // Compare the current time with the target time
-    if (currentHour >= targetHour && currentMinute >= targetMinute && currentSecond >= targetSecond) {
+    if (currentHour > targetHour || 
+        (currentHour === targetHour && currentMinute > targetMinute) || 
+        (currentHour === targetHour && currentMinute === targetMinute && currentSecond >= targetSecond)) {
       const searchButton = document.querySelector('button[type="submit"][label="Find Trains"].search_btn.train_Search');
       if (searchButton) {
         searchButton.click();
-        clearInterval(intervalId); // Stop the interval once the action is triggered
       } else {
         console.error('Search button not found.');
       }
+      clearInterval(intervalId); // Stop the interval once the action is triggered
     }
   }, 1000); // Interval set to 1 second (1000 milliseconds)
 }
+
 function getSettings() {
 
   chrome.storage.local.get(allKeys, function (items,error) {
@@ -729,7 +733,7 @@ function getSettings() {
     }
     username = items.username || '';
     password = items.password || '';
-    targetTime = items.targetTime || '10:00:00';
+    targetTime = items.targetTime || '09:59:45';
     passengerList = items.passengerList || [];
     trainNumber = items.trainNumber || '';
     from = items.from || '';
@@ -770,7 +774,7 @@ async function executeFunctions() {
   await login();
   await waitForAppLoginToDisappear();
   await callSearchTrainComponent();
-  waitForTargetTime();
+  waitForTargetTime(targetTime);
   
   // wait for train list page to load
   await waitForElementToAppear('app-train-list');
