@@ -1,5 +1,5 @@
 {
-  "name": "IRCTC Tatkal Booking",
+  "name": "IRCTC Tatkal Ticket Booking",
   "version": "3.0",
   "manifest_version": 3,
   "minimum_chrome_version": "120",
@@ -15,9 +15,20 @@
   ],
   "permissions": ["storage"],
   "host_permissions": ["https://www.irctc.co.in/*"],
-  "action": {},
+  "action": {
+    "default_icon": {
+      "16": "images/icon-16.png",
+      "48": "images/icon-48.png",
+      "128": "images/icon-128.png"
+		}
+  },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
-  }
+  },
+  "icons": {
+		"16": "images/icon-16.png",
+		"48": "images/icon-48.png",
+		"128": "images/icon-128.png"
+	}
 }
