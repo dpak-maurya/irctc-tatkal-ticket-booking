@@ -803,7 +803,6 @@ function waitForTargetTime(targetTimeString) {
     }
   }, 1000); // Interval set to 1 second (1000 milliseconds)
 }
-
 function getSettings() {
 
   chrome.storage.local.get(allKeys, function (items,error) {
