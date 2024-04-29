@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tatkal Ticket Booking - How to Use</title>
+    <link rel="icon" type="image/svg" href="images/icon.svg">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h2>How to Use the Tatkal Ticket Booking Extension</h2>
+        <section class="step-section mt-2">
+            <h3>Fill All the Form Login Details,Train Details,Payment Details</h3>
+            <ol>
+                <li>Fill in your login details. Don't worry, your information is safe and stored securely in your Chrome
+                    local storage.</li>
+                <li>Enter the details of the trains you want to book Tatkal tickets for. You can use the
+                    <code>Go to IRCTC Website</code> button to find the required information and fill it in the form.
+                </li>
+                <li>We provide default payment options via Paytm UPI, which is faster compared to other payment methods.
+                </li>
+                <li>If you want to see the final QR code page for payment, check the box labeled
+                    <code>Pay & Book (Show QR Code Page)</code>.
+                </li>
+                <li>
+                    <strong>Timer Details:</strong>
+                    <ol>
+                        <li><code>Tatkal Start Timer</code>:
+                            <ul>
+                                <li>If you select <code>AC class</code>, Tatkal start timer will be set for
+                                    <code>09:59:45</code>.
+                                </li>
+                                <li>If you select <code>Sleeper class</code>, Tatkal start timer will be set for
+                                    <code>10:59:45</code>.
+                                </li>
+                                <li>We recommend using the default timer settings.</li>
+                            </ul>
+                        </li>
+                        <li><code>Refresh Time (ms)</code>: Default is set to 5000 milliseconds (5 seconds). This will
+                            refresh the train availability status every 5 seconds on the IRCTC page.</li>
+                    </ol>
+                </li>
+                <li>The Tatkal start timer will refresh the selected train every 5 seconds after clicking
+                    the search train button.</li>
+                <li>Once you've filled all the details, click on the <code>Save Settings</code> button.</li>
+            </ol>
+        </section>
+
+        <section class="step-section">
+            <h3>Auto Booking Switch</h3>
+            <ul>
+                <li>If the switch is turned on, the extension will run automatically whenever you visit the IRCTC
+                    website
+                    and attempt to book tickets using the provided settings and passenger details.</li>
+                <li>If the switch is turned off, the extension will not run on the IRCTC page.</li>
+                <li>If the switch is on and Tatkal start timer is set, the extension will automatically log in 2 minutes
+                    before the start timer, and the <code>Go to IRCTC Website</code> button will disappear.</li>
+                <li>If the switch is on and Tatkal start timer is set, and there is less than 2 minutes available before
+                    the start timer, the <code>Book Ticket on IRCTC</code> button will appear, allowing you to book
+                    manually.</li>
+            </ul>
+        </section>
+
+        <section class="step-section">
+            <h3>How to Add a New Passenger</h3>
+            <ol>
+                <li>Fill in the passenger's details including name, age, gender, and preference.</li>
+                <li>Click on the <code>Add Passenger</code> button.</li>
+                <li>The newly added passenger will be automatically selected for Tatkal ticket booking.</li>
+                <li>If you don't want to include a passenger in the booking, you can uncheck or delete them.</li>
+            </ol>
+        </section>
+
+        <section class="step-section">
+            <h3>What to Do on the IRCTC Site While Booking?</h3>
+            <ul>
+                <li>At the login prompt, fill in the captcha and press Enter on your keyboard.</li>
+                <li>At the Review and Captcha Page, a prompt will appear displaying the Current Seats Status: . Use this
+                    information to decide whether to
+                    proceed with booking the ticket. If you decide to proceed, fill in the captcha shown on the page in
+                    the
+                    prompt, then press Enter on your keyboard.</li>
+            </ul>
+        </section>
+
+    </div>
+
+</body>
+
+</html>

@@ -262,3 +262,34 @@ table select {
   width: 100%;
   height: 40px;
 }
+
+.custom-outline-btn {
+  color: var(--md-sys-color-primary);
+  background-color: transparent;
+  border: 1px solid var(--md-sys-color-primary);
+  padding: 0.375rem 0.75rem;
+  text-decoration: none;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out,
+      box-shadow 0.15s ease-in-out;
+}
+
+.custom-outline-btn:hover {
+  color: var(--md-sys-color-on-primary);
+  background-color: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+  text-decoration: none;
+}
+
+.step-section {
+  margin-bottom: 20px;
+  background-color: var(--md-sys-color-primary-container);
+  border-radius: 20px;
+  padding: 20px;
+}
+.how-to-use{
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}

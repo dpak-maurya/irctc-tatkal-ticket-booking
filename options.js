@@ -168,8 +168,8 @@ document
   .getElementById('automationStatus')
   .addEventListener('change', function () {
     chrome.storage.local.set({ automationStatus: this.checked });
-    startBookingCountdown();
     updateButtonText();
+    startBookingCountdown();
   });
 
 // Function to start the countdown timer for booking
@@ -239,12 +239,11 @@ function startBookingCountdown() {
           clickTime
         );
         if(timeDifferenceInSeconds<0){
-          // alert('Please set correct tatkal start timer, keep it 15 seconds before the actual tatkal time');
-          // chrome.storage.local.set({automationStatus:false});
+          document.getElementById('book-train').classList.remove('d-none');
           return;
         } 
         setTimeout(clickBookTicketButton, timeDifferenceInSeconds * 1000); // Convert seconds to milliseconds
-
+        document.getElementById('book-train').classList.add('d-none');
         // Update the time remaining on the screen
         updateTimeRemaining(timeDifferenceInSeconds);
 
@@ -283,8 +282,10 @@ async function updateButtonText() {
   const button = document.getElementById('book-train');
 
   if (automationStatus) {
+    button.classList.add('d-none');
     button.textContent = 'Book Ticket on IRCTC';
   } else {
+    button.classList.remove('d-none');
     button.textContent = 'Go To IRCTC Website';
   }
 }
