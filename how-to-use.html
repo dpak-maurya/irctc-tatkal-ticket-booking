@@ -8,13 +8,27 @@
     <link rel="icon" type="image/svg" href="images/icon.svg">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="options.css">
+    <style>
+        .step-section {
+            margin-bottom: 40px;
+        }
+
+        .step-section ol, .step-section ul {
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+
+        .step-section ol li, .step-section ul li {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container mt-5">
-        <h2>How to Use the Tatkal Ticket Booking Extension</h2>
-        <section class="step-section mt-2">
-            <h3>Fill All the Form Login Details,Train Details,Payment Details</h3>
+        <h2 class="text-center" >How to Use the Tatkal Ticket Booking Extension</h2>
+        <section class="step-section mt-5">
+            <h3>Fill all the form Login , Train and Payment Details</h3>
             <ol>
                 <li>Fill in your login details. Don't worry, your information is safe and stored securely in your Chrome
                     local storage.</li>
@@ -42,17 +56,20 @@
                         </li>
                         <li><code>Refresh Time (ms)</code>: Default is set to 5000 milliseconds (5 seconds). This will
                             refresh the train availability status every 5 seconds on the IRCTC page.</li>
+                            <li>You can adjust both the start timer and refresh time according to your preferences and needs.</li>
                     </ol>
                 </li>
-                <li>The Tatkal start timer will refresh the selected train every 5 seconds after clicking
-                    the search train button.</li>
+                <li >The tatkal start timer will be used to transition from search
+                    train page to train
+                    list page
+                    and there we are going to refresh the selected train every 5 seconds</li> 
                 <li>Once you've filled all the details, click on the <code>Save Settings</code> button.</li>
             </ol>
         </section>
 
         <section class="step-section">
             <h3>Auto Booking Switch</h3>
-            <ul>
+            <ol>
                 <li>If the switch is turned on, the extension will run automatically whenever you visit the IRCTC
                     website
                     and attempt to book tickets using the provided settings and passenger details.</li>
@@ -62,7 +79,7 @@
                 <li>If the switch is on and Tatkal start timer is set, and there is less than 2 minutes available before
                     the start timer, the <code>Book Ticket on IRCTC</code> button will appear, allowing you to book
                     manually.</li>
-            </ul>
+            </ol>
         </section>
 
         <section class="step-section">
@@ -77,14 +94,14 @@
 
         <section class="step-section">
             <h3>What to Do on the IRCTC Site While Booking?</h3>
-            <ul>
+            <ol>
                 <li>At the login prompt, fill in the captcha and press Enter on your keyboard.</li>
                 <li>At the Review and Captcha Page, a prompt will appear displaying the Current Seats Status: . Use this
                     information to decide whether to
                     proceed with booking the ticket. If you decide to proceed, fill in the captcha shown on the page in
                     the
                     prompt, then press Enter on your keyboard.</li>
-            </ul>
+            </ol>
         </section>
 
     </div>

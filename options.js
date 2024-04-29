@@ -409,9 +409,38 @@ function addFormEventListener() {
     }
   });
 }
+
+function getPassengerNamesAndMaster(){
+  
+  chrome.storage.local.get({passengerNames:'',masterData:false}, function (data,error) {
+    if(error){
+      console.log('No Passenger Names found')
+    }
+    if(data.passengerNames){
+      var passengerNames = document.getElementById('passengerNames');
+      passengerNames.value = data.passengerNames;
+    }
+    if(data.masterData){
+      var masterData = document.getElementById('masterData');
+      masterData.checked = data.masterData;
+    }
+  });
+}
+
+document
+  .getElementById('passengerNames')
+  .addEventListener('change', function () {
+    chrome.storage.local.set({ passengerNames: this.value });
+  });
+
+document.getElementById('masterData').addEventListener('change',function(){
+  chrome.storage.local.set({masterData:this.checked});
+})
+
 // Call displayPassengers and addEventListeners when the page loads
 window.addEventListener('load', function () {
   displayPassengers();
   addEventListeners();
   addFormEventListener();
+  getPassengerNamesAndMaster();
 });

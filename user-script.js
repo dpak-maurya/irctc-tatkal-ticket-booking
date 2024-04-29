@@ -4,6 +4,8 @@ let username = '';
 let password = '';
 let targetTime ='09:59:45'
 let passengerList = [];
+let masterData = false;
+let passengerNames = '';
 let trainNumber = '';
 let from = '';
 let to = '';
@@ -18,7 +20,7 @@ let autoPay = false;  // auto click on pay button
 let autoProcessPopup = false;
 
 const allKeys = [
-  "username", "password", "targetTime", "passengerList", "trainNumber",
+  "username", "password", "targetTime", "passengerList","masterData","passengerNames","trainNumber",
   "from", "to", "quotaType", "accommodationClass", "dateString", "refreshTime",
   "autoPay", "paymentType", "paymentMethod", "paymentProvider"
 ];
@@ -28,6 +30,7 @@ var intervalId;
 let trainFoundAtPosition = -1;
 let isAvlEnquiryCompleted = false;
 let mutationCompletionCounter = 0;
+let copyPassengerNames = '';
 
 // Define a function to wait for an element to appear on the page
 async function waitForElementToAppear(selector) {
@@ -494,7 +497,81 @@ async function removeFirstRow(){
     await firstRow.click();
   }
 }
-function fillPassengerDetails(passenger, row = null) {
+function processInput() {
+  copyPassengerNames = passengerNames.split(',');
+  if (copyPassengerNames.length === 0) {
+    console.log('No passenger names found.');
+  }
+}
+//autocomplete function
+function selectAutocompleteOption(index=0,name = passengerNames) {
+  var rows = document.querySelectorAll('app-passenger');
+  // Find the autocomplete input element
+  var autocompleteInput = rows[index].querySelector('p-autocomplete input');
+  
+  // Focus on the autocomplete input to trigger the generation of options
+  autocompleteInput.focus();
+  // Simulate user input by dispatching input events
+  for (var i = 0; i < name.length; i++) {
+      // Create and dispatch an input event with each character of the name
+      var inputEvent = new Event('input', {
+          bubbles: true,
+          cancelable: true
+      });
+      // Append the current character of the name to the input value
+      autocompleteInput.value += name[i];
+      // Dispatch the input event
+      autocompleteInput.dispatchEvent(inputEvent);
+  }
+  // Wait for a short delay to ensure the options are generated
+  setTimeout(function() {
+      // Get all list items within the autocomplete dropdown
+      var listItems = document.querySelectorAll('.ui-autocomplete-items li');
+      // Loop through each list item
+      listItems.forEach(function(item) {
+          // Get the text content of the list item
+          var itemText = item.textContent.trim();
+          
+          // Check if the text content contains the name substring
+          if (itemText.toLowerCase().includes(name.trim().toLowerCase())) {
+              // Select the list item by simulating a click
+              item.click();
+              console.log("Selected item:", itemText);
+              // Exit the loop after selecting the item
+              return;
+          }
+      });
+  }, 600); // Adjust the delay as needed
+}
+async function addMasterPassengerList() {
+  // Process the input (if needed)
+  processInput();
+  // If there's only one passenger name, fill the input data and return
+  if (copyPassengerNames.length === 1) {
+    selectAutocompleteOption();
+  }
+  else{
+    const firstRow = document.querySelector(
+      'app-passenger-input p-panel a.fa-remove'
+    );
+    await firstRow.click();
+    for (let index = 0; index < copyPassengerNames.length; index++) {
+      await addNextRow();
+      selectAutocompleteOption(index, copyPassengerNames[index]);
+      await delay(1000);
+    }
+  }
+  
+  let lastRowIndex = copyPassengerNames.length-1;
+  let row = document.querySelectorAll('app-passenger')[lastRowIndex];
+  var ageInput = row.querySelector('input[formcontrolname="passengerAge"]');
+  // Wait until the age input field is not empty
+  while (ageInput && ageInput.value === '') {
+    // Wait for 500 milliseconds before checking again
+    await delay(500);
+  }
+}
+function fillCustomPassengerDetails(passenger, row = null) {
   // If row is not provided, select the last added row
   if (!row) {
     row = document.querySelector('app-passenger');
@@ -521,10 +598,10 @@ function fillPassengerDetails(passenger, row = null) {
   preferenceSelect.dispatchEvent(new Event('change'));
   delay(100);
 }
-async function addPassengerList() {
+async function addCustomPassengerList() {
   // If there's only one passenger in the list and the row is already available, fill it directly
   if (passengerList.length === 1 && passengerList[0].isSelected) {
-    fillPassengerDetails(passengerList[0]);
+    fillCustomPassengerDetails(passengerList[0]);
   } else {
     // Remove the default row if there's more than one passenger
     await removeFirstRow();
@@ -540,7 +617,7 @@ async function addPassengerList() {
       var rows = document.querySelectorAll('app-passenger');
       var currentRow = rows[rows.length - 1];
 
-      fillPassengerDetails(passenger, currentRow);
+      fillCustomPassengerDetails(passenger, currentRow);
 
       delay(100);
     }
@@ -572,9 +649,13 @@ async function selectPaymentType() {
 async function addPassengerInputAndContinue() {
   const startTime = new Date(); // Record the start time
   // fill all passenger list
-  await addPassengerList();
-  delay(100);
-
+  if(masterData){
+    await addMasterPassengerList();
+  }
+  else{
+    await addCustomPassengerList();
+  }
+  delay(500);
   // Call the function to select the radio button
   await selectPaymentType();
   delay(50);
@@ -735,6 +816,8 @@ function getSettings() {
     password = items.password || '';
     targetTime = items.targetTime || '09:59:45';
     passengerList = items.passengerList || [];
+    masterData = items.masterData || false;
+    passengerNames = items.passengerNames || '';
     trainNumber = items.trainNumber || '';
     from = items.from || '';
     to = items.to || '';

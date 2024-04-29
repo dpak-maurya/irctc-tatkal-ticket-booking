@@ -238,7 +238,7 @@ td {
 #addPassengerForm td {
   border: 0;
 }
-
+#passengerNames,
 #addPassengerForm input,
 #addPassengerForm select {
   background-color: var(--md-sys-color-surface);
@@ -250,6 +250,7 @@ td {
   padding: 0 8px;
   transition: border-bottom 0.3s ease; /* Add transition effect for border */
 }
+#passengerNames:focus,
 #addPassengerForm input:focus,
 #addPassengerForm select:focus{
   outline: 1px solid var(--md-sys-color-on-tertiary-container);
@@ -292,4 +293,9 @@ table select {
 .how-to-use{
   background-color: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-on-primary-container);
+}
+
+#masterData{
+  height: 18px;
+  width: 18px;
 }
