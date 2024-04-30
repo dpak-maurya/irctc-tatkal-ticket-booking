@@ -183,7 +183,7 @@ async function simulateTyping(element, text) {
 }
 async function fillLoginCaptcha() {
   // Find the captcha input element
-  var captchaInput = document.querySelector(LOGIN_CAPTCHA_IMAGE);
+  var captchaInput = document.querySelector(LOGIN_CAPTCHA_INPUT);
 
   // Scroll the captcha input field into view smoothly
   if (captchaInput) {
