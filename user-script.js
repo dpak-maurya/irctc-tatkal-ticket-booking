@@ -844,6 +844,7 @@ function waitForTargetTime(targetTimeString) {
 
     if (!currentTimeElement) {
       console.error('Current time element not found.');
+      clearInterval(intervalId);
       return;
     }
 

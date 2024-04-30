@@ -27,6 +27,10 @@ limitations under the License.
   --md-sys-color-on-tertiary: rgb(255 255 255);
   --md-sys-color-tertiary-container: rgb(250 216 253);
   --md-sys-color-on-tertiary-container: rgb(40 19 46);
+  /* --md-sys-color-tertiary: #102000;
+  --md-sys-color-on-tertiary: #d7f1b5;
+  --md-sys-color-tertiary-container:  #d7f1b5;
+  --md-sys-color-on-tertiary-container: #1d2b0b; */
   --md-sys-color-error: rgb(186 26 26);
   --md-sys-color-on-error: rgb(255 255 255);
   --md-sys-color-error-container: rgb(255 218 214);
@@ -74,6 +78,7 @@ html {
 body {
   background-color: var(--md-sys-color-background);
   color: var(--md-sys-color-on-background);
+  font-family: 'Roboto', sans-serif;
 }
 
 h3 {
