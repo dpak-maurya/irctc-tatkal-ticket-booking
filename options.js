@@ -149,6 +149,7 @@ chrome.storage.local.onChanged.addListener(getSettings);
 
 // Call the function to retrieve and update settings when the page loads
 document.addEventListener('DOMContentLoaded', getSettings);
+document.addEventListener('DOMContentLoaded',hideHowToUse);
 document.addEventListener('DOMContentLoaded', updateButtonText);
 document.addEventListener('DOMContentLoaded',startBookingCountdown);
 
@@ -168,9 +169,22 @@ document
   .getElementById('automationStatus')
   .addEventListener('change', function () {
     chrome.storage.local.set({ automationStatus: this.checked });
+    hideHowToUse();
     updateButtonText();
     startBookingCountdown();
   });
+
+  async function hideHowToUse(){
+    const howtouse = document.querySelector('.custom-outline-btn');
+    
+    const automationStatus = await getAutomationStatus();
+    if(automationStatus){
+      howtouse.classList.add('d-none');
+    }
+    else{
+      howtouse.classList.remove('d-none');
+    }
+  }
 
 // Function to start the countdown timer for booking
 function startBookingCountdown() {
@@ -280,7 +294,7 @@ async function getAutomationStatus() {
 async function updateButtonText() {
   const automationStatus = await getAutomationStatus();
   const button = document.getElementById('book-train');
-
+  
   if (automationStatus) {
     button.classList.add('d-none');
     button.textContent = 'Book Ticket on IRCTC';
