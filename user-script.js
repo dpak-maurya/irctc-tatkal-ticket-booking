@@ -19,18 +19,104 @@ let paymentProvider = 'PAYTM'; // paytm or amazon
 let autoPay = false;  // auto click on pay button
 let autoProcessPopup = false;
 
-const allKeys = [
-  "username", "password", "targetTime", "passengerList","masterData","passengerNames","trainNumber",
-  "from", "to", "quotaType", "accommodationClass", "dateString", "refreshTime",
-  "autoPay", "paymentType", "paymentMethod", "paymentProvider"
-];
+const defaultSettings = {
+  automationStatus: false,
+  username: '',
+  password: '',
+  targetTime: '09:59:45',
+  passengerList: [],
+  masterData: false,
+  passengerNames: '',
+  trainNumber: '',
+  from: '',
+  to: '',
+  quotaType: '',
+  accommodationClass: '',
+  dateString: '',
+  refreshTime: 5000,
+  paymentType: 'BHIM/UPI',
+  paymentMethod: 'BHIM/ UPI/ USSD',
+  paymentProvider: 'PAYTM',
+  autoPay: false,
+  autoProcessPopup: false
+};
 
-const payButton = 'Pay & Book ';
+
 var intervalId;
 let trainFoundAtPosition = -1;
 let isAvlEnquiryCompleted = false;
 let mutationCompletionCounter = 0;
 let copyPassengerNames = '';
+
+const APP_HEADER = 'app-header';
+
+// Login Element 
+const LOGIN_BUTTON = 'app-header a.loginText';
+const LOGIN_COMPONENT = 'app-login';
+const LOGIN_USERID = 'input[formcontrolname="userid"]';
+const LOGIN_PASSWORD = 'input[formcontrolname="password"]';
+const LOGIN_CAPTCHA_IMAGE = 'app-captcha .captcha-img';
+const LOGIN_CAPTCHA_INPUT = 'app-captcha #captcha';
+
+// Search Journey Element
+const JOURNEY_INPUT_COMPONENT = 'app-jp-input';
+const ORIGIN_STATION_CODE = '#origin input';
+const DESTINATION_STATION_CODE = '#destination input';
+const STATION_CODE_LIST = '.ui-autocomplete-items li';
+const JOURNEY_QUOTA = '#journeyQuota>div';
+const JOURNEY_QUOTA_LIST = '#journeyQuota p-dropdownitem span';
+const JOURNEY_DATE = '#jDate input';
+const CURRENT_TIME = 'app-header .h_head1>span strong';
+const JOURNEY_SEARCH_BUTTON = 'button[type="submit"][label="Find Trains"].search_btn.train_Search';
+
+// Modify Search Train Element 
+const MODIFY_SEARCH_COMPONENT = 'app-modify-search';
+const MODIFY_JOURNEY_DATE = '#journeyDate input';
+
+// TRAIN LIST 
+const TRAIN_LIST_COMPONENT = 'app-train-list';
+const TRAIN_COMPONENT = 'app-train-avl-enq';
+const FIND_TRAIN_NUMBER = 'app-train-avl-enq .train-heading';
+const AVAILABLE_CLASS = '.pre-avl';
+const SELECTED_CLASS_TAB = 'p-tabmenu li[role="tab"][aria-selected="true"][aria-expanded="true"] a>div';
+const BOOK_NOW_BUTTON = 'button.btnDefault.train_Search';
+const BUTTON_DISABLE_CLASS = 'disable-book';
+const LINK_INSERTED = '.link.ng-star-inserted';
+
+// POP UP
+const DIALOG_FROM = 'p-confirmdialog[key="tofrom"]';
+const DIALOG_ACCEPT = '.ui-confirmdialog-acceptbutton';
+
+// Pasenger Input
+const PASSENGER_APP_COMPONENT = 'app-passenger-input';
+const PASSENGER_COMPONENT = 'app-passenger';
+const PASSENGER_NEXT_ROW = 'app-passenger-input p-panel .prenext';
+const PASSENGER_NEXT_ROW_TEXT = '+ Add Passenger';
+const PASSENGER_REMOVE_ROW = 'app-passenger-input p-panel a.fa-remove';
+const PASSENGER_INPUT_COMPONENT = 'app-passenger-input';
+const PASSENGER_NAME_INPUT = 'p-autocomplete input';
+const PASSENGER_NAME_LIST = '.ui-autocomplete-items li';
+const PASSENGER_AGE_INPUT = 'input[formcontrolname="passengerAge"]';
+const PASSENGER_GENDER_INPUT = 'select[formcontrolname="passengerGender"]';
+const PASSENGER_BERTH_CHOICE = 'select[formcontrolname="passengerBerthChoice"]';
+const PASSENGER_SUBMIT_BUTTON = 'app-passenger-input button.btnDefault.train_Search';
+
+
+const REVIEW_COMPONENT = 'app-review-booking';
+const REVIEW_TRAIN_HEADER = 'app-train-header';
+const REVIEW_CAPTCHA_IMAGE = 'app-captcha .captcha-img';
+const REVIEW_CAPTCHA_INPUT = 'captcha';
+const REVIEW_AVAILABLE = '.AVAILABLE';
+const REVIEW_WAITING = '.WL';
+const REVIEW_SUBMIT_BUTTON = 'app-review-booking button.btnDefault.train_Search';
+
+
+const PAYEMENT_COMPONENT = 'app-payment-options';
+const PAYMENT_TYPE = 'input[type="radio"][name="paymentType"]';
+const PAYMENT_METHOD = '.bank-type.ng-star-inserted';
+const PAYMENT_PROVIDER = '.bank-text';
+const PAY_BUTTON ='.btn-primary.ng-star-inserted';
+const PAY_BUTTON_TEXT = 'Pay & Book ';
 
 // Define a function to wait for an element to appear on the page
 async function waitForElementToAppear(selector) {
@@ -97,7 +183,7 @@ async function simulateTyping(element, text) {
 }
 async function fillLoginCaptcha() {
   // Find the captcha input element
-  var captchaInput = document.querySelector('app-captcha #captcha');
+  var captchaInput = document.querySelector(LOGIN_CAPTCHA_IMAGE);
 
   // Scroll the captcha input field into view smoothly
   if (captchaInput) {
@@ -113,23 +199,19 @@ async function fillLoginCaptcha() {
 }
 // Function to Login
 async function login() {
-  let loginButton = document.querySelector('app-header a.loginText')
+  let loginButton = document.querySelector(LOGIN_BUTTON);
   if(loginButton){
     await loginButton.click();
   }
-  await waitForElementToAppear('app-login');
-  await waitForElementToAppear('app-captcha .captcha-img');
+  await waitForElementToAppear(LOGIN_COMPONENT);
+  await waitForElementToAppear(LOGIN_CAPTCHA_IMAGE);
 
-  let loginModal = document.querySelector('app-login');
+  let loginModal = document.querySelector(LOGIN_COMPONENT);
 
   if (!loginModal) return;
 
-  const usernameInput = loginModal.querySelector(
-    'input[formcontrolname="userid"]'
-  );
-  const passwordInput = loginModal.querySelector(
-    'input[formcontrolname="password"]'
-  );
+  const usernameInput = loginModal.querySelector(LOGIN_USERID);
+  const passwordInput = loginModal.querySelector(LOGIN_PASSWORD);
   await simulateTyping(usernameInput, username);
   await simulateTyping(passwordInput, password);
   if(username && password){
@@ -155,7 +237,7 @@ async function autoComplete(element, value) {
   // Wait for a short delay to ensure the options are generated
   await delay(600);
 
-  var firstItem = document.querySelector('.ui-autocomplete-items li');
+  var firstItem = document.querySelector(STATION_CODE_LIST);
   if (firstItem) {
     await firstItem.click();
   }
@@ -205,7 +287,7 @@ async function selectQuota(element,value) {
    delay(500);
 
   // Get all list items within the autocomplete dropdown
-  var listItems = document.querySelectorAll('#journeyQuota p-dropdownitem span');
+  var listItems = document.querySelectorAll(JOURNEY_QUOTA_LIST);
 
   // Loop through each list item
   for (let item of listItems) {
@@ -223,7 +305,7 @@ async function selectQuota(element,value) {
 // Function to wait for the app-login element to disappear
 async function waitForAppLoginToDisappear() {
   // Select the app-login element
-  const appLogin = document.querySelector('app-login');
+  const appLogin = document.querySelector(LOGIN_COMPONENT);
 
   // If the app-login element is not found, return immediately
   if (!appLogin) {
@@ -250,11 +332,11 @@ async function waitForAppLoginToDisappear() {
 }
 // Function to fill Journey Details
 async function searchTrain(){
-  let journeyInput = document.querySelector('app-jp-input');
-  let origin = journeyInput.querySelector('#origin input');
-  let destination = journeyInput.querySelector('#destination input');
-  let quota = journeyInput.querySelector('#journeyQuota>div');
-  let jDate = journeyInput.querySelector('#jDate input');
+  let journeyInput = document.querySelector(JOURNEY_INPUT_COMPONENT);
+  let origin = journeyInput.querySelector(ORIGIN_STATION_CODE);
+  let destination = journeyInput.querySelector(DESTINATION_STATION_CODE);
+  let quota = journeyInput.querySelector(JOURNEY_QUOTA);
+  let jDate = journeyInput.querySelector(JOURNEY_DATE);
 
   await autoComplete(origin,from);
   await autoComplete(destination,to);
@@ -263,11 +345,11 @@ async function searchTrain(){
 }
 // Function to update Journey Details
 async function modifySearchTrain(){
-  let journeyInput = document.querySelector('app-modify-search');
-  let origin = journeyInput.querySelector('#origin input');
-  let destination = journeyInput.querySelector('#destination input');
-  let quota = journeyInput.querySelector('#journeyQuota>div');
-  let jDate = journeyInput.querySelector('#journeyDate input');
+  let journeyInput = document.querySelector(MODIFY_SEARCH_COMPONENT);
+  let origin = journeyInput.querySelector(ORIGIN_STATION_CODE);
+  let destination = journeyInput.querySelector(DESTINATION_STATION_CODE);
+  let quota = journeyInput.querySelector(JOURNEY_QUOTA);
+  let jDate = journeyInput.querySelector(MODIFY_JOURNEY_DATE);
 
   await autoComplete(origin,from);
   await autoComplete(destination,to);
@@ -277,7 +359,7 @@ async function modifySearchTrain(){
   await searchButton.click();
 }
 async function callSearchTrainComponent(){
-  let journeyComponent = document.querySelector('app-jp-input');
+  let journeyComponent = document.querySelector(JOURNEY_INPUT_COMPONENT);
 
   if(journeyComponent){
     await searchTrain();
@@ -288,9 +370,7 @@ async function callSearchTrainComponent(){
 }
 async function findRootTrain() {
   delay(500);
-  const trainHeadingElements = document.querySelectorAll(
-    'app-train-avl-enq .train-heading'
-  );
+  const trainHeadingElements = document.querySelectorAll(FIND_TRAIN_NUMBER);
 
   if (!trainHeadingElements || !trainHeadingElements.length) {
     console.log('No Available Trains');
@@ -301,7 +381,7 @@ async function findRootTrain() {
   for (let i = 0; i < trainHeadingElements.length; i++) {
     const trainHeadingElement = trainHeadingElements[i];
     if (textIncludes(trainHeadingElement.textContent, trainNumber)) {
-      rootElement = trainHeadingElement.closest('app-train-avl-enq');
+      rootElement = trainHeadingElement.closest(TRAIN_COMPONENT);
       console.log('Found train number:', trainNumber);
       trainFoundAtPosition = i; // Store the index of the found train
       break;
@@ -316,11 +396,11 @@ async function findRootTrain() {
 }
 async function scrollToFoundTrainAndSelectClass() {
 
-  let rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
+  let rootElement = document.querySelectorAll(TRAIN_COMPONENT)[trainFoundAtPosition];
 
   await scrollToElement(rootElement);
 
-  const availableClasses = rootElement.querySelectorAll('.pre-avl');
+  const availableClasses = rootElement.querySelectorAll(AVAILABLE_CLASS);
   if (!availableClasses || !availableClasses.length) {
     console.log('No available classes found.');
     return;
@@ -354,10 +434,8 @@ async function scrollToFoundTrainAndSelectClass() {
 // refresh the train by clicking selected open class tab
 async function refreshTrain() {
   try {
-    const rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
-    const selectedTab = rootElement.querySelector(
-      'p-tabmenu li[role="tab"][aria-selected="true"][aria-expanded="true"] a>div'
-    );
+    const rootElement = document.querySelectorAll(TRAIN_COMPONENT)[trainFoundAtPosition];
+    const selectedTab = rootElement.querySelector(SELECTED_CLASS_TAB);
     delay(100);
     // Simulate a click on the selected tab
     if (selectedTab) {
@@ -370,10 +448,10 @@ async function refreshTrain() {
   }
 }
 async function selectAvailableTicket() {
-  let rootElement = document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
+  let rootElement = document.querySelectorAll(TRAIN_COMPONENT)[trainFoundAtPosition];
 
   // Select the first available date
-  const availableDateElement = rootElement.querySelector('.pre-avl');
+  const availableDateElement = rootElement.querySelector(AVAILABLE_CLASS);
 
   if (availableDateElement) {
     // Extract the date string from the first strong element
@@ -389,8 +467,8 @@ async function selectAvailableTicket() {
       await delay(100); // Adjust the delay as needed
 
       // Check if the book ticket button is available
-      const bookTicketButton = rootElement.querySelector('button.btnDefault.train_Search');
-      if (bookTicketButton && !bookTicketButton.classList.contains('disable-book')) {
+      const bookTicketButton = rootElement.querySelector(BOOK_NOW_BUTTON);
+      if (bookTicketButton && !bookTicketButton.classList.contains(BUTTON_DISABLE_CLASS)) {
         await bookTicketButton.click(); // Click on the book ticket button
         return true; // Indicate that the ticket is selected
       }
@@ -407,7 +485,7 @@ const observer = new MutationObserver((mutationsList, observer) => {
       // Iterate over added nodes
       for (let node of mutation.addedNodes) {
         // Check if node matches the selector
-        if (node.matches('.link.ng-star-inserted')) {
+        if (node.matches(LINK_INSERTED)) {
           mutationCompletionCounter++;
           // For example, you can click on the element or store a reference to it
           console.log('element refreshed : available accommodation classes' );
@@ -424,7 +502,7 @@ async function bookTicket() {
   // No train found;
   if (trainFoundAtPosition === -1) return;
   let rootElement =
-  document.querySelectorAll('app-train-avl-enq')[trainFoundAtPosition];
+  document.querySelectorAll(TRAIN_COMPONENT)[trainFoundAtPosition];
   // Start observing mutations on the parent element
   observer.observe(rootElement, { childList: true, subtree: true });
   
@@ -467,22 +545,20 @@ async function bookTicket() {
 }
 // Function to check for the presence of the popup and close it if it exists
 function closePopupToProceed() {
-  let popup = document.querySelector('p-confirmdialog[key="tofrom"]');
+  let popup = document.querySelector(DIALOG_FROM);
   
   if (popup) {
     // Close the popup by clicking the close button or any other suitable action
-    document.querySelector('.ui-confirmdialog-acceptbutton').click();
+    document.querySelector(DIALOG_ACCEPT).click();
     console.log('Popup closed.');
   } else {
     console.log('Popup not found.');
   }
 }
 async function addNextRow() {
-  const prenextSpan = document.querySelector(
-    'app-passenger-input p-panel .prenext'
-  );
+  const prenextSpan = document.querySelector(PASSENGER_NEXT_ROW);
 
-  if (prenextSpan && prenextSpan.textContent.trim() === '+ Add Passenger') {
+  if (prenextSpan && prenextSpan.textContent.trim() === PASSENGER_NEXT_ROW_TEXT) {
     await prenextSpan.closest('a').click();
   } else {
     console.log('Span text does not match or element not found.');
@@ -490,9 +566,7 @@ async function addNextRow() {
 }
 async function removeFirstRow(){
   // delete the first row
-  const firstRow = document.querySelector(
-    'app-passenger-input p-panel a.fa-remove'
-  );
+  const firstRow = document.querySelector(PASSENGER_REMOVE_ROW);
   if(firstRow){
     await firstRow.click();
   }
@@ -505,9 +579,9 @@ function processInput() {
 }
 //autocomplete function
 function selectAutocompleteOption(index=0,name = passengerNames) {
-  var rows = document.querySelectorAll('app-passenger');
+  var rows = document.querySelectorAll(PASSENGER_COMPONENT);
   // Find the autocomplete input element
-  var autocompleteInput = rows[index].querySelector('p-autocomplete input');
+  var autocompleteInput = rows[index].querySelector(PASSENGER_NAME_INPUT);
   
   // Focus on the autocomplete input to trigger the generation of options
   autocompleteInput.focus();
@@ -526,7 +600,7 @@ function selectAutocompleteOption(index=0,name = passengerNames) {
   // Wait for a short delay to ensure the options are generated
   setTimeout(function() {
       // Get all list items within the autocomplete dropdown
-      var listItems = document.querySelectorAll('.ui-autocomplete-items li');
+      var listItems = document.querySelectorAll(PASSENGER_NAME_LIST);
       // Loop through each list item
       listItems.forEach(function(item) {
           // Get the text content of the list item
@@ -551,9 +625,7 @@ async function addMasterPassengerList() {
     selectAutocompleteOption();
   }
   else{
-    const firstRow = document.querySelector(
-      'app-passenger-input p-panel a.fa-remove'
-    );
+    const firstRow = document.querySelector(PASSENGER_REMOVE_ROW);
     await firstRow.click();
     for (let index = 0; index < copyPassengerNames.length; index++) {
       await addNextRow();
@@ -563,8 +635,8 @@ async function addMasterPassengerList() {
   }
   
   let lastRowIndex = copyPassengerNames.length-1;
-  let row = document.querySelectorAll('app-passenger')[lastRowIndex];
-  var ageInput = row.querySelector('input[formcontrolname="passengerAge"]');
+  let row = document.querySelectorAll(PASSENGER_COMPONENT)[lastRowIndex];
+  var ageInput = row.querySelector(PASSENGER_AGE_INPUT);
   // Wait until the age input field is not empty
   while (ageInput && ageInput.value === '') {
     // Wait for 500 milliseconds before checking again
@@ -574,13 +646,13 @@ async function addMasterPassengerList() {
 function fillCustomPassengerDetails(passenger, row = null) {
   // If row is not provided, select the last added row
   if (!row) {
-    row = document.querySelector('app-passenger');
+    row = document.querySelector(PASSENGER_COMPONENT);
   }
 
-  var nameInput = row.querySelector('p-autocomplete[formcontrolname="passengerName"] input');
-  var ageInput = row.querySelector('input[formcontrolname="passengerAge"]');
-  var genderSelect = row.querySelector('select[formcontrolname="passengerGender"]');
-  var preferenceSelect = row.querySelector('select[formcontrolname="passengerBerthChoice"]');
+  var nameInput = row.querySelector(PASSENGER_NAME_INPUT);
+  var ageInput = row.querySelector(PASSENGER_AGE_INPUT);
+  var genderSelect = row.querySelector(PASSENGER_GENDER_INPUT);
+  var preferenceSelect = row.querySelector(PASSENGER_BERTH_CHOICE);
   
   nameInput.value = passenger.name;
   nameInput.dispatchEvent(new Event('input'));
@@ -614,7 +686,7 @@ async function addCustomPassengerList() {
       // Add a new row for each passenger
       await addNextRow();
       delay(50);
-      var rows = document.querySelectorAll('app-passenger');
+      var rows = document.querySelectorAll(PASSENGER_COMPONENT);
       var currentRow = rows[rows.length - 1];
 
       fillCustomPassengerDetails(passenger, currentRow);
@@ -625,9 +697,7 @@ async function addCustomPassengerList() {
 }
 async function selectPaymentType() {
   // Find all input elements of type radio
-  var inputs = document.querySelectorAll(
-    'input[type="radio"][name="paymentType"]'
-  );
+  var inputs = document.querySelectorAll(PAYMENT_TYPE);
 
   if (inputs) {
     // Loop through each input element using for...of loop
@@ -661,9 +731,7 @@ async function addPassengerInputAndContinue() {
   delay(50);
 
   // Find the "Continue" button
-  var continueButton = document.querySelector(
-    'app-passenger-input button.btnDefault.train_Search'
-  );
+  var continueButton = document.querySelector(PASSENGER_SUBMIT_BUTTON);
   // Check if the button exists
   if (continueButton) {
     continueButton.focus();
@@ -682,9 +750,9 @@ async function addPassengerInputAndContinue() {
    console.log(endTime);
 }
 async function handleCaptchaAndContinue() {
-  await waitForElementToAppear('app-captcha .captcha-img');
+  await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
   // Find the captcha input element
-  var captchaInput = document.getElementById('captcha');
+  var captchaInput = document.getElementById(REVIEW_CAPTCHA_INPUT);
 
   // Scroll the captcha input field into view smoothly
   if (captchaInput) {
@@ -692,9 +760,9 @@ async function handleCaptchaAndContinue() {
   }
   delay(100);
   // Prompt the user to enter the captcha value
-  var trainHeader = document.querySelector('app-train-header');
-  var available = trainHeader.querySelector('.AVAILABLE');
-  var waitingList = trainHeader.querySelector('.WL');
+  var trainHeader = document.querySelector(REVIEW_TRAIN_HEADER);
+  var available = trainHeader.querySelector(REVIEW_AVAILABLE);
+  var waitingList = trainHeader.querySelector(REVIEW_WAITING);
   var seatsAvailable = (available || waitingList)?.textContent;
   var captchaValue = prompt(
     'Current Seats Status: ' + seatsAvailable + '\nPlease enter the Captcha:'
@@ -707,9 +775,7 @@ async function handleCaptchaAndContinue() {
   }
 
   // Find the "Continue" button
-  var continueButton = document.querySelector(
-    'app-review-booking button.btnDefault.train_Search'
-  );
+  var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
 
   // Click the "Continue" button
   if (continueButton) {
@@ -718,7 +784,7 @@ async function handleCaptchaAndContinue() {
 }
 async function selectPaymentMethod() {
   // Find all elements with the class "bank-type" and "ng-star-inserted"
-  var elements = document.querySelectorAll('.bank-type.ng-star-inserted');
+  var elements = document.querySelectorAll(PAYMENT_METHOD);
 
   // Check if elements exist
   if (elements.length > 0) {
@@ -739,7 +805,7 @@ async function selectPaymentMethod() {
 }
 async function selectPaymentProvider() {
   // Find all elements with the class "bank-text"
-  var elements = document.querySelectorAll('.bank-text');
+  var elements = document.querySelectorAll(PAYMENT_PROVIDER);
 
   // Check if elements exist
   if (elements.length > 0) {
@@ -759,10 +825,10 @@ async function selectPaymentProvider() {
 }
 async function clickPayButton() {
   // Find the button with the class "btn-primary" and "ng-star-inserted"
-  var button = document.querySelector('.btn-primary.ng-star-inserted');
+  var button = document.querySelector(PAY_BUTTON);
 
   // Check if the button exists and its text content contains "Pay"
-  if (button && textIncludes(button.textContent, payButton)) {
+  if (button && textIncludes(button.textContent, PAY_BUTTON_TEXT)) {
     // Simulate a click on the button
     await button.click();
     console.log('Clicked on button:', button.textContent);
@@ -774,7 +840,7 @@ function waitForTargetTime(targetTimeString) {
   // Define the interval function
   const intervalId = setInterval(() => {
     // Extract the current time element
-    const currentTimeElement = document.querySelector('app-header .h_head1>span strong');
+    const currentTimeElement = document.querySelector(CURRENT_TIME);
 
     if (!currentTimeElement) {
       console.error('Current time element not found.');
@@ -793,7 +859,7 @@ function waitForTargetTime(targetTimeString) {
     if (currentHour > targetHour || 
         (currentHour === targetHour && currentMinute > targetMinute) || 
         (currentHour === targetHour && currentMinute === targetMinute && currentSecond >= targetSecond)) {
-      const searchButton = document.querySelector('button[type="submit"][label="Find Trains"].search_btn.train_Search');
+      const searchButton = document.querySelector(JOURNEY_SEARCH_BUTTON);
       if (searchButton) {
         searchButton.click();
       } else {
@@ -804,30 +870,31 @@ function waitForTargetTime(targetTimeString) {
   }, 1000); // Interval set to 1 second (1000 milliseconds)
 }
 function getSettings() {
-
-  chrome.storage.local.get(allKeys, function (items,error) {
+  chrome.storage.local.get(defaultSettings, function (items, error) {
     if (error) {
       console.error("Error retrieving settings:", error);
       // Handle the error here, maybe use default values
       return;
     }
-    username = items.username || '';
-    password = items.password || '';
-    targetTime = items.targetTime || '09:59:45';
-    passengerList = items.passengerList || [];
-    masterData = items.masterData || false;
-    passengerNames = items.passengerNames || '';
-    trainNumber = items.trainNumber || '';
-    from = items.from || '';
-    to = items.to || '';
-    quotaType = items.quotaType || '';
-    accommodationClass = items.accommodationClass || '';
-    dateString = items.dateString || '';
-    refreshTime = items.refreshTime || 5000;
-    autoPay = items.autoPay || false;
-    paymentType = items.paymentType || 'BHIM/UPI' ;
-    paymentMethod = items.paymentMethod || 'BHIM/ UPI/ USSD';
-    paymentProvider = items.paymentProvider || 'PAYTM';
+    // Now 'items' will contain all the settings, either retrieved from storage or the defaults
+    username = items.username;
+    password = items.password;
+    targetTime = items.targetTime;
+    passengerList = items.passengerList;
+    masterData = items.masterData;
+    passengerNames = items.passengerNames;
+    trainNumber = items.trainNumber;
+    from = items.from;
+    to = items.to;
+    quotaType = items.quotaType;
+    accommodationClass = items.accommodationClass;
+    dateString = items.dateString;
+    refreshTime = items.refreshTime;
+    autoPay = items.autoPay;
+    paymentType = items.paymentType;
+    paymentMethod = items.paymentMethod;
+    paymentProvider = items.paymentProvider;
+    autoProcessPopup = items.autoProcessPopup;
   });
 }
 function getAutomationStatus() {
@@ -850,7 +917,7 @@ async function executeFunctions() {
   getSettings();
 
   // wait for home page to load
-  await waitForElementToAppear('app-header');
+  await waitForElementToAppear(APP_HEADER);
 
   // login page < Page 0 > (a prompt will appear to fill captcha)
   await login();
@@ -859,7 +926,7 @@ async function executeFunctions() {
   waitForTargetTime(targetTime);
   
   // wait for train list page to load
-  await waitForElementToAppear('app-train-list');
+  await waitForElementToAppear(TRAIN_LIST_COMPONENT);
 
   // select train and accommodation class < Page 1 >
   await bookTicket();
@@ -875,13 +942,13 @@ async function executeFunctions() {
   await addPassengerInputAndContinue();
 
   // Wait for the ticket review and Captcha page load
-  await waitForElementToAppear('app-review-booking');
+  await waitForElementToAppear(REVIEW_COMPONENT);
 
   // Review and Captcha <Page 3>   (a prompt will appear to fill captcha)
   await handleCaptchaAndContinue();
 
   // Wait for the app-payment-options element to appear on the page after the transition
-  await waitForElementToAppear('app-payment-options');
+  await waitForElementToAppear(PAYEMENT_COMPONENT);
 
   // Payment Selection <Page 4>
   await selectPaymentMethod();
