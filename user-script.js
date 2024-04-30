@@ -101,7 +101,7 @@ const PASSENGER_GENDER_INPUT = 'select[formcontrolname="passengerGender"]';
 const PASSENGER_BERTH_CHOICE = 'select[formcontrolname="passengerBerthChoice"]';
 const PASSENGER_SUBMIT_BUTTON = 'app-passenger-input button.btnDefault.train_Search';
 
-
+// Review Ticket and Fill Captcha
 const REVIEW_COMPONENT = 'app-review-booking';
 const REVIEW_TRAIN_HEADER = 'app-train-header';
 const REVIEW_CAPTCHA_IMAGE = 'app-captcha .captcha-img';
@@ -110,7 +110,7 @@ const REVIEW_AVAILABLE = '.AVAILABLE';
 const REVIEW_WAITING = '.WL';
 const REVIEW_SUBMIT_BUTTON = 'app-review-booking button.btnDefault.train_Search';
 
-
+// Payment Details
 const PAYEMENT_COMPONENT = 'app-payment-options';
 const PAYMENT_TYPE = 'input[type="radio"][name="paymentType"]';
 const PAYMENT_METHOD = '.bank-type.ng-star-inserted';
@@ -937,7 +937,7 @@ async function executeFunctions() {
   }
 
   // Wait for passenger page to load
-  await waitForElementToAppear('app-passenger-input');
+  await waitForElementToAppear(PASSENGER_APP_COMPONENT);
 
   // Passenger Input and Payment Type < Page 2 >
   await addPassengerInputAndContinue();
