@@ -618,7 +618,7 @@ async function selectAutocompleteOption(index=0,name = passengerNames) {
         }
     });
     // Wait for 500 milliseconds before checking again
-    await delay(500);
+    await delay(100);
   }
 }
 async function addMasterPassengerList() {
