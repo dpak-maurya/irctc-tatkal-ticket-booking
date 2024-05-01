@@ -578,69 +578,64 @@ function processInput() {
   }
 }
 //autocomplete function
-function selectAutocompleteOption(index=0,name = passengerNames) {
-  var rows = document.querySelectorAll(PASSENGER_COMPONENT);
+async function selectAutocompleteOption(index=0,name = passengerNames) {
+  var row = document.querySelectorAll(PASSENGER_COMPONENT)[index];
   // Find the autocomplete input element
-  var autocompleteInput = rows[index].querySelector(PASSENGER_NAME_INPUT);
-  
-  // Focus on the autocomplete input to trigger the generation of options
-  autocompleteInput.focus();
-  // Simulate user input by dispatching input events
-  for (var i = 0; i < name.length; i++) {
-      // Create and dispatch an input event with each character of the name
-      var inputEvent = new Event('input', {
-          bubbles: true,
-          cancelable: true
-      });
-      // Append the current character of the name to the input value
-      autocompleteInput.value += name[i];
-      // Dispatch the input event
-      autocompleteInput.dispatchEvent(inputEvent);
+  var autocompleteInput = row.querySelector(PASSENGER_NAME_INPUT);
+  var ageInput = row.querySelector(PASSENGER_AGE_INPUT);
+  name = name.trim().toLowerCase();
+  // Wait until the age input field is not empty
+  while (ageInput && ageInput.value === '') {
+      // Focus on the autocomplete input to trigger the generation of options
+    autocompleteInput.focus();
+
+    // Create and dispatch an input event with each character of the name
+    var inputEvent = new Event('input', {
+        bubbles: true,
+        cancelable: true
+    });
+    // Append the current character of the name to the input value
+    autocompleteInput.value = name;
+    // Dispatch the input event
+    autocompleteInput.dispatchEvent(inputEvent);
+
+    await delay(600);
+
+    // Get all list items within the autocomplete dropdown
+    var listItems = document.querySelectorAll(PASSENGER_NAME_LIST);
+    // Loop through each list item
+    listItems.forEach(function(item) {
+        // Get the text content of the list item
+        var itemText = item.textContent.trim();
+        
+        // Check if the text content contains the name substring
+        if (textIncludes(itemText,name)) {
+            // Select the list item by simulating a click
+            item.click();
+            console.log("Selected item:", itemText);
+            // Exit the loop after selecting the item
+            return;
+        }
+    });
+    // Wait for 500 milliseconds before checking again
+    await delay(100);
   }
-  // Wait for a short delay to ensure the options are generated
-  setTimeout(function() {
-      // Get all list items within the autocomplete dropdown
-      var listItems = document.querySelectorAll(PASSENGER_NAME_LIST);
-      // Loop through each list item
-      listItems.forEach(function(item) {
-          // Get the text content of the list item
-          var itemText = item.textContent.trim();
-          
-          // Check if the text content contains the name substring
-          if (itemText.toLowerCase().includes(name.trim().toLowerCase())) {
-              // Select the list item by simulating a click
-              item.click();
-              console.log("Selected item:", itemText);
-              // Exit the loop after selecting the item
-              return;
-          }
-      });
-  }, 600); // Adjust the delay as needed
 }
 async function addMasterPassengerList() {
   // Process the input (if needed)
   processInput();
   // If there's only one passenger name, fill the input data and return
   if (copyPassengerNames.length === 1) {
-    selectAutocompleteOption();
+    await selectAutocompleteOption();
   }
   else{
     const firstRow = document.querySelector(PASSENGER_REMOVE_ROW);
     await firstRow.click();
     for (let index = 0; index < copyPassengerNames.length; index++) {
       await addNextRow();
-      selectAutocompleteOption(index, copyPassengerNames[index]);
-      await delay(1000);
+      delay(200);
+      await selectAutocompleteOption(index, copyPassengerNames[index]);
     }
-  }
-  
-  let lastRowIndex = copyPassengerNames.length-1;
-  let row = document.querySelectorAll(PASSENGER_COMPONENT)[lastRowIndex];
-  var ageInput = row.querySelector(PASSENGER_AGE_INPUT);
-  // Wait until the age input field is not empty
-  while (ageInput && ageInput.value === '') {
-    // Wait for 500 milliseconds before checking again
-    await delay(500);
   }
 }
 function fillCustomPassengerDetails(passenger, row = null) {
@@ -725,10 +720,9 @@ async function addPassengerInputAndContinue() {
   else{
     await addCustomPassengerList();
   }
-  delay(500);
   // Call the function to select the radio button
   await selectPaymentType();
-  delay(50);
+  await delay(50);
 
   // Find the "Continue" button
   var continueButton = document.querySelector(PASSENGER_SUBMIT_BUTTON);
