@@ -2,6 +2,9 @@
 
 Streamline your Tatkal ticket booking process with lightning-fast efficiency. Experience seamless clicks and secure your confirmed tickets hassle-free.
 
+<img width="1512" alt="Screenshot 2024-04-28 at 10 54 01 PM" src="https://github.com/dpak-maurya/irctc-tatkal-ticket-booking/assets/41278103/e7be6c54-4b9e-4418-b5a5-a9cd166fe7ca">
+
+
 ## Table of Contents
 
 - [Introduction](#introduction)
