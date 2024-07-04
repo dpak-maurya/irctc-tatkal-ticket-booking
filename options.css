@@ -118,6 +118,15 @@ h3 {
   color: var(--md-sys-color-outline);
 }
 
+.invalid-feedback {
+  display: none;
+  color: red;
+  font-size: 0.9em;
+}
+input:invalid + .invalid-feedback {
+  display: block;
+}
+
 /* Theme for disabled input elements */
 input:disabled {
   background-color: var(--md-sys-color-surface); /* Surface color */
@@ -218,9 +227,6 @@ input:checked + .slider.round:before {
   font-weight:bold;
 }
 
-.passengers-container{
-  margin-bottom: 300px;;
-}
 .passengers-container .form-section{
   background-color: var(--md-sys-color-tertiary-container);
   color: var(--md-sys-color-on-tertiary-container);
