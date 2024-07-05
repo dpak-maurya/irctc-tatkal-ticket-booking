@@ -15,6 +15,10 @@ const initialFormValues = {
   paymentMethod: 'BHIM/ UPI/ USSD',
   paymentProvider: 'PAYTM',
   autoPay: false,
+  mobileNumber:'',
+  autoUpgradation:false,
+  confirmberths:false,
+  travelInsuranceOpted:'yes'
 };
 function getNextDay() {
   const currentDate = new Date();
@@ -113,12 +117,14 @@ function retrieveFormData() {
   const formData = {};
   Object.keys(initialFormValues).forEach((fieldName) => {
     const formElement = document.getElementById(fieldName);
-    if (formElement.type === 'checkbox') {
-      formData[fieldName] = formElement.checked;
-    } else if (formElement.type === 'date') {
-      formData[fieldName] = formatDateForStorage(formElement.value);
-    } else {
-      formData[fieldName] = formElement.value;
+    if(formElement){
+      if (formElement.type === 'checkbox') {
+        formData[fieldName] = formElement.checked;
+      } else if (formElement.type === 'date') {
+        formData[fieldName] = formatDateForStorage(formElement.value);
+      } else {
+        formData[fieldName] = formElement.value;
+      }
     }
   });
   console.log(formData);
@@ -165,6 +171,19 @@ document.getElementById('book-train').addEventListener('click', function() {
   // Open the link in a new tab
   window.open('https://www.irctc.co.in/nget/train-search', '_blank');
 });
+
+ // Function to get the value from chrome.storage.local using a Promise
+ function getStoredValue(key) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(key, function (result) {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(result[key]);
+      }
+    });
+  });
+ }
 document
   .getElementById('automationStatus')
   .addEventListener('change', function () {
@@ -177,7 +196,7 @@ document
   async function hideHowToUse(){
     const howtouse = document.querySelector('.custom-outline-btn');
     
-    const automationStatus = await getAutomationStatus();
+    const automationStatus = await getStoredValue('automationStatus');
     if(automationStatus){
       howtouse.classList.add('d-none');
     }
@@ -278,21 +297,9 @@ function startBookingCountdown() {
   );
 }
 
-async function getAutomationStatus() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get('automationStatus', function (result) {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(result.automationStatus);
-      }
-    });
-  });
-}
-
 // Function to update the text of the button based on the automation status
 async function updateButtonText() {
-  const automationStatus = await getAutomationStatus();
+  const automationStatus = await getStoredValue('automationStatus');
   const button = document.getElementById('book-train');
   
   if (automationStatus) {
@@ -450,6 +457,54 @@ document
 document.getElementById('masterData').addEventListener('change',function(){
   chrome.storage.local.set({masterData:this.checked});
 })
+
+document.getElementById('mobileNumber').addEventListener('change',function(){
+  if (this.checkValidity() || this.value === '') {
+    // Input is valid, save to chrome.storage.local
+    chrome.storage.local.set({ mobileNumber: this.value }, function() {
+      console.log('Mobile number saved:', this.value);
+    });
+  } else {
+    // Input is invalid, provide feedback
+    this.reportValidity(); // This will show the validation message
+    console.log('Invalid mobile number, not saved.');
+  }
+})
+
+document.getElementById('autoUpgradation').addEventListener('change',function(){
+  chrome.storage.local.set({autoUpgradation:this.checked});
+})
+document.getElementById('confirmberths').addEventListener('change',function(){
+  chrome.storage.local.set({confirmberths:this.checked});
+})
+
+document.addEventListener('DOMContentLoaded', async function() {
+  // Retrieve the saved value using async/await
+  try {
+    const savedInsuranceOption = await getStoredValue('travelInsuranceOpted');
+
+    // Retrieve radio buttons by name
+    const insuranceRadios = document.getElementsByName('travelInsuranceOpted');
+
+    insuranceRadios.forEach(radio => {
+      // Set checked based on the saved value
+      if (radio.value === savedInsuranceOption) {
+        radio.checked = true;
+      }
+
+      // Add event listener to save the selected option
+      radio.addEventListener('change', function() {
+        if (this.checked) {
+          chrome.storage.local.set({ travelInsuranceOpted: this.value });
+          console.log('Travel insurance option saved:', this.value);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error retrieving value from chrome.storage.local:', error);
+  }
+});
+
 
 // Call displayPassengers and addEventListeners when the page loads
 window.addEventListener('load', function () {

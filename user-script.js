@@ -18,6 +18,10 @@ let paymentMethod = 'BHIM/ UPI/ USSD';
 let paymentProvider = 'PAYTM'; // paytm or amazon
 let autoPay = false;  // auto click on pay button
 let autoProcessPopup = false;
+let mobileNumber = '';
+let autoUpgradation = false;
+let confirmberths = false;
+let travelInsuranceOpted = 'yes';
 
 const defaultSettings = {
   automationStatus: false,
@@ -38,7 +42,11 @@ const defaultSettings = {
   paymentMethod: 'BHIM/ UPI/ USSD',
   paymentProvider: 'PAYTM',
   autoPay: false,
-  autoProcessPopup: false
+  autoProcessPopup: false,
+  mobileNumber:'',
+  autoUpgradation:false,
+  confirmberths:false,
+  travelInsuranceOpted:'yes'
 };
 
 
@@ -99,6 +107,10 @@ const PASSENGER_NAME_LIST = '.ui-autocomplete-items li';
 const PASSENGER_AGE_INPUT = 'input[formcontrolname="passengerAge"]';
 const PASSENGER_GENDER_INPUT = 'select[formcontrolname="passengerGender"]';
 const PASSENGER_BERTH_CHOICE = 'select[formcontrolname="passengerBerthChoice"]';
+const PASSENGER_MOBILE_NUMBER = 'mobileNumber';
+const PASSENGER_PREFERENCE_AUTOUPGRADATION = 'autoUpgradation';
+const PASSENGER_PREFERENCE_CONFIRMBERTHS = 'confirmberths';
+const PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = 'input[type="radio"][name="travelInsuranceOpted-0"]';
 const PASSENGER_SUBMIT_BUTTON = 'app-passenger-input button.btnDefault.train_Search';
 
 // Review Ticket and Fill Captcha
@@ -690,6 +702,50 @@ async function addCustomPassengerList() {
     }
   }
 }
+async function addMobileNumber() {
+  const pMobileNumber = mobileNumber;
+  // Validate the mobile number
+  if (pMobileNumber && /^\d{10}$/.test(pMobileNumber)) {
+    var mobileInput = document.getElementById(PASSENGER_MOBILE_NUMBER);
+    mobileInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    mobileInput.value = pMobileNumber;
+    mobileInput.dispatchEvent(new Event('input'));
+    await delay(50);
+    console.log('Mobile number set:', pMobileNumber);
+  } else {
+    console.error('Invalid mobile number:', pMobileNumber);
+  }
+}
+async function selectPreferences(){
+  var autoUpgradationInput = document.getElementById(PASSENGER_PREFERENCE_AUTOUPGRADATION);
+  autoUpgradationInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if(autoUpgradationInput && autoUpgradation)
+     autoUpgradationInput.click();
+  
+  var confirmberthsInput = document.getElementById(PASSENGER_PREFERENCE_CONFIRMBERTHS);
+  if(confirmberthsInput && confirmberths)
+    confirmberthsInput.click();
+
+  // Find all input elements of type radio
+  var inputs = document.querySelectorAll(PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED);
+
+  if (inputs) {
+    // Loop through each input element using for...of loop
+    for (let input of inputs) {
+      // Get the corresponding label element
+      var label = input && input.closest('label');
+
+      // Check if the label element exists and its text content matches the specified text
+      if (label && textIncludes(label.textContent, travelInsuranceOpted)) {
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Trigger a click event on the input radio element
+        await input.click();
+        console.log('Clicked on radio button for:', travelInsuranceOpted);
+        break; // Exit the loop after clicking the input radio
+      }
+    }
+  }
+}
 async function selectPaymentType() {
   // Find all input elements of type radio
   var inputs = document.querySelectorAll(PAYMENT_TYPE);
@@ -706,7 +762,7 @@ async function selectPaymentType() {
         // Trigger a click event on the input radio element
         await input.click();
         console.log('Clicked on radio button for:', paymentType);
-        return; // Exit the loop after clicking the input radio
+        break; // Exit the loop after clicking the input radio
       }
     }
   }
@@ -720,6 +776,9 @@ async function addPassengerInputAndContinue() {
   else{
     await addCustomPassengerList();
   }
+  await addMobileNumber();
+  console.log(autoUpgradation,confirmberths,travelInsuranceOpted);
+  await selectPreferences();
   // Call the function to select the radio button
   await selectPaymentType();
   await delay(50);
@@ -890,6 +949,10 @@ function getSettings() {
     paymentMethod = items.paymentMethod;
     paymentProvider = items.paymentProvider;
     autoProcessPopup = items.autoProcessPopup;
+    mobileNumber = items.mobileNumber;
+    autoUpgradation = items.autoUpgradation;
+    confirmberths = items.confirmberths;
+    travelInsuranceOpted = items.travelInsuranceOpted;
   });
 }
 function getAutomationStatus() {

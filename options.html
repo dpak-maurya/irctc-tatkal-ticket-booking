@@ -102,6 +102,7 @@
                 <option value="3A" selected>AC 3 Tier (3A)</option>
                 <option value="2A">AC 2 Tier (2A)</option>
                 <option value="1A">AC First Class (1A)</option>
+                <option value="3E">AC 3 Economy (3E)</option>
               </select>
             </div>
           </div>
@@ -130,6 +131,7 @@
             </div>
           </div>
         </div>
+       
       </div>
 
       <button type="button" id="save-train" class="btn btn-custom-primary p-2 mr-2">Save Settings</button>
@@ -205,6 +207,49 @@
           </table>
         </form>
       </div>
+    </div>
+    <div class="passengers-container mt-5">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-section" id="contactInfo">
+            <h3>Contact Details</h3>
+            <div class="form-group">
+              <label for="mobileNumber">Mobile Number</label>
+              <input type="tel" class="form-control" id="mobileNumber" placeholder="Enter Passenger Mobile No." pattern="\d{10}" maxlength="10" required>
+              <div class="invalid-feedback">Please enter a valid mobile number</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="form-section" id="preferenceInfo">
+            <h3>Other Preferences</h3>
+            <div class="form-group form-check">
+              <input type="checkbox" class="form-check-input" id="autoUpgradation">
+              <label class="form-check-label" for="autoUpgradation">Consider for Auto Upgradation.</label>
+            </div>
+            <div class="form-group form-check">
+              <input type="checkbox" class="form-check-input" id="confirmberths">
+              <label class="form-check-label" for="confirmberths">Book only if confirm berths are allotted.</label>
+            </div>
+            <div class="form-group">
+              <h6 style="font-weight:600;">Travel Insurance (Incl. of GST) <small>Do you want to take Travel Insurance (₹0.45/person)?</small> </h6>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="travelInsuranceOpted" id="travelInsuranceOptedYes" value="yes" checked>
+                <label class="form-check-label" for="travelInsuranceOptedYes">
+                  Yes, and I accept the terms & conditions
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="travelInsuranceOpted" id="travelInsuranceOptedNo" value="no">
+                <label class="form-check-label" for="travelInsuranceOptedNo">
+                  No, I don't want travel insurance
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+     
     </div>
   </div>
 
