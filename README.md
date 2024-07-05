@@ -30,7 +30,7 @@ This Chrome extension is designed to simplify and expedite the Tatkal ticket boo
 ## Installation
 
 To install the IRCTC Tatkal Booking Chrome Extension, follow these steps:
-1. Download the extension files from the [release page](https://github.com/dpak-maurya/irctc-tatkal-ticket-booking/releases/tag/v1.0.0).
+1. Download the extension files from the [release page](https://github.com/dpak-maurya/irctc-tatkal-ticket-booking/releases).
 2. Extract the files to a folder on your computer.
 3. Open Google Chrome.
 4. Go to `chrome://extensions/`.
