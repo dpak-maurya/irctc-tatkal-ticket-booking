@@ -2,7 +2,7 @@
 let automationStatus = false;
 let username = '';
 let password = '';
-let targetTime ='09:59:45'
+let targetTime ='09:59:53'
 let passengerList = [];
 let masterData = false;
 let passengerNames = '';
@@ -27,7 +27,7 @@ const defaultSettings = {
   automationStatus: false,
   username: '',
   password: '',
-  targetTime: '09:59:45',
+  targetTime: '09:59:53',
   passengerList: [],
   masterData: false,
   passengerNames: '',

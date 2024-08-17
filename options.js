@@ -3,7 +3,7 @@ const initialFormValues = {
   automationStatus: false,
   username: '',
   password: '',
-  targetTime: '09:59:45',
+  targetTime: '09:59:53',
   refreshTime: '5000',
   trainNumber: '11061',
   from: 'LTT',
@@ -138,10 +138,10 @@ document.getElementById('accommodationClass').addEventListener('change', functio
   // Update target time based on the selected accommodation class
  
   if (selectedClass === 'SL') {
-      targetTimeInput.value = '10:59:45';
+      targetTimeInput.value = '10:59:53';
   }
   else{
-    targetTimeInput.value = '09:59:45';
+    targetTimeInput.value = '09:59:53';
   }
 
   // Reset the countdown timer
@@ -252,7 +252,7 @@ function startBookingCountdown() {
 
   // Get target time and automation status from Chrome storage
   chrome.storage.local.get(
-    { targetTime: '10:59:45', automationStatus: false },
+    { targetTime: '10:59:53', automationStatus: false },
     function (items, error) {
       if (error) {
         console.error('Error retrieving settings:', error);
