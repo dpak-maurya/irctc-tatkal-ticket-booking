@@ -49,11 +49,11 @@ Contributions to the IRCTC Tatkal Booking Chrome Extension are welcome! If you h
 
 This Chrome extension is a personal project developed for facilitating Tatkal ticket booking on the IRCTC website. Please note that the extension is not affiliated with or endorsed by IRCTC. All rights pertaining to the IRCTC platform and its services are owned by IRCTC.
 
-Last updated [Date]
+Last updated September 2, 2024
 
 **Disclaimer**
 
-The information provided by [dpak-maurya/irctc-tatkal-ticket-booking] (“we,” “us,” or “our”) on [irctc-tatkal-ticket-booking] (the “Repository”) is for general informational purposes only. All information on the Repository is provided in good faith; however, we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Repository.
+The information provided by [dpak-maurya/irctc-tatkal-ticket-booking] (“we,” “us,” or “our”) on irctc-tatkal-ticket-booking (the “Repository”) is for general informational purposes only. All information on the Repository is provided in good faith; however, we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Repository.
 
 Under no circumstance shall we have any liability to you for any loss or damage of any kind incurred as a result of the use of the Repository or reliance on any information provided therein. Your use of the Repository and your reliance on any information on the Repository is solely at your own risk.
 
