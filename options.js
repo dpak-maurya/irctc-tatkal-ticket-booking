@@ -165,6 +165,8 @@ document.getElementById('save-train').addEventListener('click', startBookingCoun
 
 
 let intervalId;
+let timeoutID;
+
 document.getElementById('book-train').addEventListener('click', function() {
   // Stop the counter here
   clearInterval(intervalId);
@@ -275,7 +277,8 @@ function startBookingCountdown() {
           document.getElementById('book-train').classList.remove('d-none');
           return;
         } 
-        setTimeout(clickBookTicketButton, timeDifferenceInSeconds * 1000); // Convert seconds to milliseconds
+        if(timeoutID) clearTimeout(timeoutID);
+        timeoutID = setTimeout(clickBookTicketButton, timeDifferenceInSeconds * 1000); // Convert seconds to milliseconds
         document.getElementById('book-train').classList.add('d-none');
         // Update the time remaining on the screen
         updateTimeRemaining(timeDifferenceInSeconds);
