@@ -1,4 +1,4 @@
-# IRCTC Tatkal Booking Chrome Extension
+# IRCTC Tatkal Booking Chrome Extension (Educational Purpose Only)
 
 Streamline your Tatkal ticket booking process with lightning-fast efficiency. Experience seamless clicks and secure your confirmed tickets hassle-free.
 
@@ -18,7 +18,7 @@ Streamline your Tatkal ticket booking process with lightning-fast efficiency. Ex
 
 ## Introduction
 
-This Chrome extension is designed to simplify and expedite the Tatkal ticket booking process on the IRCTC website. With its intuitive interface and efficient automation, it aims to enhance the user experience and improve the chances of securing Tatkal tickets successfully.
+This Chrome extension is a personal project developed for educational purposes to demonstrate automation techniques related to ticket booking on the IRCTC website. It is not affiliated with or endorsed by IRCTC. All rights pertaining to the IRCTC platform and its services are owned by IRCTC.
 
 ## Features
 
@@ -47,13 +47,20 @@ Contributions to the IRCTC Tatkal Booking Chrome Extension are welcome! If you h
 
 ## License
 
-This Chrome extension is a personal project developed for facilitating Tatkal ticket booking on the IRCTC website. Please note that the extension is not affiliated with or endorsed by IRCTC. All rights pertaining to the IRCTC platform and its services are owned by IRCTC.
+This Chrome extension is a personal project developed for educational purposes to demonstrate automation techniques related to ticket booking on the IRCTC website. It is not affiliated with or endorsed by IRCTC. All rights pertaining to the IRCTC platform and its services are owned by IRCTC.
 
-Last updated September 2, 2024
+Last updated September 19, 2024
 
-**Disclaimer**
 
-The information provided by [dpak-maurya/irctc-tatkal-ticket-booking] (“we,” “us,” or “our”) on irctc-tatkal-ticket-booking (the “Repository”) is for general informational purposes only. All information on the Repository is provided in good faith; however, we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Repository.
+## Disclaimer
+The information provided by [dpak-maurya/irctc-tatkal-ticket-booking] ("we," "us," or "our") on this repository (the "Repository") is for **educational purposes only**. All information on the Repository is provided in good faith; however, we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Repository.
 
-Under no circumstance shall we have any liability to you for any loss or damage of any kind incurred as a result of the use of the Repository or reliance on any information provided therein. Your use of the Repository and your reliance on any information on the Repository is solely at your own risk.
+**Important Note:** Users are advised to comply with IRCTC's terms of service and should not use this tool for bulk bookings or reselling tickets. Any misuse of this tool is solely at the user's risk.
 
+Under no circumstance shall we have any liability to you for any loss or damage of any kind incurred as a result of the use of the Repository or reliance on any information provided therein. Your use of the Repository and your reliance on any information on the Repository is solely at your own risk and must comply with applicable laws and regulations.
+
+## Privacy Policy
+This Chrome extension does not store any personal data or sensitive information. All operations performed by this extension are conducted locally within your browser's storage.
+- **Data Collection:** This extension does not collect, store, or transmit any user data to third parties.
+- **Local Storage:** Any data that may be temporarily stored during usage (e.g., session data) is stored only in your browser's local storage and is not accessible outside of your device.
+- **User Consent:** By using this extension, you acknowledge that you understand its purpose and agree to use it responsibly in accordance with IRCTC's terms of service.
