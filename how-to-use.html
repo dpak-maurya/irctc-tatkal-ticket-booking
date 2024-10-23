@@ -68,6 +68,7 @@
                         </li>
                         <li><code>Refresh Time (ms)</code>: Default is set to 5000 milliseconds (5 seconds). This will
                             refresh the train availability status every 5 seconds on the IRCTC page.</li>
+                        <li><code>Login Minutes Before</code>: Default is set to 2 minutes. This will login at specified minutes before Tatkal start timer.</li>
                     </ol>
                 </li>
                 <li >The <code>Tatkal Start Timer</code> will be used to transition from search
@@ -86,9 +87,9 @@
                     website
                     and attempt to book tickets using the provided settings and passenger details.</li>
                 <li>If the switch is turned off, the extension will not run on the IRCTC page.</li>
-                <li>If the switch is on and Tatkal start timer is set, the extension will automatically log in 2 minutes
+                <li>If the switch is on and Tatkal start timer is set, the extension will automatically log at specified minutes(2 minutes by default)
                     before the start timer, and the <code>Go to IRCTC Website</code> button will disappear.</li>
-                <li>If the switch is on and Tatkal start timer is set, and there is less than 2 minutes available before
+                <li>If the switch is on and Tatkal start timer is set, and there is less than specified minutes available before
                     the start timer, the <code>Book Ticket on IRCTC</code> button will appear, allowing you to book
                     manually.</li>
             </ol>
