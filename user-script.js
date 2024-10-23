@@ -433,6 +433,13 @@ async function scrollToFoundTrainAndSelectClass() {
     console.log('No matching accommodation class found:', accommodationClass);
     return;
   }
+  const availableSeatElement = selectedClass.querySelector('.AVAILABLE');
+
+  if (!availableSeatElement && confirmberths) {
+      console.log('confirmberths is true. Halting script execution.');
+      alert('Confirm Births Seat are not available.');
+      throw new Error('Halting Script: No AVAILABLE class found and confirmberths is true');
+  }
   delay(200);
   await selectedClass.click();
 
@@ -468,7 +475,13 @@ async function selectAvailableTicket() {
   if (availableDateElement) {
     // Extract the date string from the first strong element
     const avlDate = availableDateElement.querySelector('strong').textContent;
-    
+    const availableSeatElement = availableDateElement.querySelector('.AVAILABLE');
+
+    if (!availableSeatElement && confirmberths) {
+        console.log('confirmberths is true. Halting script execution.');
+        alert('Confirm Births Seat are not available.');
+        throw new Error('Halting Script: No AVAILABLE class found and confirmberths is true');
+    }
     // Parse the date string to extract day and month
     const [day, month] = avlDate.split(', ')[1].split(' ');
     const [tday,tmonth,_]= dateString.split('/');
@@ -968,55 +981,59 @@ function getAutomationStatus() {
     );
   });
 }
-async function executeFunctions() { 
-  const currentAutomationStatus = await getAutomationStatus();
-  if (!currentAutomationStatus) return;
-  // read the passenger information for ticket booking
-  getSettings();
+async function executeFunctions() {
+  try {
+    const currentAutomationStatus = await getAutomationStatus();
+    if (!currentAutomationStatus) return;
+    // read the passenger information for ticket booking
+    getSettings();
 
-  // wait for home page to load
-  await waitForElementToAppear(APP_HEADER);
+    // wait for home page to load
+    await waitForElementToAppear(APP_HEADER);
 
-  // login page < Page 0 > (a prompt will appear to fill captcha)
-  await login();
-  await waitForAppLoginToDisappear();
-  await callSearchTrainComponent();
-  waitForTargetTime(targetTime);
-  
-  // wait for train list page to load
-  await waitForElementToAppear(TRAIN_LIST_COMPONENT);
+    // login page < Page 0 > (a prompt will appear to fill captcha)
+    await login();
+    await waitForAppLoginToDisappear();
+    await callSearchTrainComponent();
+    waitForTargetTime(targetTime);
+    
+    // wait for train list page to load
+    await waitForElementToAppear(TRAIN_LIST_COMPONENT);
 
-  // select train and accommodation class < Page 1 >
-  await bookTicket();
+    // select train and accommodation class < Page 1 >
+    await bookTicket();
 
-  if(autoProcessPopup){
-    closePopupToProceed();
+    if(autoProcessPopup){
+      closePopupToProceed();
+    }
+
+    // Wait for passenger page to load
+    await waitForElementToAppear(PASSENGER_APP_COMPONENT);
+
+    // Passenger Input and Payment Type < Page 2 >
+    await addPassengerInputAndContinue();
+
+    // Wait for the ticket review and Captcha page load
+    await waitForElementToAppear(REVIEW_COMPONENT);
+
+    // Review and Captcha <Page 3>   (a prompt will appear to fill captcha)
+    await handleCaptchaAndContinue();
+
+    // Wait for the app-payment-options element to appear on the page after the transition
+    await waitForElementToAppear(PAYEMENT_COMPONENT);
+
+    // Payment Selection <Page 4>
+    await selectPaymentMethod();
+    await selectPaymentProvider();
+
+    if(autoPay){
+      await clickPayButton();
+      // now scan the QR and do the the payment
+    }
+  } catch (error) {
+    console.error("An error occurred during execution:", error);
+    // You can add additional error handling here if needed
   }
-
-  // Wait for passenger page to load
-  await waitForElementToAppear(PASSENGER_APP_COMPONENT);
-
-  // Passenger Input and Payment Type < Page 2 >
-  await addPassengerInputAndContinue();
-
-  // Wait for the ticket review and Captcha page load
-  await waitForElementToAppear(REVIEW_COMPONENT);
-
-  // Review and Captcha <Page 3>   (a prompt will appear to fill captcha)
-  await handleCaptchaAndContinue();
-
-  // Wait for the app-payment-options element to appear on the page after the transition
-  await waitForElementToAppear(PAYEMENT_COMPONENT);
-
-  // Payment Selection <Page 4>
-  await selectPaymentMethod();
-  await selectPaymentProvider();
-
-  if(autoPay){
-    await clickPayButton();
-    // now scan the QR and do the the payment
-  }
- 
 }
 
 executeFunctions();
