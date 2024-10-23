@@ -18,7 +18,8 @@ const initialFormValues = {
   mobileNumber:'',
   autoUpgradation:false,
   confirmberths:false,
-  travelInsuranceOpted:'yes'
+  travelInsuranceOpted:'yes',
+  loginMinutesBefore: 2,
 };
 function getNextDay() {
   const currentDate = new Date();
@@ -122,6 +123,8 @@ function retrieveFormData() {
         formData[fieldName] = formElement.checked;
       } else if (formElement.type === 'date') {
         formData[fieldName] = formatDateForStorage(formElement.value);
+      } else if (formElement.type === 'number') {
+        formData[fieldName] = parseInt(formElement.value);
       } else {
         formData[fieldName] = formElement.value;
       }
@@ -252,39 +255,40 @@ function startBookingCountdown() {
     return Math.floor((endTime - startTime) / 1000);
   }
 
-  // Get target time and automation status from Chrome storage
+  // Get target time, automation status, and loginMinutesBefore from Chrome storage
   chrome.storage.local.get(
-    { targetTime: '10:59:53', automationStatus: false },
+    { targetTime: '10:59:53', automationStatus: false, loginMinutesBefore: 2 },
     function (items, error) {
       if (error) {
         console.error('Error retrieving settings:', error);
-        // Handle the error here, maybe use default values
         return;
       }
       const automationStatus = items.automationStatus;
       const timeString = items.targetTime;
+      const loginMinutesBefore = items.loginMinutesBefore;
       const targetTime = getTimeFromString(timeString);
-      const clickTime = new Date(targetTime.getTime() - 120 * 1000); // 120 seconds before target time
+      const clickTime = new Date(targetTime.getTime() - loginMinutesBefore * 60 * 1000);
 
       if (automationStatus) {
-        // Start the timer to click the button 120 seconds before the target time
+        // Start the timer to click the button loginMinutesBefore minutes before the target time
         const currentTime = new Date();
         const timeDifferenceInSeconds = getTimeDifferenceInSeconds(
           currentTime,
           clickTime
         );
-        if(timeDifferenceInSeconds<0){
+        if(timeDifferenceInSeconds < 0) {
           document.getElementById('book-train').classList.remove('d-none');
           return;
         } 
         if(timeoutID) clearTimeout(timeoutID);
-        timeoutID = setTimeout(clickBookTicketButton, timeDifferenceInSeconds * 1000); // Convert seconds to milliseconds
+        timeoutID = setTimeout(clickBookTicketButton, timeDifferenceInSeconds * 1000);
         document.getElementById('book-train').classList.add('d-none');
+        
         // Update the time remaining on the screen
         updateTimeRemaining(timeDifferenceInSeconds);
 
         // Update the time remaining every second
-         intervalId = setInterval(function () {
+        intervalId = setInterval(function () {
           const currentTime = new Date();
           const remaining = getTimeDifferenceInSeconds(currentTime, clickTime);
           updateTimeRemaining(remaining);
