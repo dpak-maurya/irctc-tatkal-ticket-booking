@@ -1,6 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-const TimerDetails = ({ formData, handleChange }) => {
+function TimerDetails({ formData, handleChange }) {
   return (
     <div className="form-section">
       <h3>Timer Details</h3>
@@ -36,6 +37,15 @@ const TimerDetails = ({ formData, handleChange }) => {
       </div>
     </div>
   );
+}
+
+TimerDetails.propTypes = {
+  formData: PropTypes.shape({
+    targetTime: PropTypes.string,
+    refreshTime: PropTypes.string,
+    loginMinutesBefore: PropTypes.string,
+  }).isRequired,
+  handleChange: PropTypes.func.isRequired,
 };
 
 export default TimerDetails;

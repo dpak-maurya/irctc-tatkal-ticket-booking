@@ -1,6 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-const PaymentDetails = ({ formData, handleChange }) => {
+function PaymentDetails({ formData, handleChange }) {
   return (
     <div className="form-section">
       <h3>Payment Details</h3>
@@ -46,6 +47,16 @@ const PaymentDetails = ({ formData, handleChange }) => {
       </div>
     </div>
   );
+}
+
+PaymentDetails.propTypes = {
+  formData: PropTypes.shape({
+    paymentType: PropTypes.string,
+    paymentMethod: PropTypes.string,
+    paymentProvider: PropTypes.string,
+    payAndBook: PropTypes.bool,
+  }).isRequired,
+  handleChange: PropTypes.func.isRequired,
 };
 
 export default PaymentDetails;

@@ -1,6 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-const TrainDetails = ({ formData, handleChange }) => {
+function TrainDetails({ formData, handleChange }) {
   return (
     <div className="form-section">
       <h3>Train Details</h3>
@@ -71,6 +72,18 @@ const TrainDetails = ({ formData, handleChange }) => {
       </div>
     </div>
   );
+}
+
+TrainDetails.propTypes = {
+  formData: PropTypes.shape({
+    dateString: PropTypes.string,
+    trainNumber: PropTypes.string,
+    from: PropTypes.string,
+    to: PropTypes.string,
+    quotaType: PropTypes.string,
+    accommodationClass: PropTypes.string,
+  }).isRequired,
+  handleChange: PropTypes.func.isRequired,
 };
 
 export default TrainDetails;

@@ -1,33 +1,42 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-const LoginDetails = ({ formData, handleChange }) => {
+function LoginDetails({ formData, handleChange }) {
   return (
-    <div className="form-section">
-      <h3>Login Details</h3>
-      <div className="form-group">
+    <div>
+      <h2>Login Details</h2>
+      <div>
         <label htmlFor="username">Username:</label>
-        <input 
-          type="text" 
-          id="username" 
-          name="username" 
-          value={formData.username} 
+        <input
+          type="text"
+          id="username"
+          name="username"
+          value={formData.username}
           onChange={handleChange}
-          placeholder="Enter IRTC username" 
+          required
         />
       </div>
-      <div className="form-group">
+      <div>
         <label htmlFor="password">Password:</label>
-        <input 
-          type="password" 
-          id="password" 
-          name="password" 
-          value={formData.password} 
+        <input
+          type="password"
+          id="password"
+          name="password"
+          value={formData.password}
           onChange={handleChange}
-          placeholder="Enter IRTC password" 
+          required
         />
       </div>
     </div>
   );
+}
+
+LoginDetails.propTypes = {
+  formData: PropTypes.shape({
+    username: PropTypes.string,
+    password: PropTypes.string,
+  }).isRequired,
+  handleChange: PropTypes.func.isRequired,
 };
 
 export default LoginDetails;

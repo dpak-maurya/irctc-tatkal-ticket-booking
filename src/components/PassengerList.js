@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 
-const PassengerList = ({ formData, setFormData }) => {
+function PassengerList({ formData, setFormData }) {
   const [newPassenger, setNewPassenger] = useState({
     name: '',
     age: '',
@@ -89,6 +90,18 @@ const PassengerList = ({ formData, setFormData }) => {
       </div>
     </div>
   );
+}
+
+PassengerList.propTypes = {
+  formData: PropTypes.shape({
+    passengers: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string,
+      age: PropTypes.string,
+      gender: PropTypes.string,
+      berth: PropTypes.string,
+    })),
+  }).isRequired,
+  setFormData: PropTypes.func.isRequired,
 };
 
 export default PassengerList;

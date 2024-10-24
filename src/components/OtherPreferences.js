@@ -1,6 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-const OtherPreferences = ({ formData, handleChange }) => {
+function OtherPreferences({ formData, handleChange }) {
   return (
     <div className="form-section other-preferences">
       <h2>Other Preferences</h2>
@@ -43,11 +44,20 @@ const OtherPreferences = ({ formData, handleChange }) => {
             checked={formData.travelInsurance === 'no'}
             onChange={handleChange}
           />
-          No, I don't want travel insurance
+          No, I {`don't`} want travel insurance
         </label>
       </div>
     </div>
   );
+}
+
+OtherPreferences.propTypes = {
+  formData: PropTypes.shape({
+    autoUpgradation: PropTypes.bool,
+    bookOnlyIfConfirmed: PropTypes.bool,
+    travelInsurance: PropTypes.bool,
+  }).isRequired,
+  handleChange: PropTypes.func.isRequired,
 };
 
 export default OtherPreferences;

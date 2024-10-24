@@ -1,6 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-const PassengerNames = ({ formData, handleChange }) => {
+function PassengerNames({ formData, handleChange }) {
   return (
     <div className="form-section passenger-names">
       <h2>Passenger Names</h2>
@@ -21,6 +22,14 @@ const PassengerNames = ({ formData, handleChange }) => {
       </label>
     </div>
   );
+}
+
+PassengerNames.propTypes = {
+  formData: PropTypes.shape({
+    passengerNames: PropTypes.string,
+    useIRCTCMasterData: PropTypes.bool,
+  }).isRequired,
+  handleChange: PropTypes.func.isRequired,
 };
 
 export default PassengerNames;
