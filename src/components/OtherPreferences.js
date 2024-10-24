@@ -35,9 +35,9 @@ const OtherPreferences = ({ formData, handleChange }) => {
         <FormControlLabel
           control={
             <Checkbox
-              checked={formData.bookOnlyIfConfirmed}
+              checked={formData.confirmberths}
               onChange={handleChange}
-              name="bookOnlyIfConfirmed"
+              name="confirmberths"
             />
           }
           label="Book only if confirmed berths are allotted"
@@ -47,8 +47,8 @@ const OtherPreferences = ({ formData, handleChange }) => {
       <FormControl component="fieldset" sx={{ mt: 2 }}>
         <FormLabel component="legend">Travel Insurance (Incl. of GST)</FormLabel>
         <RadioGroup
-          name="travelInsurance"
-          value={formData.travelInsurance}
+          name="travelInsuranceOpted"
+          value={formData.travelInsuranceOpted}
           onChange={handleChange}
         >
           <FormControlLabel
@@ -70,8 +70,8 @@ const OtherPreferences = ({ formData, handleChange }) => {
 OtherPreferences.propTypes = {
   formData: PropTypes.shape({
     autoUpgradation: PropTypes.bool,
-    bookOnlyIfConfirmed: PropTypes.bool,
-    travelInsurance: PropTypes.string,
+    confirmberths: PropTypes.bool,
+    travelInsuranceOpted: PropTypes.string,
   }).isRequired,
   handleChange: PropTypes.func.isRequired,
 };

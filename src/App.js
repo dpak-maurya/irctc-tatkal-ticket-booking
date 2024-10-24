@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Stack, Box, Button } from '@mui/material';
 import LoginDetails from './components/LoginDetails';
 import TrainDetails from './components/TrainDetails';
@@ -7,36 +7,40 @@ import TimerDetails from './components/TimerDetails';
 import PassengerDetails from './components/PassengerDetails';
 import ContactDetails from './components/ContactDetails';
 import OtherPreferences from './components/OtherPreferences';
-import PropTypes from 'prop-types';
 import Header from './components/Header';
 
 // Key for storing in chrome.storage
 const STORAGE_KEY = 'tatkalTicketBookingFormData';
 
+const getNextDay = () => {
+  return new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
+};
+
 const App = () => {
   const [formData, setFormData] = useState({
+    automationStatus: false,
     username: '',
     password: '',
-    dateString: '',
-    trainNumber: '',
-    from: '',
-    to: '',
+    targetTime: '09:59:53',
+    refreshTime: 5000,
+    trainNumber: 11061,
+    from: 'LTT',
+    to: 'BSB',
     quotaType: 'TATKAL',
     accommodationClass: '3A',
+    dateString: getNextDay(),
     paymentType: 'BHIM/UPI',
     paymentMethod: 'BHIM/ UPI/ USSD',
     paymentProvider: 'PAYTM',
-    payAndBook: false,
-    targetTime: '09:59',
-    refreshTime: 5000,
+    autoPay: false,
+    mobileNumber:'',
+    autoUpgradation:false,
+    confirmberths:false,
+    travelInsuranceOpted:'yes',
     loginMinutesBefore: 2,
     passengerNames: [],
     useIRCTCMasterData: false,
     passengers: [],
-    mobileNumber: '',
-    autoUpgradation: false,
-    bookOnlyIfConfirmed: false,
-    travelInsurance: 'no',
   });
 
   const handleChange = (e) => {
@@ -47,10 +51,27 @@ const App = () => {
     }));
   };
 
+  // Load form data from chrome.storage when the component mounts
+  useEffect(() => {
+    console.log('useEffect running'); // Add this line for debugging
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.sync.get([STORAGE_KEY], (result) => {
+        if (result[STORAGE_KEY]) {
+          setFormData(result[STORAGE_KEY]);
+          console.log('Data loaded from storage'); // Add this line for debugging
+        }
+      });
+    } else {
+      console.log('Chrome storage not available'); // Add this line for debugging
+    }
+  }, []);
+
   const saveFormData = () => {
+    console.log(formData);
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.sync.set({ [STORAGE_KEY]: formData }, () => {
         console.log('Settings saved');
+        alert('Settings saved');
       });
     } else {
       console.log('Chrome storage not available for saving');
@@ -59,7 +80,7 @@ const App = () => {
 
   return (
     <Container maxWidth='lg' sx={{ mt: 4 }}>
-      <Header />
+      <Header formData={formData} handleChange={handleChange}/>
       <Box sx={{ mt: 4 }}></Box>
       {/* Updated layout for Login+Timer, Train, and Payment Details */}
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={3}>
@@ -120,34 +141,6 @@ const App = () => {
   );
 };
 
-// Prop validation for the formData
-App.propTypes = {
-  formData: PropTypes.shape({
-    username: PropTypes.string,
-    password: PropTypes.string,
-    dateString: PropTypes.string,
-    trainNumber: PropTypes.string,
-    from: PropTypes.string,
-    to: PropTypes.string,
-    quotaType: PropTypes.string,
-    accommodationClass: PropTypes.string,
-    paymentType: PropTypes.string,
-    paymentMethod: PropTypes.string,
-    paymentProvider: PropTypes.string,
-    payAndBook: PropTypes.bool,
-    targetTime: PropTypes.string,
-    refreshTime: PropTypes.number,
-    loginMinutesBefore: PropTypes.number,
-    passengerNames: PropTypes.string,
-    useIRCTCMasterData: PropTypes.bool,
-    passengers: PropTypes.array,
-    mobileNumber: PropTypes.string,
-    autoUpgradation: PropTypes.bool,
-    bookOnlyIfConfirmed: PropTypes.bool,
-    travelInsurance: PropTypes.string,
-  }),
-  handleChange: PropTypes.func,
-  saveFormData: PropTypes.func,
-};
+
 
 export default App;

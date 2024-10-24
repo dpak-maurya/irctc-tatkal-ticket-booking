@@ -17,7 +17,7 @@ function TrainDetails({ formData, handleChange }) {
         type="date"
         id="dateString"
         name="dateString"
-        value={formData.dateString || new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0]}
+        value={formData.dateString}
         onChange={handleChange}
         margin="normal"
         required
@@ -36,38 +36,43 @@ function TrainDetails({ formData, handleChange }) {
         margin="normal"
         required
         variant="outlined"
+        placeholder="Enter train number i.e. 11061"
         InputProps={{
           sx: sharedStyles.input, // Apply shared input styles
         }}
       />
-      <TextField
-        fullWidth
-        label="From"
-        id="from"
-        name="from"
-        value={formData.from}
-        onChange={handleChange}
-        margin="normal"
-        required
-        variant="outlined"
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
-        }}
-      />
-      <TextField
-        fullWidth
-        label="To"
-        id="to"
-        name="to"
-        value={formData.to}
-        onChange={handleChange}
-        margin="normal"
-        required
-        variant="outlined"
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
-        }}
-      />
+     <TextField
+  fullWidth
+  label="From"
+  id="from"
+  name="from"
+  value={formData.from}
+  onChange={handleChange}
+  margin="normal"
+  required
+  variant="outlined"
+  placeholder="Enter origin station code i.e. LTT"  // Placeholder for the station code
+  InputProps={{
+    sx: sharedStyles.input, // Apply shared input styles
+  }}
+/>
+
+<TextField
+  fullWidth
+  label="To"
+  id="to"
+  name="to"
+  value={formData.to}
+  onChange={handleChange}
+  margin="normal"
+  required
+  variant="outlined"
+  placeholder="Enter destination station code i.e. BSB"  // Placeholder for the station code
+  InputProps={{
+    sx: sharedStyles.input, // Apply shared input styles
+  }}
+/>
+
       <FormControl fullWidth margin="normal">
         <InputLabel id="quotaType-label">Quota Type</InputLabel>
         <Select
@@ -119,7 +124,7 @@ function TrainDetails({ formData, handleChange }) {
 TrainDetails.propTypes = {
   formData: PropTypes.shape({
     dateString: PropTypes.string.isRequired,
-    trainNumber: PropTypes.string.isRequired,
+    trainNumber: PropTypes.number.isRequired,
     from: PropTypes.string.isRequired,
     to: PropTypes.string.isRequired,
     quotaType: PropTypes.string.isRequired,

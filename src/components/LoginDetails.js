@@ -19,7 +19,7 @@ function LoginDetails({ formData, handleChange }) {
         margin="normal"
         required
         variant="outlined"
-        
+        placeholder="Enter Irctc username"
         InputProps={{
           sx: sharedStyles.input, // Apply shared input styles
         }}
@@ -35,6 +35,7 @@ function LoginDetails({ formData, handleChange }) {
         margin="normal"
         required
         variant="outlined"
+        placeholder="Enter Irctc password"
         InputProps={{
           sx: sharedStyles.input, // Apply shared input styles
         }}

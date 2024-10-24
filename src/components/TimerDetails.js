@@ -21,6 +21,7 @@ function TimerDetails({ formData, handleChange }) {
         margin="normal"
         required
         variant="outlined"
+        placeholder="Enter Tatkal Start Timer i.e. 09:59:53"
         InputProps={{
           sx: sharedStyles.input, // Apply shared input styles
         }}
@@ -36,6 +37,7 @@ function TimerDetails({ formData, handleChange }) {
         required
         type="number"
         variant="outlined"
+        placeholder="Enter refresh time(milli seconds)"
         InputProps={{
           sx: sharedStyles.input, // Apply shared input styles
         }}
@@ -51,6 +53,7 @@ function TimerDetails({ formData, handleChange }) {
         required
         type="number"
         variant="outlined"
+        placeholder="Enter minutes before Tatkal timer to login"
         InputProps={{
           sx: sharedStyles.input, // Apply shared input styles
         }}
@@ -62,8 +65,8 @@ function TimerDetails({ formData, handleChange }) {
 TimerDetails.propTypes = {
   formData: PropTypes.shape({
     targetTime: PropTypes.string,
-    refreshTime: PropTypes.string,
-    loginMinutesBefore: PropTypes.string,
+    refreshTime: PropTypes.number,
+    loginMinutesBefore: PropTypes.number,
   }).isRequired,
   handleChange: PropTypes.func.isRequired,
 };

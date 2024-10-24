@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Button, Typography, Switch } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import LogoIcon from './LogoIcon';
+import PropTypes from 'prop-types'; // Add this import
 
 const useStyles = makeStyles({
     headerContainer: {
@@ -37,13 +38,9 @@ const useStyles = makeStyles({
   },
 });
 
-const Header = () => {
+const Header = ({ formData, handleChange }) => {
   const classes = useStyles();
-  const [autoBooking, setAutoBooking] = React.useState(false);
-
-  const handleToggle = () => {
-    setAutoBooking(!autoBooking);
-  };
+  
 
   return (
     <Box className={classes.headerContainer}>
@@ -52,7 +49,7 @@ const Header = () => {
         <Typography variant="h4" ml={2} className={classes.title} fontWeight="bold">
           Tatkal Ticket Booking
         </Typography>
-        <Button variant="outlined" className={classes.customButton} href="how-to-use.html" target="_blank">
+        <Button variant="outlined" className={classes.customButton} href="HowToUse.js" target="_blank">
           How to Use
         </Button>
       </Box>
@@ -60,13 +57,21 @@ const Header = () => {
       <Box className={classes.switch}>
         <Typography className={classes.labelText}>Auto Booking</Typography>
         <Switch
-          checked={autoBooking}
-          onChange={handleToggle}
+          checked={formData.automationStatus}
+          onChange={handleChange}
           color="primary"
+          name="automationStatus"
         />
       </Box>
     </Box>
   );
+};
+
+Header.propTypes = { // Add this section
+  formData: PropTypes.shape({
+    automationStatus: PropTypes.bool.isRequired, // Define the shape and required status
+  }).isRequired,
+  handleChange: PropTypes.func.isRequired, // Validate handleChange as a required function
 };
 
 export default Header;

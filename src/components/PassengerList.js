@@ -97,7 +97,7 @@ const PassengerList = ({ formData, setFormData }) => {
                 }}
               >
                 <TableCell sx={tableCellStyles}>
-                  <input type="checkbox" />
+                  <input type="checkbox" checked={passenger.isMarked}/>
                 </TableCell>
                 <TableCell sx={tableCellStyles}>{passenger.name}</TableCell>
                 <TableCell sx={tableCellStyles}>{passenger.age}</TableCell>
@@ -189,6 +189,7 @@ PassengerList.propTypes = {
   formData: PropTypes.shape({
     passengers: PropTypes.arrayOf(
       PropTypes.shape({
+        isMarked:PropTypes.bool.isRequired,
         name: PropTypes.string.isRequired,
         age: PropTypes.string.isRequired,
         gender: PropTypes.string,
