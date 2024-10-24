@@ -100,7 +100,7 @@ const PassengerNames = ({ formData, handleChange }) => {
           fullWidth
           variant="outlined"
           size="small"
-          placeholder="Enter IRCTC Master Data matching first name"
+          placeholder="Enter first name matching with IRCTC Master Data"
           value={newPassenger}
           onChange={(e) => setNewPassenger(e.target.value)}
           onKeyPress={handleKeyPress}

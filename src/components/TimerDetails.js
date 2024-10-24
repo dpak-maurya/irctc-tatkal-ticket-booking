@@ -13,7 +13,7 @@ function TimerDetails({ formData, handleChange }) {
       </Typography>
       <TextField
         fullWidth
-        label="Target Time"
+        label="Tatkal Start Timer"
         id="targetTime"
         name="targetTime"
         value={formData.targetTime}

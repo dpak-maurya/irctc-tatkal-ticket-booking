@@ -20,8 +20,9 @@ const PassengerDetails = ({ formData, setFormData,handleChange }) => {
       </Typography>
         <AppBar position="static" color="default">
         <Tabs value={value} onChange={handleTabChange} textColor="primary" indicatorColor="primary">
-          <Tab label="Passenger Names" />
+          
           <Tab label="Passenger List" />
+          <Tab label="Passenger Master Data" />
         </Tabs>
       </AppBar>
      
@@ -29,10 +30,10 @@ const PassengerDetails = ({ formData, setFormData,handleChange }) => {
       
       <Box p={2} sx={{ bgcolor: '#f5f5f5', borderBottomLeftRadius: 8, borderBottomRightRadius: 8, boxShadow: 2 }}>
         {value === 0 && (
-          <PassengerNames formData={formData} handleChange={handleChange} />
+          <PassengerList formData={formData} setFormData={setFormData} />
         )}
         {value === 1 && (
-          <PassengerList formData={formData} setFormData={setFormData} />
+          <PassengerNames formData={formData} handleChange={handleChange} />
         )}
       </Box>
     </Box>

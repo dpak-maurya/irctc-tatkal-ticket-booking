@@ -38,7 +38,7 @@ const useStyles = makeStyles({
   },
 });
 
-const Header = ({ formData, handleChange }) => {
+const Header = ({ formData, toggleAutomation }) => {
   const classes = useStyles();
   
 
@@ -58,7 +58,7 @@ const Header = ({ formData, handleChange }) => {
         <Typography className={classes.labelText}>Auto Booking</Typography>
         <Switch
           checked={formData.automationStatus}
-          onChange={handleChange}
+          onChange={toggleAutomation}
           color="primary"
           name="automationStatus"
         />
@@ -71,7 +71,7 @@ Header.propTypes = { // Add this section
   formData: PropTypes.shape({
     automationStatus: PropTypes.bool.isRequired, // Define the shape and required status
   }).isRequired,
-  handleChange: PropTypes.func.isRequired, // Validate handleChange as a required function
+  toggleAutomation: PropTypes.func.isRequired, // Validate handleChange as a required function
 };
 
 export default Header;

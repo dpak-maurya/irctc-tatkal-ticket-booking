@@ -23,9 +23,9 @@ const App = () => {
     password: '',
     targetTime: '09:59:53',
     refreshTime: 5000,
-    trainNumber: 11061,
-    from: 'LTT',
-    to: 'BSB',
+    trainNumber: null,
+    from: '',
+    to: '',
     quotaType: 'TATKAL',
     accommodationClass: '3A',
     dateString: getNextDay(),
@@ -51,9 +51,27 @@ const App = () => {
     }));
   };
 
+  const toggleAutomation = () => {
+    setFormData((prevState) => {
+      const updatedFormData = {
+        ...prevState,
+        automationStatus: !prevState.automationStatus,
+      };
+  
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.sync.set({ [STORAGE_KEY]: updatedFormData }, () => {
+          console.log('Automation status updated to', updatedFormData.automationStatus);
+        });
+      } else {
+        console.log('Chrome storage not available for saving automation status');
+      }
+  
+      return updatedFormData; // Make sure to return the updated state
+    });
+  };
+
   // Load form data from chrome.storage when the component mounts
   useEffect(() => {
-    console.log('useEffect running'); // Add this line for debugging
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.sync.get([STORAGE_KEY], (result) => {
         if (result[STORAGE_KEY]) {
@@ -78,9 +96,46 @@ const App = () => {
     }
   };
 
+  const resetSettings = () => {
+    // Reset form data to initial state
+    setFormData({
+      automationStatus: false,
+      username: '',
+      password: '',
+      targetTime: '09:59:53',
+      refreshTime: 5000,
+      trainNumber: 11061,
+      from: 'LTT',
+      to: 'BSB',
+      quotaType: 'TATKAL',
+      accommodationClass: '3A',
+      dateString: getNextDay(),
+      paymentType: 'BHIM/UPI',
+      paymentMethod: 'BHIM/ UPI/ USSD',
+      paymentProvider: 'PAYTM',
+      autoPay: false,
+      mobileNumber: '',
+      autoUpgradation: false,
+      confirmberths: false,
+      travelInsuranceOpted: 'yes',
+      loginMinutesBefore: 2,
+      passengerNames: [],
+      useIRCTCMasterData: false,
+      passengers: [],
+    });
+      // Remove saved data from Chrome storage
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.sync.remove([STORAGE_KEY], () => {
+          console.log('Settings reset');
+          alert('Settings reset to default');
+        });
+      } else {
+        console.log('Chrome storage not available for resetting');
+      }
+    };
   return (
     <Container maxWidth='lg' sx={{ mt: 4 }}>
-      <Header formData={formData} handleChange={handleChange}/>
+      <Header formData={formData} toggleAutomation={toggleAutomation}/>
       <Box sx={{ mt: 4 }}></Box>
       {/* Updated layout for Login+Timer, Train, and Payment Details */}
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={3}>
@@ -136,6 +191,9 @@ const App = () => {
   <Button variant="outlined" color="secondary" sx={{ ml: 2 }}>
     Go To IRCTC Website
   </Button>
+  <Button variant="outlined" color="error" sx={{ ml: 2}} onClick={resetSettings} >
+          Reset Settings
+        </Button>
 </Box>
     </Container>
   );
