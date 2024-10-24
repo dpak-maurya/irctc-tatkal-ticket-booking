@@ -5,7 +5,7 @@
   "description": "Streamline your Tatkal ticket booking process with lightning-fast efficiency. Experience seamless clicks and secure your confirmed tickets hassle-free.",
   "main": "options.js",
   "scripts": {
-    "build": "react-scripts build",
+    "build": "webpack --mode production",
     "start": "react-scripts start",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -14,6 +14,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.5",
+    "@mui/material": "^6.1.5",
+    "@mui/styles": "^6.1.5",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

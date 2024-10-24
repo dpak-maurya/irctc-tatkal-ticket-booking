@@ -1,40 +1,52 @@
 import React from 'react';
+import { TextField, Box, Typography } from '@mui/material';
 import PropTypes from 'prop-types';
+import { sharedStyles } from '../styles'; // Import the shared styles
 
 function LoginDetails({ formData, handleChange }) {
   return (
-    <div>
-      <h2>Login Details</h2>
-      <div>
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-      </div>
-    </div>
+    <Box sx={sharedStyles.container}> {/* Apply shared container styles */}
+      <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
+        Login Details
+      </Typography>
+      <TextField
+        fullWidth
+        label="Username"
+        id="username"
+        name="username"
+        value={formData.username}
+        onChange={handleChange}
+        margin="normal"
+        required
+        variant="outlined"
+        
+        InputProps={{
+          sx: sharedStyles.input, // Apply shared input styles
+        }}
+      />
+      <TextField
+        fullWidth
+        label="Password"
+        id="password"
+        name="password"
+        type="password"
+        value={formData.password}
+        onChange={handleChange}
+        margin="normal"
+        required
+        variant="outlined"
+        InputProps={{
+          sx: sharedStyles.input, // Apply shared input styles
+        }}
+      />
+    </Box>
   );
 }
 
 LoginDetails.propTypes = {
   formData: PropTypes.shape({
-    username: PropTypes.string,
-    password: PropTypes.string,
+    username: PropTypes.string.isRequired,
+    password: PropTypes.string.isRequired,
   }).isRequired,
   handleChange: PropTypes.func.isRequired,
 };

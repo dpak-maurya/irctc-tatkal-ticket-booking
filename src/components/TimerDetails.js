@@ -1,41 +1,61 @@
 import React from 'react';
+import { TextField, Box, Typography } from '@mui/material';
 import PropTypes from 'prop-types';
+import { sharedStyles } from '../styles';
 
 function TimerDetails({ formData, handleChange }) {
   return (
-    <div className="form-section">
-      <h3>Timer Details</h3>
-      <div className="form-group">
-        <label htmlFor="targetTime">Tatkal Start Timer:</label>
-        <input 
-          type="time" 
-          id="targetTime" 
-          name="targetTime" 
-          value={formData.targetTime} 
-          onChange={handleChange}
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="refreshTime">Refresh Time (ms):</label>
-        <input 
-          type="number" 
-          id="refreshTime" 
-          name="refreshTime" 
-          value={formData.refreshTime} 
-          onChange={handleChange}
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="loginMinutesBefore">Login Minutes Before:</label>
-        <input 
-          type="number" 
-          id="loginMinutesBefore" 
-          name="loginMinutesBefore" 
-          value={formData.loginMinutesBefore} 
-          onChange={handleChange}
-        />
-      </div>
-    </div>
+    <Box 
+     sx={sharedStyles.container}
+    >
+      <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
+        Timer Details
+      </Typography>
+      <TextField
+        fullWidth
+        label="Target Time"
+        id="targetTime"
+        name="targetTime"
+        value={formData.targetTime}
+        onChange={handleChange}
+        margin="normal"
+        required
+        variant="outlined"
+        InputProps={{
+          sx: sharedStyles.input, // Apply shared input styles
+        }}
+      />
+      <TextField
+        fullWidth
+        label="Refresh Time (ms)"
+        id="refreshTime"
+        name="refreshTime"
+        value={formData.refreshTime}
+        onChange={handleChange}
+        margin="normal"
+        required
+        type="number"
+        variant="outlined"
+        InputProps={{
+          sx: sharedStyles.input, // Apply shared input styles
+        }}
+      />
+      <TextField
+        fullWidth
+        label="Login Minutes Before"
+        id="loginMinutesBefore"
+        name="loginMinutesBefore"
+        value={formData.loginMinutesBefore}
+        onChange={handleChange}
+        margin="normal"
+        required
+        type="number"
+        variant="outlined"
+        InputProps={{
+          sx: sharedStyles.input, // Apply shared input styles
+        }}
+      />
+    </Box>
   );
 }
 
