@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Container, Stack, Box, Button } from '@mui/material';
 import LoginDetails from './components/LoginDetails';
 import TrainDetails from './components/TrainDetails';
@@ -8,134 +8,27 @@ import PassengerDetails from './components/PassengerDetails';
 import ContactDetails from './components/ContactDetails';
 import OtherPreferences from './components/OtherPreferences';
 import Header from './components/Header';
-
-// Key for storing in chrome.storage
-const STORAGE_KEY = 'tatkalTicketBookingFormData';
-
-const getNextDay = () => {
-  return new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
-};
+import ModalPopup from './components/ModalPopup';
+import { useAppContext } from './contexts/AppContext';
 
 const App = () => {
-  const [formData, setFormData] = useState({
-    automationStatus: false,
-    username: '',
-    password: '',
-    targetTime: '09:59:53',
-    refreshTime: 5000,
-    trainNumber: null,
-    from: '',
-    to: '',
-    quotaType: 'TATKAL',
-    accommodationClass: '3A',
-    dateString: getNextDay(),
-    paymentType: 'BHIM/UPI',
-    paymentMethod: 'BHIM/ UPI/ USSD',
-    paymentProvider: 'PAYTM',
-    autoPay: false,
-    mobileNumber:'',
-    autoUpgradation:false,
-    confirmberths:false,
-    travelInsuranceOpted:'yes',
-    loginMinutesBefore: 2,
-    passengerNames: [],
-    useIRCTCMasterData: false,
-    passengers: [],
-  });
+  const {
+    formData,
+    handleChange,
+    isDirty,
+    saveFormData,
+    toggleAutomation,
+    openModal,
+    isModalOpen,
+    handleCloseModal,
+    modalConfig,
+    showButton,
+    resetSettings,
+  } = useAppContext();
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
-
-  const toggleAutomation = () => {
-    setFormData((prevState) => {
-      const updatedFormData = {
-        ...prevState,
-        automationStatus: !prevState.automationStatus,
-      };
-  
-      if (typeof chrome !== 'undefined' && chrome.storage) {
-        chrome.storage.sync.set({ [STORAGE_KEY]: updatedFormData }, () => {
-          console.log('Automation status updated to', updatedFormData.automationStatus);
-        });
-      } else {
-        console.log('Chrome storage not available for saving automation status');
-      }
-  
-      return updatedFormData; // Make sure to return the updated state
-    });
-  };
-
-  // Load form data from chrome.storage when the component mounts
-  useEffect(() => {
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.sync.get([STORAGE_KEY], (result) => {
-        if (result[STORAGE_KEY]) {
-          setFormData(result[STORAGE_KEY]);
-          console.log('Data loaded from storage'); // Add this line for debugging
-        }
-      });
-    } else {
-      console.log('Chrome storage not available'); // Add this line for debugging
-    }
-  }, []);
-
-  const saveFormData = () => {
-    console.log(formData);
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-      chrome.storage.sync.set({ [STORAGE_KEY]: formData }, () => {
-        console.log('Settings saved');
-        alert('Settings saved');
-      });
-    } else {
-      console.log('Chrome storage not available for saving');
-    }
-  };
-
-  const resetSettings = () => {
-    // Reset form data to initial state
-    setFormData({
-      automationStatus: false,
-      username: '',
-      password: '',
-      targetTime: '09:59:53',
-      refreshTime: 5000,
-      trainNumber: 11061,
-      from: 'LTT',
-      to: 'BSB',
-      quotaType: 'TATKAL',
-      accommodationClass: '3A',
-      dateString: getNextDay(),
-      paymentType: 'BHIM/UPI',
-      paymentMethod: 'BHIM/ UPI/ USSD',
-      paymentProvider: 'PAYTM',
-      autoPay: false,
-      mobileNumber: '',
-      autoUpgradation: false,
-      confirmberths: false,
-      travelInsuranceOpted: 'yes',
-      loginMinutesBefore: 2,
-      passengerNames: [],
-      useIRCTCMasterData: false,
-      passengers: [],
-    });
-      // Remove saved data from Chrome storage
-      if (typeof chrome !== 'undefined' && chrome.storage) {
-        chrome.storage.sync.remove([STORAGE_KEY], () => {
-          console.log('Settings reset');
-          alert('Settings reset to default');
-        });
-      } else {
-        console.log('Chrome storage not available for resetting');
-      }
-    };
   return (
-    <Container maxWidth='lg' sx={{ mt: 4 }}>
-      <Header formData={formData} toggleAutomation={toggleAutomation}/>
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Header formData={formData} toggleAutomation={toggleAutomation} />
       <Box sx={{ mt: 4 }}></Box>
       {/* Updated layout for Login+Timer, Train, and Payment Details */}
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={3}>
@@ -150,55 +43,80 @@ const App = () => {
           <PaymentDetails formData={formData} handleChange={handleChange} />
         </Box>
       </Stack>
-
-      {/* Rest of the components */}
-
       <Box flex={1}>
-        <PassengerDetails
-          formData={formData}
-          setFormData={setFormData}
-          handleChange={handleChange}
-        />
+        <PassengerDetails formData={formData} handleChange={handleChange} />
       </Box>
-
-      <Stack
-        spacing={3}
-        direction={{ xs: 'column', md: 'row' }}
-        flexWrap='wrap'
-      >
-        <Box flex={1} minWidth={{ xs: '100%', md: '45%' }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+        <Box flex={1}>
           <ContactDetails formData={formData} handleChange={handleChange} />
         </Box>
-        <Box flex={1} minWidth={{ xs: '100%', md: '45%' }}>
+        <Box flex={2}>
           <OtherPreferences formData={formData} handleChange={handleChange} />
         </Box>
       </Stack>
+      
       <Box sx={{ mt: 8 }}>helo</Box>
-      <Box sx={{ 
-  position: 'fixed', // Fix the position to always stay at the bottom
-  bottom: 0, // Align it to the bottom of the viewport
-  left: 0, // Ensure it starts from the left edge
-  width: '100%', // Make sure the box spans the entire width
-  p: 2, // Padding
-  backgroundColor: '#fff', // Background color to make it distinct from the rest of the page
-  boxShadow: '0 -2px 5px rgba(0,0,0,0.1)', // Add a shadow for better visibility
-  textAlign: 'center', // Center the buttons horizontally
-  zIndex: 1000 // Ensure it stays above other content
-}}>
-  <Button variant="contained" color="primary" onClick={saveFormData}>
-    Save Settings
-  </Button>
-  <Button variant="outlined" color="secondary" sx={{ ml: 2 }}>
-    Go To IRCTC Website
-  </Button>
-  <Button variant="outlined" color="error" sx={{ ml: 2}} onClick={resetSettings} >
-          Reset Settings
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          p: 2,
+          backgroundColor: '#fff',
+          boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
+          textAlign: 'center',
+          zIndex: 1000,
+        }}
+      >
+        
+        <Button  color='warning'>
+        {isDirty && <div style={{ color: 'red' }}>Unsaved changes!</div>}
         </Button>
-</Box>
+        
+        {showButton && (
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={() =>
+            window.open('https://www.irctc.co.in/nget/train-search', '_blank')
+          }
+        >
+          Go to IRCTC Website
+        </Button>
+      )}
+
+        <Button 
+        variant="contained" 
+        color="primary" 
+        onClick={() => openModal('info', 'Save Settings', 'Settings saved.', saveFormData)}
+      >
+        Save Settings
+      </Button>
+
+      {/* Reset Settings Button */}
+      <Button 
+        variant="contained" 
+        color="error" 
+        onClick={() => openModal('confirmation', 'Reset Settings', 'Are you sure you want to reset all settings?', resetSettings)}
+      >
+        Reset Settings
+      </Button>
+
+      <ModalPopup
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={() => {
+          if (modalConfig.onConfirm) modalConfig.onConfirm();
+          handleCloseModal();
+        }}
+        title={modalConfig.title || ''}
+        message={modalConfig.message || ''}
+        variant={modalConfig.variant || 'info'}
+      />
+      </Box>
     </Container>
   );
 };
-
-
 
 export default App;

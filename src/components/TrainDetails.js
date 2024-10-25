@@ -1,120 +1,135 @@
 import React from 'react';
-import { TextField, Box, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import {
+  TextField,
+  Box,
+  Typography,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from '@mui/material';
 import PropTypes from 'prop-types';
 import { sharedStyles } from '../styles';
 
 function TrainDetails({ formData, handleChange }) {
   return (
-    <Box 
-      sx={sharedStyles.container}
-    >
-      <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
+    <Box sx={sharedStyles.container}>
+      <Typography
+        variant='h5'
+        gutterBottom
+        align='center'
+        sx={{ fontWeight: 'bold', color: '#333' }}
+      >
         Train Details
       </Typography>
       <TextField
         fullWidth
-        label="Date"
-        type="date"
-        id="dateString"
-        name="dateString"
+        label='Date'
+        type='date'
+        id='dateString'
+        name='dateString'
         value={formData.dateString}
         onChange={handleChange}
-        margin="normal"
+        margin='normal'
         required
-        variant="outlined"
+        variant='outlined'
         InputProps={{
           sx: sharedStyles.input, // Apply shared input styles
         }}
       />
       <TextField
         fullWidth
-        label="Train Number"
-        id="trainNumber"
-        name="trainNumber"
+        label='Train Number'
+        id='trainNumber'
+        name='trainNumber'
         value={formData.trainNumber}
         onChange={handleChange}
-        margin="normal"
+        margin='normal'
         required
-        variant="outlined"
-        placeholder="Enter train number i.e. 11061"
+        variant='outlined'
+        placeholder='Enter train number i.e. 11061'
         InputProps={{
           sx: sharedStyles.input, // Apply shared input styles
         }}
       />
-     <TextField
-  fullWidth
-  label="From"
-  id="from"
-  name="from"
-  value={formData.from}
-  onChange={handleChange}
-  margin="normal"
-  required
-  variant="outlined"
-  placeholder="Enter origin station code i.e. LTT"  // Placeholder for the station code
-  InputProps={{
-    sx: sharedStyles.input, // Apply shared input styles
-  }}
-/>
+      <TextField
+        fullWidth
+        label='From'
+        id='from'
+        name='from'
+        value={formData.from}
+        onChange={handleChange}
+        margin='normal'
+        required
+        variant='outlined'
+        placeholder='Enter origin station code i.e. LTT' // Placeholder for the station code
+        InputProps={{
+          sx: sharedStyles.input, // Apply shared input styles
+        }}
+      />
 
-<TextField
-  fullWidth
-  label="To"
-  id="to"
-  name="to"
-  value={formData.to}
-  onChange={handleChange}
-  margin="normal"
-  required
-  variant="outlined"
-  placeholder="Enter destination station code i.e. BSB"  // Placeholder for the station code
-  InputProps={{
-    sx: sharedStyles.input, // Apply shared input styles
-  }}
-/>
+      <TextField
+        fullWidth
+        label='To'
+        id='to'
+        name='to'
+        value={formData.to}
+        onChange={handleChange}
+        margin='normal'
+        required
+        variant='outlined'
+        placeholder='Enter destination station code i.e. BSB' // Placeholder for the station code
+        InputProps={{
+          sx: sharedStyles.input, // Apply shared input styles
+        }}
+      />
 
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="quotaType-label">Quota Type</InputLabel>
+      <FormControl fullWidth margin='normal'>
+        <InputLabel id='quotaType-label'>Quota Type</InputLabel>
         <Select
-          labelId="quotaType-label"
-          id="quotaType"
-          name="quotaType"
+          labelId='quotaType-label'
+          id='quotaType'
+          name='quotaType'
           value={formData.quotaType}
           onChange={handleChange}
-          label="Quota Type"
-          variant="outlined"
+          label='Quota Type'
+          variant='outlined'
           InputProps={{
             sx: sharedStyles.select, // Apply shared input styles
           }}
-          sx={{backgroundColor: 'white'}}
+          sx={{ backgroundColor: 'white' }}
         >
-          <MenuItem value="GENERAL">GENERAL</MenuItem>
-          <MenuItem value="TATKAL">TATKAL</MenuItem>
+          <MenuItem value='GENERAL'>GENERAL</MenuItem>
+          <MenuItem value='TATKAL'>TATKAL</MenuItem>
         </Select>
       </FormControl>
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="accommodationClass-label">Accommodation Class</InputLabel>
+      <FormControl fullWidth margin='normal'>
+        <InputLabel id='accommodationClass-label'>
+          Accommodation Class
+        </InputLabel>
         <Select
-          labelId="accommodationClass-label"
-          id="accommodationClass"
-          name="accommodationClass"
+          labelId='accommodationClass-label'
+          id='accommodationClass'
+          name='accommodationClass'
           value={formData.accommodationClass}
           onChange={handleChange}
-          label="Accommodation Class"
-          variant="outlined"
-          sx={{backgroundColor: 'white'}}
+          label='Accommodation Class'
+          variant='outlined'
+          sx={{ backgroundColor: 'white' }}
           InputProps={{
             sx: sharedStyles.select, // Apply shared input styles
           }}
         >
-          <MenuItem value="SL">Sleeper (SL)</MenuItem>
-          <MenuItem value="3A" selected>AC 3 Tier (3A)</MenuItem>
-          <MenuItem value="2A">AC 2 Tier (2A)</MenuItem>
-          <MenuItem value="1A">AC First Class (1A)</MenuItem>
-          <MenuItem value="3E">AC 3 Economy (3E)</MenuItem>
-          <MenuItem value="EC">Exec. Chair Car (EC)</MenuItem>
-          <MenuItem value="CC">AC Chair car (CC)</MenuItem>
-          <MenuItem value="EV">Vistadome AC (EV)</MenuItem>
+          <MenuItem value='SL'>Sleeper (SL)</MenuItem>
+          <MenuItem value='3A' selected>
+            AC 3 Tier (3A)
+          </MenuItem>
+          <MenuItem value='2A'>AC 2 Tier (2A)</MenuItem>
+          <MenuItem value='1A'>AC First Class (1A)</MenuItem>
+          <MenuItem value='3E'>AC 3 Economy (3E)</MenuItem>
+          <MenuItem value='EC'>Exec. Chair Car (EC)</MenuItem>
+          <MenuItem value='CC'>AC Chair car (CC)</MenuItem>
+          <MenuItem value='EV'>Vistadome AC (EV)</MenuItem>
         </Select>
       </FormControl>
     </Box>

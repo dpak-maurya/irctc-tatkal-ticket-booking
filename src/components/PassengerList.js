@@ -34,86 +34,103 @@ const PassengerList = ({ formData, setFormData }) => {
 
   // Handler for adding a new passenger
   const addPassenger = () => {
-    if (newPassenger.name && newPassenger.age) {
-      const updatedPassengers = [...formData.passengers, newPassenger];
-      setFormData((prevState) => ({ ...prevState, passengers: updatedPassengers }));
-      setNewPassenger({ name: '', age: '', gender: '', preference: 'No Preference' });
+    if (newPassenger.name && newPassenger.age && newPassenger.gender) {
+      if (newPassenger.preference.toLowerCase() === 'no preference') {
+        newPassenger.preference = '';
+      }
+      const updatedPassengers = [...formData.passengerList, { ...newPassenger, isSelected: true }];
+      setFormData((prevState) => ({ ...prevState, passengerList: updatedPassengers }));
+      setNewPassenger({ name: '', age: '', gender: '', preference: '' });
     }
   };
 
   // Handler for form input changes
   const handlePassengerChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    if(name === 'age'){
+      value = value.replace(/\D/g, '')
+    }
     setNewPassenger((prev) => ({ ...prev, [name]: value }));
   };
 
   // Handler for removing a passenger
   const handleRemovePassenger = (index) => {
-    const updatedPassengers = formData.passengers.filter((_, i) => i !== index);
-    setFormData((prevState) => ({ ...prevState, passengers: updatedPassengers }));
+    const updatedPassengers = formData.passengerList.filter((_, i) => i !== index);
+    setFormData((prevState) => ({ ...prevState, passengerList: updatedPassengers }));
+  };
+
+  // Handler for marking/unmarking a passenger
+  const handleMarkPassenger = (index) => {
+    const updatedPassengers = formData.passengerList.map((passenger, i) => 
+      i === index ? { ...passenger, isSelected: !passenger.isSelected } : passenger
+    );
+    setFormData((prevState) => ({ ...prevState, passengerList: updatedPassengers }));
   };
 
   return (
     <Box >
-
-<TableContainer component={Paper} sx={{ mt: 3 }}>
-      <Table sx={{ minWidth: 650, border: '1px solid rgba(224, 224, 224, 1)' }}>
-        <TableHead>
-          <TableRow>
-            <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
-              Select
-            </TableCell>
-            <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
-              Name
-            </TableCell>
-            <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
-              Age
-            </TableCell>
-            <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
-              Gender
-            </TableCell>
-            <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
-              Preference
-            </TableCell>
-            <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
-              Action
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {formData.passengers.length === 0 ? (
+      <TableContainer component={Paper} sx={{ mt: 3 }}>
+        <Table sx={{ minWidth: 650, border: '1px solid rgba(224, 224, 224, 1)' }}>
+          <TableHead>
             <TableRow>
-              <TableCell colSpan={6} align="center" sx={{ color: '#999', ...tableCellStyles }}>
-                No passengers found.
+              <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
+                Select
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
+                Name
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
+                Age
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
+                Gender
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
+                Preference
+              </TableCell>
+              <TableCell sx={{ fontWeight: 'bold', ...tableCellStyles }}>
+                Action
               </TableCell>
             </TableRow>
-          ) : (
-            formData.passengers.map((passenger, index) => (
-              <TableRow
-                key={index}
-                sx={{
-                  '&:hover': { backgroundColor: '#f1f1f1' },
-                  border: '1px solid rgba(224, 224, 224, 1)',
-                }}
-              >
-                <TableCell sx={tableCellStyles}>
-                  <input type="checkbox" checked={passenger.isMarked}/>
-                </TableCell>
-                <TableCell sx={tableCellStyles}>{passenger.name}</TableCell>
-                <TableCell sx={tableCellStyles}>{passenger.age}</TableCell>
-                <TableCell sx={tableCellStyles}>{passenger.gender}</TableCell>
-                <TableCell sx={tableCellStyles}>{passenger.preference}</TableCell>
-                <TableCell sx={tableCellStyles}>
-                  <IconButton onClick={() => handleRemovePassenger(index)} color="error">
-                    <DeleteIcon />
-                  </IconButton>
+          </TableHead>
+          <TableBody>
+            {formData.passengerList?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center" sx={{ color: '#999', ...tableCellStyles }}>
+                  No passengers found.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
+            ) : (
+              formData.passengerList?.map((passenger, index) => (
+                <TableRow
+                  key={index}
+                  sx={{
+                    '&:hover': { backgroundColor: '#f1f1f1' },
+                    border: '1px solid rgba(224, 224, 224, 1)',
+                  }}
+                >
+                  <TableCell sx={tableCellStyles}>
+                    <input 
+                      type="checkbox" 
+                      checked={passenger.isSelected} 
+                      onChange={() => handleMarkPassenger(index)} // Toggle mark/unmark
+                    />
+                  </TableCell>
+                  <TableCell sx={tableCellStyles}>{passenger.name}</TableCell>
+                  <TableCell sx={tableCellStyles}>{passenger.age}</TableCell>
+                  <TableCell sx={tableCellStyles}>{passenger.gender}</TableCell>
+                  <TableCell sx={tableCellStyles}>{passenger.preference}</TableCell>
+                  <TableCell sx={tableCellStyles}>
+                    <IconButton onClick={() => handleRemovePassenger(index)} color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {/* Input for new passenger */}
       <Grid container spacing={2} mt={3}>
@@ -152,7 +169,6 @@ const PassengerList = ({ formData, setFormData }) => {
               <MenuItem value="M">Male</MenuItem>
               <MenuItem value="F">Female</MenuItem>
               <MenuItem value="T">Transgender</MenuItem>
-              
             </Select>
           </FormControl>
         </Grid>
@@ -187,9 +203,9 @@ const PassengerList = ({ formData, setFormData }) => {
 
 PassengerList.propTypes = {
   formData: PropTypes.shape({
-    passengers: PropTypes.arrayOf(
+    passengerList: PropTypes.arrayOf(
       PropTypes.shape({
-        isMarked:PropTypes.bool.isRequired,
+        isSelected: PropTypes.bool.isRequired,
         name: PropTypes.string.isRequired,
         age: PropTypes.string.isRequired,
         gender: PropTypes.string,
