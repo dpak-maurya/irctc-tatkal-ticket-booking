@@ -433,13 +433,7 @@ async function scrollToFoundTrainAndSelectClass() {
     console.log('No matching accommodation class found:', accommodationClass);
     return;
   }
-  const availableSeatElement = selectedClass.querySelector('.AVAILABLE');
-
-  if (!availableSeatElement && confirmberths) {
-      console.log('confirmberths is true. Halting script execution.');
-      alert('Confirm Births Seat are not available.');
-      throw new Error('Halting Script: No AVAILABLE class found and confirmberths is true');
-  }
+  
   delay(200);
   await selectedClass.click();
 
