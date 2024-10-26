@@ -37,6 +37,7 @@ const BookingCountdown = () => {
             if (remaining <= 0) {
                 clearInterval(intervalId);
                 setIsBookingReady(true); // Ready to book
+                window.open('https://www.irctc.co.in/nget/train-search', '_blank');
             }
         }, 1000);
     };
