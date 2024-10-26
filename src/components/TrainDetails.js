@@ -14,7 +14,7 @@ import MyDatePicker from './MyDatePicker';
 
 function TrainDetails({ formData, handleChange }) {
   return (
-    <Box sx={sharedStyles.container}>
+    (<Box sx={sharedStyles.container}>
       <Typography
         variant='h5'
         gutterBottom
@@ -23,9 +23,7 @@ function TrainDetails({ formData, handleChange }) {
       >
         Train Details
       </Typography>
-     
       <MyDatePicker formData={formData} handleChange={handleChange}/>
-      
       <TextField
         fullWidth
         label='Train Number'
@@ -37,8 +35,10 @@ function TrainDetails({ formData, handleChange }) {
         required
         variant='outlined'
         placeholder='Enter train number i.e. 11061'
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
         }}
       />
       <TextField
@@ -52,11 +52,12 @@ function TrainDetails({ formData, handleChange }) {
         required
         variant='outlined'
         placeholder='Enter origin station code i.e. LTT' // Placeholder for the station code
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
         }}
       />
-
       <TextField
         fullWidth
         label='To'
@@ -68,11 +69,12 @@ function TrainDetails({ formData, handleChange }) {
         required
         variant='outlined'
         placeholder='Enter destination station code i.e. BSB' // Placeholder for the station code
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
         }}
       />
-
       <FormControl fullWidth margin='normal'>
         <InputLabel id='quotaType-label'>Quota Type</InputLabel>
         <Select
@@ -83,9 +85,6 @@ function TrainDetails({ formData, handleChange }) {
           onChange={handleChange}
           label='Quota Type'
           variant='outlined'
-          InputProps={{
-            sx: sharedStyles.select, // Apply shared input styles
-          }}
           sx={{ backgroundColor: 'white' }}
         >
           <MenuItem value='GENERAL'>GENERAL</MenuItem>
@@ -105,9 +104,6 @@ function TrainDetails({ formData, handleChange }) {
           label='Accommodation Class'
           variant='outlined'
           sx={{ backgroundColor: 'white' }}
-          InputProps={{
-            sx: sharedStyles.select, // Apply shared input styles
-          }}
         >
           <MenuItem value='SL'>Sleeper (SL)</MenuItem>
           <MenuItem value='3A' selected>
@@ -121,14 +117,14 @@ function TrainDetails({ formData, handleChange }) {
           <MenuItem value='EV'>Vistadome AC (EV)</MenuItem>
         </Select>
       </FormControl>
-    </Box>
+    </Box>)
   );
 }
 
 TrainDetails.propTypes = {
   formData: PropTypes.shape({
     dateString: PropTypes.string.isRequired,
-    trainNumber: PropTypes.number.isRequired,
+    trainNumber: PropTypes.string.isRequired,
     from: PropTypes.string.isRequired,
     to: PropTypes.string.isRequired,
     quotaType: PropTypes.string.isRequired,

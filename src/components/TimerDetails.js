@@ -6,7 +6,7 @@ import MyTimePicker from './MyTimePicker';
 
 function TimerDetails({ formData, handleChange }) {
   return (
-    <Box sx={sharedStyles.container}>
+    (<Box sx={sharedStyles.container}>
       <Typography
         variant="h5"
         gutterBottom
@@ -28,8 +28,10 @@ function TimerDetails({ formData, handleChange }) {
         type="number"
         variant="outlined"
         placeholder="Enter refresh time(milli seconds)"
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
         }}
       />
       <TextField
@@ -44,11 +46,13 @@ function TimerDetails({ formData, handleChange }) {
         type="number"
         variant="outlined"
         placeholder="Enter minutes before Tatkal timer to login"
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
         }}
       />
-    </Box>
+    </Box>)
   );
 }
 

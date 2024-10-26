@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { getTimeFromString, isEqual } from '../utils';
 import defaultSettings from '../defaultSettings';
-import { useModalContext } from './ModalContext';
 import { getFormDataFromStorage, saveFormDataToStorage, removeFormDataFromStorage, getAutomationStatus, setAutomationStatus } from '../apis';
 
 const AppContext = createContext();
@@ -14,8 +13,6 @@ export const AppProvider = ({ children }) => {
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   const [showButton, setShowButton] = useState(true);
   const [timerValue, setTimerValue] = useState(0);
-
-  const { closeModal } = useModalContext();
 
   // Handle change for form fields
   const handleChange = (e) => {
@@ -93,7 +90,6 @@ export const AppProvider = ({ children }) => {
       console.error('Failed to reset settings:', error);
     }
     setIsDirty(false);
-    closeModal();
   };
 
   const startCountdown = () => {

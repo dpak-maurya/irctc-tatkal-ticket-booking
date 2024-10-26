@@ -28,7 +28,7 @@ const ContactDetails = ({ formData, handleChange }) => {
   };
 
   return (
-    <Box
+    (<Box
       sx={sharedStyles.container} 
     >
       <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
@@ -41,14 +41,17 @@ const ContactDetails = ({ formData, handleChange }) => {
         onChange={handleInputChange}
         fullWidth
         margin="normal"
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
-        }}
         required
         helperText={"Please enter a valid mobile number (if empty IRCTC logged-in user's number will be taken by default)"}
-        error={Boolean(error)} // Display error if there's an error
+        // Display error if there's an error
+        error={Boolean(error)}
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
+        }}
       />
-    </Box>
+    </Box>)
   );
 };
 

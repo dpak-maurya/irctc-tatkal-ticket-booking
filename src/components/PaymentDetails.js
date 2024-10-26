@@ -5,7 +5,7 @@ import { sharedStyles } from '../styles';
 
 function PaymentDetails({ formData, handleChange }) {
   return (
-    <Box sx={sharedStyles.container}>
+    (<Box sx={sharedStyles.container}>
       <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
         Payment Details
       </Typography>
@@ -20,8 +20,10 @@ function PaymentDetails({ formData, handleChange }) {
         required
         variant="outlined"
         disabled
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
         }}
       />
       <TextField
@@ -35,8 +37,10 @@ function PaymentDetails({ formData, handleChange }) {
         required
         variant="outlined"
         disabled      
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
         }}
       />
       <TextField
@@ -50,8 +54,10 @@ function PaymentDetails({ formData, handleChange }) {
         required
         variant="outlined"
         disabled
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
         }}
       />
       <FormControlLabel
@@ -65,7 +71,7 @@ function PaymentDetails({ formData, handleChange }) {
         }
         label="Pay & Book (Show QR Code Page)"
       />
-    </Box>
+    </Box>)
   );
 }
 

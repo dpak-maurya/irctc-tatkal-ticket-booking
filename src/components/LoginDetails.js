@@ -5,7 +5,7 @@ import { sharedStyles } from '../styles'; // Import the shared styles
 
 function LoginDetails({ formData, handleChange }) {
   return (
-    <Box sx={sharedStyles.container}> {/* Apply shared container styles */}
+    (<Box sx={sharedStyles.container}> {/* Apply shared container styles */}
       <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
         Login Details
       </Typography>
@@ -20,8 +20,10 @@ function LoginDetails({ formData, handleChange }) {
         required
         variant="outlined"
         placeholder="Enter Irctc username"
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
         }}
       />
       <TextField
@@ -36,11 +38,13 @@ function LoginDetails({ formData, handleChange }) {
         required
         variant="outlined"
         placeholder="Enter Irctc password"
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
         }}
       />
-    </Box>
+    </Box>)
   );
 }
 
