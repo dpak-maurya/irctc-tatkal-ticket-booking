@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 :root {
-  --md-sys-color-primary: rgb(65 95 145);
+  --md-sys-color-primary: rgb(65, 95, 145);
   --md-sys-color-surface-tint: rgb(65 95 145);
   --md-sys-color-on-primary: rgb(255 255 255);
   --md-sys-color-primary-container: rgb(214 227 255);

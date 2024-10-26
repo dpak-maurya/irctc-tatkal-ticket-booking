@@ -20,21 +20,6 @@ export const sharedStyles = {
           borderColor: '#007BFF',
         },
       },
-    },
-    select: {
-        backgroundColor: 'white', // Dropdown background color
-        '& .MuiSelect-select': {
-          padding: '10px', // Optional: Adjust padding for dropdown
-        },
-        '& .MuiOutlinedInput-notchedOutline': {
-          borderColor: '#ccc',
-        },
-        '&:hover .MuiOutlinedInput-notchedOutline': {
-          borderColor: '#999',
-        },
-        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-          borderColor: '#007BFF',
-        },
-      },
+    }
   };
   

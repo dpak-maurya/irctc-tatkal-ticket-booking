@@ -1,5 +1,6 @@
+// App.js
 import React from 'react';
-import { Container, Stack, Box, Button } from '@mui/material';
+import { Container, Stack, Box } from '@mui/material';
 import LoginDetails from './components/LoginDetails';
 import TrainDetails from './components/TrainDetails';
 import PaymentDetails from './components/PaymentDetails';
@@ -8,19 +9,9 @@ import PassengerDetails from './components/PassengerDetails';
 import ContactDetails from './components/ContactDetails';
 import OtherPreferences from './components/OtherPreferences';
 import Header from './components/Header';
-import ModalPopup from './components/ModalPopup';
-import { useAppContext } from './contexts/AppContext';
-import { useModalContext } from './contexts/ModalContext';
+import Footer from './components/Footer'; // Import the new Footer component
 
 const App = () => {
-  const {
-    isDirty,
-    saveFormData,
-    showButton,
-    resetSettings,
-  } = useAppContext();
-
-  const { isModalOpen, modalConfig, openModal, closeModal } = useModalContext();
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -57,75 +48,7 @@ const App = () => {
       {/* Spacer box if needed above footer */}
       <Box sx={{ mb: 8 }} />
 
-      {/* Sticky/Floating Action Buttons */}
-      <Stack
-        direction={{ xs: 'column', md: 'row' }}
-        spacing={3}
-        sx={{
-          position: { xs: 'sticky', md: 'fixed' }, // Sticky on small, fixed on medium+
-          bottom: 0,
-          left: 0,
-          width: '100%',
-          p: 2,
-          backgroundColor: 'background.paper', // Use theme background color
-          boxShadow: (theme) => theme.shadows[4], // Use MUI shadow
-          textAlign: 'center',
-          zIndex: 1000,
-          justifyContent: 'center',
-          flexWrap: 'wrap', // Allows wrapping in case of small screens
-        }}
-      >
-        {/* Unsaved changes warning */}
-        {isDirty && (
-          <Button color="warning" variant="outlined">
-            Unsaved changes!
-          </Button>
-        )}
-
-        {/* Save Settings Button */}
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => openModal('info', 'Save Settings', 'Settings saved.', saveFormData)}
-        >
-          Save Settings
-        </Button>
-
-        {/* Reset Settings Button */}
-        <Button
-          variant="contained"
-          color="error"
-          onClick={() => openModal('confirmation', 'Reset Settings', 'Are you sure you want to reset all settings?', resetSettings)}
-        >
-          Reset Settings
-        </Button>
-
-        {/* Go to IRCTC Website Button */}
-        {showButton && (
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() =>
-              window.open('https://www.irctc.co.in/nget/train-search', '_blank')
-            }
-          >
-            Go to IRCTC Website
-          </Button>
-        )}
-
-        {/* Modal Popup */}
-        <ModalPopup
-          open={isModalOpen}
-          onClose={closeModal}
-          onConfirm={() => {
-            if (modalConfig.onConfirm) modalConfig.onConfirm();
-            closeModal();
-          }}
-          title={modalConfig.title || ''}
-          message={modalConfig.message || ''}
-          variant={modalConfig.variant || 'info'}
-        />
-      </Stack>
+      <Footer />
     </Container>
   );
 };

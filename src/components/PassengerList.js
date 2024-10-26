@@ -9,14 +9,14 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Button,
   TextField,
   Select,
   MenuItem,
   InputLabel,
   FormControl,
   IconButton,
-  Grid
+  Grid,
+  Button
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAppContext } from '../contexts/AppContext';
@@ -194,7 +194,7 @@ const PassengerList = () => {
           </FormControl>
         </Grid>
         <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-          <Button variant="contained" color="primary" onClick={addPassenger}>
+          <Button size='large' variant="contained" color="primary" onClick={addPassenger}>
             Add Passenger
           </Button>
         </Grid>
