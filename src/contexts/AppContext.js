@@ -1,69 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { getTimeFromString, isEqual } from '../utils';
+import defaultSettings from '../defaultSettings';
 
 const STORAGE_KEY = 'tatkalTicketBookingFormData';
 const AppContext = createContext();
 
-const getNextDay = () => {
-  return new Date(new Date().setDate(new Date().getDate() + 1))
-    .toISOString()
-    .split('T')[0];
-};
-
-const initialFormValues = {
-  automationStatus: false,
-  username: '',
-  password: '',
-  targetTime: '09:59:53',
-  refreshTime: 5000,
-  trainNumber: '',
-  from: '',
-  to: '',
-  quotaType: '',
-  accommodationClass: '',
-  dateString: getNextDay(),
-  paymentType: 'BHIM/UPI',
-  paymentMethod: 'BHIM/ UPI/ USSD',
-  paymentProvider: 'PAYTM',
-  autoPay: false,
-  mobileNumber: '',
-  autoUpgradation: false,
-  confirmberths: false,
-  travelInsuranceOpted: 'yes',
-  loginMinutesBefore: 2,
-  passengerNames: [],
-  masterData: false,
-  passengerList: [],
-};
-
-// Utility function for comparing objects excluding specified keys
-const isEqual = (obj1, obj2, excludedKeys = []) => {
-  const filteredObj1 = { ...obj1 };
-  const filteredObj2 = { ...obj2 };
-  excludedKeys.forEach((key) => {
-    delete filteredObj1[key];
-    delete filteredObj2[key];
-  });
-  return JSON.stringify(filteredObj1) === JSON.stringify(filteredObj2);
-};
-
-function getTimeFromString(timeString) {
-  const [hours, minutes, seconds] = timeString.split(':').map(Number);
-  const currentTime = new Date();
-  return new Date(
-    currentTime.getFullYear(),
-    currentTime.getMonth(),
-    currentTime.getDate(),
-    hours,
-    minutes,
-    seconds
-  );
-}
 
 export const AppProvider = ({ children }) => {
-  const [formData, setFormData] = useState(initialFormValues);
+  const [formData, setFormData] = useState(defaultSettings);
   const [isDirty, setIsDirty] = useState(false);
-  const [savedData, setSavedData] = useState(initialFormValues);
+  const [savedData, setSavedData] = useState(defaultSettings);
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState({});
@@ -145,8 +92,8 @@ export const AppProvider = ({ children }) => {
 
   // Reset form data
   const resetSettings = () => {
-    setFormData(initialFormValues);
-    setSavedData(initialFormValues);
+    setFormData(defaultSettings);
+    setSavedData(defaultSettings);
     if (typeof chrome !== 'undefined' && chrome.storage) {
       chrome.storage.local.remove([STORAGE_KEY]);
     }

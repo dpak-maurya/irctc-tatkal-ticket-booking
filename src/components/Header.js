@@ -8,7 +8,6 @@ import CountdownTimer from './CountDownTimer'; // Corrected casing
 
 const useStyles = makeStyles({
   headerContainer: {
-    marginTop: '20px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',

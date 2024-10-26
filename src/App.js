@@ -55,10 +55,14 @@ const App = () => {
         </Box>
       </Stack>
       
-      <Box sx={{ mt: 8 }}>helo</Box>
-      <Box
+      <Box sx={{ mb: 8 }}> {/* Spacer box if needed above footer */}
+        .
+      </Box>
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={3}
         sx={{
-          position: 'fixed',
+          position: { xs: 'sticky', md: 'fixed' },  // Sticky on small, fixed on medium+
           bottom: 0,
           left: 0,
           width: '100%',
@@ -67,54 +71,59 @@ const App = () => {
           boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
           textAlign: 'center',
           zIndex: 1000,
+          justifyContent: 'center',
+          flexWrap: 'wrap', // Allows wrapping in case of small screens
         }}
       >
-        
-        <Button  color='warning'>
-        {isDirty && <div style={{ color: 'red' }}>Unsaved changes!</div>}
+        {/* Unsaved changes warning */}
+        <Button color="warning">
+          {isDirty && <div style={{ color: 'red' }}>Unsaved changes!</div>}
         </Button>
-        
-        {showButton && (
+
+        {/* Save Settings Button */}
         <Button
-          variant="outlined"
-          color="secondary"
-          onClick={() =>
-            window.open('https://www.irctc.co.in/nget/train-search', '_blank')
-          }
+          variant="contained"
+          color="primary"
+          onClick={() => openModal('info', 'Save Settings', 'Settings saved.', saveFormData)}
         >
-          Go to IRCTC Website
+          Save Settings
         </Button>
-      )}
 
-        <Button 
-        variant="contained" 
-        color="primary" 
-        onClick={() => openModal('info', 'Save Settings', 'Settings saved.', saveFormData)}
-      >
-        Save Settings
-      </Button>
+        {/* Reset Settings Button */}
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => openModal('confirmation', 'Reset Settings', 'Are you sure you want to reset all settings?', resetSettings)}
+        >
+          Reset Settings
+        </Button>
 
-      {/* Reset Settings Button */}
-      <Button 
-        variant="contained" 
-        color="error" 
-        onClick={() => openModal('confirmation', 'Reset Settings', 'Are you sure you want to reset all settings?', resetSettings)}
-      >
-        Reset Settings
-      </Button>
+        {/* Go to IRCTC Website Button */}
+        {showButton && (
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() =>
+              window.open('https://www.irctc.co.in/nget/train-search', '_blank')
+            }
+          >
+            Go to IRCTC Website
+          </Button>
+        )}
 
-      <ModalPopup
-        open={isModalOpen}
-        onClose={handleCloseModal}
-        onConfirm={() => {
-          if (modalConfig.onConfirm) modalConfig.onConfirm();
-          handleCloseModal();
-        }}
-        title={modalConfig.title || ''}
-        message={modalConfig.message || ''}
-        variant={modalConfig.variant || 'info'}
-      />
-      </Box>
+        {/* Modal Popup */}
+        <ModalPopup
+          open={isModalOpen}
+          onClose={handleCloseModal}
+          onConfirm={() => {
+            if (modalConfig.onConfirm) modalConfig.onConfirm();
+            handleCloseModal();
+          }}
+          title={modalConfig.title || ''}
+          message={modalConfig.message || ''}
+          variant={modalConfig.variant || 'info'}
+        />
+      </Stack>
     </Container>
   );
 };
