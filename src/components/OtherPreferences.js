@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {
   Box,
   Checkbox,
@@ -12,8 +11,11 @@ import {
   Typography
 } from '@mui/material';
 import { sharedStyles } from '../styles';
+import { useAppContext } from '../contexts/AppContext';
 
-const OtherPreferences = ({ formData, handleChange }) => {
+const OtherPreferences = () => {
+  const { formData, handleChange } = useAppContext();
+
   return (
     <Box  sx={sharedStyles.container}>
       <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
@@ -65,15 +67,6 @@ const OtherPreferences = ({ formData, handleChange }) => {
       </FormControl>
     </Box>
   );
-};
-
-OtherPreferences.propTypes = {
-  formData: PropTypes.shape({
-    autoUpgradation: PropTypes.bool,
-    confirmberths: PropTypes.bool,
-    travelInsuranceOpted: PropTypes.string,
-  }).isRequired,
-  handleChange: PropTypes.func.isRequired,
 };
 
 export default OtherPreferences;

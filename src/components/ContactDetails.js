@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import { Box, TextField, Typography } from '@mui/material';
 import { sharedStyles } from '../styles';
+import { useAppContext } from '../contexts/AppContext';
 
-const ContactDetails = ({ formData, handleChange }) => {
+const ContactDetails = () => {
+  const {formData,setFormData} = useAppContext();
+
   const [error, setError] = useState('');
 
   const validateMobileNumber = (value) => {
@@ -23,8 +25,12 @@ const ContactDetails = ({ formData, handleChange }) => {
   };
 
   const handleInputChange = (e) => {
-    handleChange(e); // Call handleChange regardless of validation
-    validateMobileNumber(e.target.value); // Validate the input value
+    const { name, value } = e.target;
+    // Transform to uppercase and filter out non-alphabetic characters
+    const formattedValue = value.replace(/\D/g, '');
+    // Update state
+    setFormData({ ...formData, [name]: formattedValue });
+    validateMobileNumber(formattedValue); // Validate the input value
   };
 
   return (
@@ -53,13 +59,6 @@ const ContactDetails = ({ formData, handleChange }) => {
       />
     </Box>)
   );
-};
-
-ContactDetails.propTypes = {
-  formData: PropTypes.shape({
-    mobileNumber: PropTypes.string,
-  }).isRequired,
-  handleChange: PropTypes.func.isRequired,
 };
 
 export default ContactDetails;

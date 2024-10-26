@@ -8,11 +8,32 @@ import {
   FormControl,
   InputLabel,
 } from '@mui/material';
-import PropTypes from 'prop-types';
+
 import { sharedStyles } from '../styles';
 import MyDatePicker from './MyDatePicker';
+import { useAppContext } from '../contexts/AppContext';
 
-function TrainDetails({ formData, handleChange }) {
+function TrainDetails() {
+
+  const {formData,setFormData,handleChange} = useAppContext();
+
+  
+  const handleStationCode = (event) => {
+    const { name, value } = event.target;
+    // Transform to uppercase and filter out non-alphabetic characters
+    const formattedValue = value.toUpperCase().replace(/[^A-Z]/g, '');
+    // Update state
+    setFormData({ ...formData, [name]: formattedValue });
+  };
+
+  const handleTrainNumber = (event) => {
+    const { name, value } = event.target;
+    // Transform to uppercase and filter out non-alphabetic characters
+    const formattedValue = value.replace(/\D/g, '');
+    // Update state
+    setFormData({ ...formData, [name]: formattedValue });
+  };
+
   return (
     (<Box sx={sharedStyles.container}>
       <Typography
@@ -30,7 +51,7 @@ function TrainDetails({ formData, handleChange }) {
         id='trainNumber'
         name='trainNumber'
         value={formData.trainNumber}
-        onChange={handleChange}
+        onChange={handleTrainNumber}
         margin='normal'
         required
         variant='outlined'
@@ -47,7 +68,7 @@ function TrainDetails({ formData, handleChange }) {
         id='from'
         name='from'
         value={formData.from}
-        onChange={handleChange}
+        onChange={handleStationCode}
         margin='normal'
         required
         variant='outlined'
@@ -64,7 +85,7 @@ function TrainDetails({ formData, handleChange }) {
         id='to'
         name='to'
         value={formData.to}
-        onChange={handleChange}
+        onChange={handleStationCode}
         margin='normal'
         required
         variant='outlined'
@@ -121,16 +142,5 @@ function TrainDetails({ formData, handleChange }) {
   );
 }
 
-TrainDetails.propTypes = {
-  formData: PropTypes.shape({
-    dateString: PropTypes.string.isRequired,
-    trainNumber: PropTypes.string.isRequired,
-    from: PropTypes.string.isRequired,
-    to: PropTypes.string.isRequired,
-    quotaType: PropTypes.string.isRequired,
-    accommodationClass: PropTypes.string.isRequired,
-  }).isRequired,
-  handleChange: PropTypes.func.isRequired,
-};
 
 export default TrainDetails;

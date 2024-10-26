@@ -1,9 +1,10 @@
 import React from 'react';
 import { TextField, Box, Typography } from '@mui/material';
-import PropTypes from 'prop-types';
 import { sharedStyles } from '../styles'; // Import the shared styles
+import { useAppContext } from '../contexts/AppContext';
 
-function LoginDetails({ formData, handleChange }) {
+function LoginDetails() {
+  const { formData, handleChange } = useAppContext();
   return (
     (<Box sx={sharedStyles.container}> {/* Apply shared container styles */}
       <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
@@ -48,12 +49,5 @@ function LoginDetails({ formData, handleChange }) {
   );
 }
 
-LoginDetails.propTypes = {
-  formData: PropTypes.shape({
-    username: PropTypes.string.isRequired,
-    password: PropTypes.string.isRequired,
-  }).isRequired,
-  handleChange: PropTypes.func.isRequired,
-};
 
 export default LoginDetails;

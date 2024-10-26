@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import PropTypes from 'prop-types';
 import dayjs from 'dayjs';
+import { useAppContext } from '../contexts/AppContext';
 
-export default function MyDatePicker({ formData, handleChange }) {
+export default function MyDatePicker() {
+  const { formData, handleChange } = useAppContext();
   const [selectedDate, setSelectedDate] = useState(null);
 
   // Use effect to initialize the selected date from formData
@@ -40,10 +41,3 @@ export default function MyDatePicker({ formData, handleChange }) {
   );
 }
 
-// Add prop types validation
-MyDatePicker.propTypes = {
-  formData: PropTypes.shape({
-    dateString: PropTypes.string,
-  }).isRequired,
-  handleChange: PropTypes.func.isRequired,
-};

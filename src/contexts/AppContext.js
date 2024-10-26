@@ -17,12 +17,7 @@ export const AppProvider = ({ children }) => {
   // Handle change for form fields
   const handleChange = (e) => {
     let { name, value, type, checked } = e.target;
-    if (name === 'trainNumber' || name === 'mobileNumber') {
-      value = value.replace(/\D/g, '');
-    }
-    if (name === 'from' || name === 'to') {
-      value = value.toUpperCase().replace(/\d/g, '');
-    }
+    
     setFormData((prevState) => ({
       ...prevState,
       [name]: type === 'checkbox' ? checked : value,
@@ -63,6 +58,21 @@ export const AppProvider = ({ children }) => {
       console.error('Failed to save data:', error);
     }
   };
+
+  // Warn user about unsaved changes on page unload
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = ''; // Modern browsers show a default message
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty]);
 
   const toggleAutomation = async () => {
     try {

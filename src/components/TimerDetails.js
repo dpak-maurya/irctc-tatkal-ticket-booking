@@ -1,10 +1,11 @@
 import React from 'react';
 import { TextField, Box, Typography } from '@mui/material';
-import PropTypes from 'prop-types';
 import { sharedStyles } from '../styles';
 import MyTimePicker from './MyTimePicker';
+import { useAppContext } from '../contexts/AppContext';
 
-function TimerDetails({ formData, handleChange }) {
+function TimerDetails() {
+  const { formData, handleChange } = useAppContext();
   return (
     (<Box sx={sharedStyles.container}>
       <Typography
@@ -55,14 +56,5 @@ function TimerDetails({ formData, handleChange }) {
     </Box>)
   );
 }
-
-TimerDetails.propTypes = {
-  formData: PropTypes.shape({
-    targetTime: PropTypes.string,
-    refreshTime: PropTypes.number,
-    loginMinutesBefore: PropTypes.number,
-  }).isRequired,
-  handleChange: PropTypes.func.isRequired,
-};
 
 export default TimerDetails;

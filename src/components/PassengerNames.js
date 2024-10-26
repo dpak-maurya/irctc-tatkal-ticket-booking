@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import {
   Box,
   Typography,
@@ -13,8 +12,10 @@ import {
   Checkbox,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useAppContext } from '../contexts/AppContext';
 
-const PassengerNames = ({ formData, handleChange }) => {
+const PassengerNames = () => {
+  const { formData, handleChange } = useAppContext();
   const [newPassenger, setNewPassenger] = useState('');
 
   const handleAddPassenger = () => {
@@ -121,14 +122,6 @@ const PassengerNames = ({ formData, handleChange }) => {
       </Box>
     </Box>
   );
-};
-
-PassengerNames.propTypes = {
-  formData: PropTypes.shape({
-    passengerNames: PropTypes.arrayOf(PropTypes.string),
-    masterData: PropTypes.bool,
-  }).isRequired,
-  handleChange: PropTypes.func.isRequired,
 };
 
 export default PassengerNames;

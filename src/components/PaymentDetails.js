@@ -1,9 +1,10 @@
 import React from 'react';
 import { TextField, Box, Typography, FormControlLabel, Checkbox } from '@mui/material';
-import PropTypes from 'prop-types';
 import { sharedStyles } from '../styles';
+import { useAppContext } from '../contexts/AppContext';
 
-function PaymentDetails({ formData, handleChange }) {
+function PaymentDetails() {
+  const { formData, handleChange } = useAppContext();
   return (
     (<Box sx={sharedStyles.container}>
       <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
@@ -75,14 +76,5 @@ function PaymentDetails({ formData, handleChange }) {
   );
 }
 
-PaymentDetails.propTypes = {
-  formData: PropTypes.shape({
-    paymentType: PropTypes.string.isRequired,
-    paymentMethod: PropTypes.string.isRequired,
-    paymentProvider: PropTypes.string.isRequired,
-    autoPay: PropTypes.bool.isRequired, 
-  }).isRequired,
-  handleChange: PropTypes.func.isRequired,
-};
 
 export default PaymentDetails;

@@ -2,9 +2,9 @@ import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import LogoIcon from './LogoIcon';
-import PropTypes from 'prop-types';
 import CustomSwitch from './CustomSwitch';
 import CountdownTimer from './CountDownTimer'; // Corrected casing
+import { useAppContext } from '../contexts/AppContext';
 
 const useStyles = makeStyles({
   headerContainer: {
@@ -68,10 +68,10 @@ const useStyles = makeStyles({
   },
 });
 
-const Header = ({ formData, toggleAutomation }) => {
+const Header = () => {
+  const { formData, toggleAutomation } = useAppContext();
   const classes = useStyles();
   
-
   return (
     <Box className={classes.headerContainer}>
       <Box className={classes.title}>
@@ -97,13 +97,5 @@ const Header = ({ formData, toggleAutomation }) => {
   );
 };
 
-Header.propTypes = {
-  formData: PropTypes.shape({
-    automationStatus: PropTypes.bool.isRequired,
-    targetTime: PropTypes.string.isRequired, // Added validation for targetTime
-    loginMinutesBefore: PropTypes.number.isRequired, // Added validation for loginMinutesBefore
-  }).isRequired,
-  toggleAutomation: PropTypes.func.isRequired,
-};
 
 export default Header;

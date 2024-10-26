@@ -3,8 +3,10 @@ import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import PropTypes from 'prop-types';
 import dayjs from 'dayjs';
+import { useAppContext } from '../contexts/AppContext';
 
-function MyTimePicker({ formData, handleChange }) {
+function MyTimePicker() {
+  const { formData,handleChange } = useAppContext();
   const [selectedTime, setSelectedTime] = useState(null);
 
   // Use effect to initialize the selected time from formData

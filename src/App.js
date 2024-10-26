@@ -14,12 +14,8 @@ import { useModalContext } from './contexts/ModalContext';
 
 const App = () => {
   const {
-    formData,
-    setFormData,
-    handleChange,
     isDirty,
     saveFormData,
-    toggleAutomation,
     showButton,
     resetSettings,
   } = useAppContext();
@@ -28,47 +24,51 @@ const App = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Header formData={formData} toggleAutomation={toggleAutomation} />
-      <Box sx={{ mt: 4 }}></Box>
+      <Header />
+      <Box sx={{ mt: 4 }} />
+
       {/* Updated layout for Login+Timer, Train, and Payment Details */}
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={3}>
         <Box flex={1}>
-          <LoginDetails formData={formData} handleChange={handleChange} />
-          <TimerDetails formData={formData} handleChange={handleChange} />
+          <LoginDetails />
+          <TimerDetails />
         </Box>
         <Box flex={1}>
-          <TrainDetails formData={formData} handleChange={handleChange} />
+          <TrainDetails />
         </Box>
         <Box flex={1}>
-          <PaymentDetails formData={formData} handleChange={handleChange} />
+          <PaymentDetails />
         </Box>
       </Stack>
+
       <Box flex={1}>
-        <PassengerDetails formData={formData} setFormData={setFormData} handleChange={handleChange} />
+        <PassengerDetails />
       </Box>
+
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
         <Box flex={1}>
-          <ContactDetails formData={formData} handleChange={handleChange} />
+          <ContactDetails />
         </Box>
         <Box flex={2}>
-          <OtherPreferences formData={formData} handleChange={handleChange} />
+          <OtherPreferences />
         </Box>
       </Stack>
-      
-      <Box sx={{ mb: 8 }}> {/* Spacer box if needed above footer */}
-        .
-      </Box>
+
+      {/* Spacer box if needed above footer */}
+      <Box sx={{ mb: 8 }} />
+
+      {/* Sticky/Floating Action Buttons */}
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={3}
         sx={{
-          position: { xs: 'sticky', md: 'fixed' },  // Sticky on small, fixed on medium+
+          position: { xs: 'sticky', md: 'fixed' }, // Sticky on small, fixed on medium+
           bottom: 0,
           left: 0,
           width: '100%',
           p: 2,
-          backgroundColor: '#fff',
-          boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
+          backgroundColor: 'background.paper', // Use theme background color
+          boxShadow: (theme) => theme.shadows[4], // Use MUI shadow
           textAlign: 'center',
           zIndex: 1000,
           justifyContent: 'center',
@@ -76,9 +76,11 @@ const App = () => {
         }}
       >
         {/* Unsaved changes warning */}
-        <Button color="warning">
-          {isDirty && <div style={{ color: 'red' }}>Unsaved changes!</div>}
-        </Button>
+        {isDirty && (
+          <Button color="warning" variant="outlined">
+            Unsaved changes!
+          </Button>
+        )}
 
         {/* Save Settings Button */}
         <Button

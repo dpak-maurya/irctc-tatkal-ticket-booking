@@ -19,12 +19,14 @@ import {
   Grid
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useAppContext } from '../contexts/AppContext';
 
 const tableCellStyles = {
   border: '1px solid rgba(224, 224, 224, 1)',
 };
 
-const PassengerList = ({ formData, setFormData }) => {
+const PassengerList = () => {
+  const { formData, setFormData } = useAppContext();
   const [newPassenger, setNewPassenger] = useState({
     name: '',
     age: '',
