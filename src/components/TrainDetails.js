@@ -14,37 +14,46 @@ import MyDatePicker from './MyDatePicker';
 import { useAppContext } from '../contexts/AppContext';
 
 function TrainDetails() {
+  const { formData, setFormData, handleChange } = useAppContext();
 
-  const {formData,setFormData,handleChange} = useAppContext();
-
-  
   const handleStationCode = (event) => {
     const { name, value } = event.target;
-    // Transform to uppercase and filter out non-alphabetic characters
     const formattedValue = value.toUpperCase().replace(/[^A-Z]/g, '');
-    // Update state
     setFormData({ ...formData, [name]: formattedValue });
   };
 
   const handleTrainNumber = (event) => {
     const { name, value } = event.target;
-    // Transform to uppercase and filter out non-alphabetic characters
     const formattedValue = value.replace(/\D/g, '');
-    // Update state
     setFormData({ ...formData, [name]: formattedValue });
   };
 
+  const handleAccommodationClassChange = (event) => {
+    const { value } = event.target;
+    let targetTime;
+
+    // Set targetTime based on selected accommodation class
+    if (value === 'SL') {
+      targetTime = '10:59:53';
+    } else {
+      targetTime = '09:59:53';
+    }
+
+    // Update formData with the new accommodation class and targetTime
+    setFormData({ ...formData, accommodationClass: value, targetTime });
+  };
+
   return (
-    (<Box sx={sharedStyles.container}>
+    <Box sx={sharedStyles.container}>
       <Typography
         variant='h5'
         gutterBottom
         align='center'
-        sx={{ fontWeight: 'bold', color: '#333' }}
+        sx={{ fontWeight: 'bold', color: '#333', mb: 3 }}
       >
         Train Details
       </Typography>
-      <MyDatePicker formData={formData} handleChange={handleChange}/>
+      <MyDatePicker formData={formData} handleChange={handleChange} />
       <TextField
         fullWidth
         label='Train Number'
@@ -59,7 +68,7 @@ function TrainDetails() {
         slotProps={{
           input: {
             sx: sharedStyles.input, // Apply shared input styles
-          }
+          },
         }}
       />
       <TextField
@@ -72,11 +81,11 @@ function TrainDetails() {
         margin='normal'
         required
         variant='outlined'
-        placeholder='Enter origin station code i.e. LTT' // Placeholder for the station code
+        placeholder='Enter origin station code i.e. LTT'
         slotProps={{
           input: {
             sx: sharedStyles.input, // Apply shared input styles
-          }
+          },
         }}
       />
       <TextField
@@ -89,11 +98,11 @@ function TrainDetails() {
         margin='normal'
         required
         variant='outlined'
-        placeholder='Enter destination station code i.e. BSB' // Placeholder for the station code
+        placeholder='Enter destination station code i.e. BSB'
         slotProps={{
           input: {
             sx: sharedStyles.input, // Apply shared input styles
-          }
+          },
         }}
       />
       <FormControl fullWidth margin='normal'>
@@ -121,15 +130,13 @@ function TrainDetails() {
           id='accommodationClass'
           name='accommodationClass'
           value={formData.accommodationClass}
-          onChange={handleChange}
+          onChange={handleAccommodationClassChange} // Use the new handler
           label='Accommodation Class'
           variant='outlined'
           sx={{ backgroundColor: 'white' }}
         >
           <MenuItem value='SL'>Sleeper (SL)</MenuItem>
-          <MenuItem value='3A' selected>
-            AC 3 Tier (3A)
-          </MenuItem>
+          <MenuItem value='3A'>AC 3 Tier (3A)</MenuItem>
           <MenuItem value='2A'>AC 2 Tier (2A)</MenuItem>
           <MenuItem value='1A'>AC First Class (1A)</MenuItem>
           <MenuItem value='3E'>AC 3 Economy (3E)</MenuItem>
@@ -138,9 +145,8 @@ function TrainDetails() {
           <MenuItem value='EV'>Vistadome AC (EV)</MenuItem>
         </Select>
       </FormControl>
-    </Box>)
+    </Box>
   );
 }
-
 
 export default TrainDetails;

@@ -1,76 +1,99 @@
 // components/Footer.js
 import React from 'react';
-import { Stack, Button } from '@mui/material';
+import { Stack, Button, Box, Container } from '@mui/material';
 import ModalPopup from './ModalPopup';
 import { useModalContext } from '../contexts/ModalContext';
 import { useAppContext } from '../contexts/AppContext';
 
 const Footer = () => {
-    const { isModalOpen, modalConfig, openModal, closeModal } = useModalContext();
-    const { isDirty, saveFormData, resetSettings } = useAppContext();
+  const { isModalOpen, modalConfig, openModal, closeModal } = useModalContext();
+  const { isDirty, saveFormData, resetSettings } = useAppContext();
 
-    return (
-        <>
-            <Stack
-                direction={{ xs: 'column', md: 'row' }}
-                spacing={3}
-                sx={{
-                    position: { xs: 'sticky', md: 'fixed' }, // Sticky on small, fixed on medium+
-                    bottom: 0,
-                    left: 0,
-                    width: '100%',
-                    p: 2,
-                    backgroundColor: 'background.paper', // Use theme background color
-                    boxShadow: (theme) => theme.shadows[4], // Use MUI shadow
-                    textAlign: 'center',
-                    zIndex: 1000,
-                    justifyContent: 'center',
-                    flexWrap: 'wrap', // Allows wrapping in case of small screens
-                }}
+  return (
+    <Box
+      sx={{
+        backgroundColor: '#fff',
+        padding: '10px 20px',
+        boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+      }}
+    >
+      <Container>
+        <Stack
+          display='flex'
+          direction='row'
+          justifyContent='space-between'
+          alignItems='center'
+        >
+          <Box>
+            {/* Unsaved changes warning */}
+            {isDirty && (
+              <Button color='error' variant="text" size='large' >
+                Unsaved changes!
+              </Button>
+            )}
+          </Box>
+          <Stack
+            display='flex'
+            direction='row'
+            spacing={3}
+            justifyContent='end'
+            alignItems='center'
+          >
+            {/* Reset Settings Button */}
+            <Button
+              variant='contained'
+              color='secondary'
+              size='large'
+              onClick={() =>
+                openModal(
+                  'confirmation',
+                  'Reset Settings',
+                  'Are you sure you want to reset all settings?',
+                  resetSettings
+                )
+              }
             >
-                {/* Unsaved changes warning */}
-                {isDirty && (
-                    <Button color="warning" variant="text">
-                        Unsaved changes!
-                    </Button>
-                )}
+              Reset Settings
+            </Button>
 
-                {/* Save Settings Button */}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    size='large'
-                    onClick={() => openModal('info', 'Save Settings', 'Settings saved.', saveFormData)}
-                >
-                    Save Settings
-                </Button>
-
-                {/* Reset Settings Button */}
-                <Button
-                    variant="contained"
-                    color="secondary"
-                    size='large'
-                    onClick={() => openModal('confirmation', 'Reset Settings', 'Are you sure you want to reset all settings?', resetSettings)}
-                >
-                    Reset Settings
-                </Button>
-
-            </Stack>
-
-            {/* Modal Popup */}
-            <ModalPopup
-                open={isModalOpen}
-                onClose={closeModal}
-                onConfirm={() => {
-                    if (modalConfig.onConfirm) modalConfig.onConfirm();
-                    closeModal();
-                }}
-                title={modalConfig.title || ''}
-                message={modalConfig.message || ''}
-                variant={modalConfig.variant || 'info'}
-            />
-        </>
-    );
+            {/* Save Settings Button */}
+            <Button
+              variant='contained'
+              color='primary'
+              size='large'
+              onClick={() =>
+                openModal(
+                  'info',
+                  'Save Settings',
+                  'Settings saved.',
+                  saveFormData
+                )
+              }
+            >
+              Save Settings
+            </Button>
+          </Stack>
+        </Stack>
+        {/* Modal Popup */}
+        <ModalPopup
+          open={isModalOpen}
+          onClose={closeModal}
+          onConfirm={() => {
+            if (modalConfig.onConfirm) modalConfig.onConfirm();
+            closeModal();
+          }}
+          title={modalConfig.title || ''}
+          message={modalConfig.message || ''}
+          variant={modalConfig.variant || 'info'}
+        />
+      </Container>
+    </Box>
+  );
 };
 
 export default Footer;

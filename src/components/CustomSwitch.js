@@ -46,17 +46,22 @@ const HiddenCheckbox = styled('input')({
 
 const CustomSwitch = ({ checked, onChange, name }) => {
   return (
-    <SwitchContainer checked={checked} onClick={() => onChange(!checked)}>
-      {/* Hidden checkbox to make it work like a real form element */}
-      <HiddenCheckbox
-        type="checkbox"
-        checked={checked}
-        onChange={() => onChange(!checked)}
-        name={name}
-      />
-      <SwitchText checked={checked}>{checked ? 'ON' : 'OFF'}</SwitchText>
-      <SwitchButton checked={checked} />
-    </SwitchContainer>
+    <Box display="flex" alignItems="center">
+      <Typography variant="h6"  fontWeight="600" sx={{ mr: 1 }}>
+        Auto Booking
+      </Typography>
+      <SwitchContainer checked={checked} onClick={() => onChange(!checked)}>
+        {/* Hidden checkbox to make it work like a real form element */}
+        <HiddenCheckbox
+          type="checkbox"
+          checked={checked}
+          onChange={() => onChange(!checked)}
+          name={name}
+        />
+        <SwitchText checked={checked}>{checked ? 'ON' : 'OFF'}</SwitchText>
+        <SwitchButton checked={checked} />
+      </SwitchContainer>
+    </Box>
   );
 };
 

@@ -7,15 +7,16 @@ import { useAppContext } from '../contexts/AppContext';
 function TimerDetails() {
   const { formData, handleChange } = useAppContext();
   return (
-    (<Box sx={sharedStyles.container}>
+    (<Box sx={sharedStyles.container} >
       <Typography
         variant="h5"
         gutterBottom
         align="center"
-        sx={{ fontWeight: 'bold', color: '#333' }}
+        sx={{ fontWeight: 'bold', color: '#333', mb:3 }}
       >
         Timer Details
       </Typography>
+      
       <MyTimePicker formData={formData} handleChange={handleChange} />
       <TextField
         fullWidth

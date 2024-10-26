@@ -57,7 +57,7 @@ const BookingCountdown = () => {
     return (
         <div>
             {timeRemaining > 0 ? (
-                <Typography variant="body1" color='error' >Automatic Login to IRCTC starts in: {timeRemaining} seconds</Typography>
+                <Typography variant="body1" color='secondary' fontSize="bold" fontWeight="600" >Automatic Login to IRCTC starts in: {timeRemaining} seconds</Typography>
             ) : (
                 <Button
                     id="book-button"

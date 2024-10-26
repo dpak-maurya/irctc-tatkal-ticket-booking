@@ -35,6 +35,7 @@ export default function MyDatePicker() {
         value={selectedDate}
         onChange={handleDateChange}
         format="DD/MM/YYYY" // Ensure you set the format for display
+        minDate={dayjs()} // Restrict past dates
         sx={{ width: '100%', backgroundColor: 'white', borderRadius: 1 }}
       />
     </LocalizationProvider>

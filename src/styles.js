@@ -5,8 +5,11 @@ export const sharedStyles = {
       p: 3,
       borderRadius: '8px',
       backgroundColor: 'rgb(214, 227, 255)', // Background color
-      boxShadow: 2,
+      '&:hover': {
+      boxShadow: 2, // Change box shadow to 2 on hover
     },
+    },
+    
     input: {
       backgroundColor: 'white', // Input field background color
       '& .MuiOutlinedInput-root': {
