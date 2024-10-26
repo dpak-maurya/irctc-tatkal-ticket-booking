@@ -10,21 +10,21 @@ import OtherPreferences from './components/OtherPreferences';
 import Header from './components/Header';
 import ModalPopup from './components/ModalPopup';
 import { useAppContext } from './contexts/AppContext';
+import { useModalContext } from './contexts/ModalContext';
 
 const App = () => {
   const {
     formData,
+    setFormData,
     handleChange,
     isDirty,
     saveFormData,
     toggleAutomation,
-    openModal,
-    isModalOpen,
-    handleCloseModal,
-    modalConfig,
     showButton,
     resetSettings,
   } = useAppContext();
+
+  const { isModalOpen, modalConfig, openModal, closeModal } = useModalContext();
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -44,7 +44,7 @@ const App = () => {
         </Box>
       </Stack>
       <Box flex={1}>
-        <PassengerDetails formData={formData} handleChange={handleChange} />
+        <PassengerDetails formData={formData} setFormData={setFormData} handleChange={handleChange} />
       </Box>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
         <Box flex={1}>
@@ -114,10 +114,10 @@ const App = () => {
         {/* Modal Popup */}
         <ModalPopup
           open={isModalOpen}
-          onClose={handleCloseModal}
+          onClose={closeModal}
           onConfirm={() => {
             if (modalConfig.onConfirm) modalConfig.onConfirm();
-            handleCloseModal();
+            closeModal();
           }}
           title={modalConfig.title || ''}
           message={modalConfig.message || ''}

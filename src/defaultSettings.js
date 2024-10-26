@@ -1,5 +1,3 @@
-import { getNextDay } from './utils';
-
 const defaultSettings = {
     automationStatus: false,
     username: '',
@@ -11,7 +9,7 @@ const defaultSettings = {
     to: '',
     quotaType: '',
     accommodationClass: '',
-    dateString: getNextDay(),
+    dateString: '',
     paymentType: 'BHIM/UPI',
     paymentMethod: 'BHIM/ UPI/ USSD',
     paymentProvider: 'PAYTM',

@@ -1,0 +1,49 @@
+import React, { useEffect, useState } from 'react';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import PropTypes from 'prop-types';
+import dayjs from 'dayjs';
+
+export default function MyDatePicker({ formData, handleChange }) {
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  // Use effect to initialize the selected date from formData
+  useEffect(() => {
+    if (formData.dateString) {
+      setSelectedDate(dayjs(formData.dateString, 'YYYY-MM-DD'));
+    }
+  }, [formData.dateString]);
+
+  const handleDateChange = (newValue) => {
+    if (newValue) {
+      const formattedDate = newValue.format('YYYY-MM-DD');
+      setSelectedDate(newValue);
+      handleChange({ target: { name: 'dateString', type: 'date', value: formattedDate } });
+    } else {
+      // If the date is cleared, set selectedDate to null and update formData accordingly
+      setSelectedDate(null);
+      handleChange({ target: { name: 'dateString', type: 'date', value: '' } });
+    }
+  };
+
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DatePicker
+        name='dateString'
+        label="Date*"
+        value={selectedDate}
+        onChange={handleDateChange}
+        format="DD/MM/YYYY" // Ensure you set the format for display
+        sx={{ width: '100%', backgroundColor: 'white', borderRadius: 1 }}
+      />
+    </LocalizationProvider>
+  );
+}
+
+// Add prop types validation
+MyDatePicker.propTypes = {
+  formData: PropTypes.shape({
+    dateString: PropTypes.string,
+  }).isRequired,
+  handleChange: PropTypes.func.isRequired,
+};

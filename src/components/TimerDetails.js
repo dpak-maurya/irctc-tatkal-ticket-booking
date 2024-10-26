@@ -2,30 +2,20 @@ import React from 'react';
 import { TextField, Box, Typography } from '@mui/material';
 import PropTypes from 'prop-types';
 import { sharedStyles } from '../styles';
+import MyTimePicker from './MyTimePicker';
 
 function TimerDetails({ formData, handleChange }) {
   return (
-    <Box 
-     sx={sharedStyles.container}
-    >
-      <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
+    <Box sx={sharedStyles.container}>
+      <Typography
+        variant="h5"
+        gutterBottom
+        align="center"
+        sx={{ fontWeight: 'bold', color: '#333' }}
+      >
         Timer Details
       </Typography>
-      <TextField
-        fullWidth
-        label="Tatkal Start Timer"
-        id="targetTime"
-        name="targetTime"
-        value={formData.targetTime}
-        onChange={handleChange}
-        margin="normal"
-        required
-        variant="outlined"
-        placeholder="Enter Tatkal Start Timer i.e. 09:59:53"
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
-        }}
-      />
+      <MyTimePicker formData={formData} handleChange={handleChange} />
       <TextField
         fullWidth
         label="Refresh Time (ms)"

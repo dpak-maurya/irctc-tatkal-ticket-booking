@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import PropTypes from 'prop-types';
 import { sharedStyles } from '../styles';
+import MyDatePicker from './MyDatePicker';
 
 function TrainDetails({ formData, handleChange }) {
   return (
@@ -22,21 +23,9 @@ function TrainDetails({ formData, handleChange }) {
       >
         Train Details
       </Typography>
-      <TextField
-        fullWidth
-        label='Date'
-        type='date'
-        id='dateString'
-        name='dateString'
-        value={formData.dateString}
-        onChange={handleChange}
-        margin='normal'
-        required
-        variant='outlined'
-        InputProps={{
-          sx: sharedStyles.input, // Apply shared input styles
-        }}
-      />
+     
+      <MyDatePicker formData={formData} handleChange={handleChange}/>
+      
       <TextField
         fullWidth
         label='Train Number'
