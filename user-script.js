@@ -594,11 +594,17 @@ async function removeFirstRow(){
   }
 }
 function processInput() {
-  copyPassengerNames = passengerNames;
+  const copyPassengerNames = passengerNames
+    .filter((passenger) => passenger.isSelected)
+    .map((passenger) => passenger.name);
+
   if (copyPassengerNames.length === 0) {
-    console.log('No passenger names found.');
+    console.log('No selected passenger names found.');
+  } else {
+    console.log('Selected passenger names:', copyPassengerNames);
   }
 }
+
 //autocomplete function
 async function selectAutocompleteOption(index=0,name = passengerNames) {
   var row = document.querySelectorAll(PASSENGER_COMPONENT)[index];
