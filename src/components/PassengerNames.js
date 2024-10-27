@@ -73,12 +73,24 @@ const PassengerNames = () => {
 
   const [rows, setRows] = useState([]);
   const [rowModesModel, setRowModesModel] = useState({});
-  const [selectionModel, setSelectionModel] = useState([]);
+  const [rowSelection, setRowSelection] = useState([]);
 
+  // Initialize rows and selection model from formData on mount
   useEffect(() => {
-  
     setRows(formData.passengerNames);
-  }, [formData])
+    const initiallySelectedIds = formData.passengerNames
+      .filter((passenger) => passenger.isSelected)
+      .map((passenger) => passenger.id);
+    setRowSelection(initiallySelectedIds);
+    
+    console.log(formData.passengerNames);
+
+  }, [formData.passengerNames]);
+
+  // Sync passenger list with formData
+  const syncPassengerNames = (updatedRows) => {
+    handleChange({ target: { name: 'passengerNames', value: updatedRows } });
+  };
 
   const handleRowEditStop = (params, event) => {
     if (params.reason === 'rowFocusOut') {
@@ -97,9 +109,8 @@ const PassengerNames = () => {
   const handleDeleteClick = (id) => () => {
     const filterRows = rows.filter((row) => row.id !== id);
     setRows(filterRows);
-    setSelectionModel(selectionModel.filter((selectedId) => selectedId !== id)); // Remove deleted id from selection
-    // Call handleChange with the updated passenger names
-    handleChange({ target: { name: 'passengerNames', value: filterRows } });
+    setRowSelection(rowSelection.filter((selectedId) => selectedId !== id)); // Remove deleted id from selection
+    syncPassengerNames(filterRows);
   };
 
   const handleCancelClick = (id) => () => {
@@ -114,18 +125,28 @@ const PassengerNames = () => {
     }
   };
 
+  // Handle row updates
   const processRowUpdate = (newRow) => {
     const updatedRow = { ...newRow, isNew: false };
-    // Update the rows state
     const updatedRows = rows.map((row) => (row.id === newRow.id ? updatedRow : row));
     setRows(updatedRows);
-    // Call handleChange with the updated passenger names
-    handleChange({ target: { name: 'passengerNames', value: updatedRows } });
+    syncPassengerNames(updatedRows);
     return updatedRow;
   };
-
   const handleRowModesModelChange = (newRowModesModel) => {
     setRowModesModel(newRowModesModel);
+  };
+
+  // Handle selection change and update isSelected field
+  const handleRowSelectionChange = (newSelection) => {
+    console.log(newSelection)
+    setRowSelection(newSelection);
+
+    const updatedRows = rows.map((row) => ({
+      ...row,
+      isSelected: newSelection.includes(row.id),
+    }));
+    syncPassengerNames(updatedRows);
   };
 
   return (
@@ -139,10 +160,8 @@ const PassengerNames = () => {
         onRowEditStop={handleRowEditStop}
         processRowUpdate={processRowUpdate}
         checkboxSelection // Enable checkbox selection
-        selectionModel={selectionModel}
-        onSelectionModelChange={(newSelection) => {
-          setSelectionModel(newSelection);
-        }}
+        rowSelectionModel={rowSelection}
+        onRowSelectionModelChange={handleRowSelectionChange}
         slots={{
           toolbar: EditToolbar,
         }}
@@ -156,7 +175,7 @@ const PassengerNames = () => {
         disableRowSelectionOnClick
         hideFooter
       />
-       {rows.length === 0 && (
+      {rows.length === 0 && (
         <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
           No passengers added.
         </Box>

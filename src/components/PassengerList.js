@@ -12,8 +12,6 @@ import { DataGrid, GridToolbarContainer, GridActionsCellItem, GridRowModes } fro
 import PropTypes from 'prop-types';
 import { useAppContext } from '../contexts/AppContext';
 
-
-
 const genderOptions = [
   { value: 'M', label: 'Male' },
   { value: 'F', label: 'Female' },
@@ -29,7 +27,6 @@ const preferenceOptions = [
   { value: 'SU', label: 'Side Upper' },
 ];
 
-
 function EditToolbar(props) {
   const { setRows, setRowModesModel } = props;
 
@@ -44,7 +41,7 @@ function EditToolbar(props) {
       [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
     }));
   };
-  
+
   // Prop types validation
   EditToolbar.propTypes = {
     setRows: PropTypes.func.isRequired,
@@ -61,15 +58,26 @@ function EditToolbar(props) {
 }
 
 const PassengerList = () => {
-  const { formData,handleChange } = useAppContext();
+  const { formData, handleChange } = useAppContext();
   const [rows, setRows] = useState([]);
   const [rowModesModel, setRowModesModel] = useState({});
-  const [selectionModel, setSelectionModel] = useState([]);
+  const [rowSelection, setRowSelection] = useState([]);
 
+  // Initialize rows and selection model from formData on mount
   useEffect(() => {
     setRows(formData.passengerList);
-  }, [formData])
-  
+    const initiallySelectedIds = formData.passengerList
+      .filter((passenger) => passenger.isSelected)
+      .map((passenger) => passenger.id);
+    setRowSelection(initiallySelectedIds);
+
+    console.log(formData.passengerList);
+  }, [formData.passengerList]);
+
+  // Sync passenger list with formData
+  const syncPassengerList = (updatedRows) => {
+    handleChange({ target: { name: 'passengerList', value: updatedRows } });
+  };
 
   const handleRowEditStop = (params, event) => {
     if (params.reason === 'rowFocusOut') {
@@ -88,9 +96,8 @@ const PassengerList = () => {
   const handleDeleteClick = (id) => () => {
     const filterRows = rows.filter((row) => row.id !== id);
     setRows(filterRows);
-    setSelectionModel(selectionModel.filter((selectedId) => selectedId !== id)); // Remove deleted id from selection
-    // Call handleChange with the updated passenger names
-    handleChange({ target: { name: 'passengerList', value: filterRows } });
+    setRowSelection(rowSelection.filter((selectedId) => selectedId !== id)); // Remove deleted id from selection
+    syncPassengerList(filterRows);
   };
 
   const handleCancelClick = (id) => () => {
@@ -105,18 +112,31 @@ const PassengerList = () => {
     }
   };
 
+  // Handle row updates
   const processRowUpdate = (newRow) => {
     const updatedRow = { ...newRow, isNew: false };
-    // Update the rows state
     const updatedRows = rows.map((row) => (row.id === newRow.id ? updatedRow : row));
     setRows(updatedRows);
-    // Call handleChange with the updated passenger names
-    handleChange({ target: { name: 'passengerList', value: updatedRows } });
+    syncPassengerList(updatedRows);
     return updatedRow;
   };
 
   const handleRowModesModelChange = (newRowModesModel) => {
     setRowModesModel(newRowModesModel);
+  };
+
+  // Handle selection change and update isSelected field
+  const handleRowSelectionChange = (newSelection) => {
+    console.log(newSelection);
+    setRowSelection(newSelection);
+
+    const updatedRows = rows.map((row) => ({
+      ...row,
+      isSelected: newSelection.includes(row.id),
+    }));
+
+    // setRows(updatedRows);
+    syncPassengerList(updatedRows);
   };
 
   const columns = [
@@ -168,7 +188,7 @@ const PassengerList = () => {
   ];
 
   return (
-    <Box sx={{ display:'flex',flexDirection:'column', width: '100%' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <DataGrid
         rows={rows}
         columns={columns}
@@ -178,10 +198,8 @@ const PassengerList = () => {
         onRowEditStop={handleRowEditStop}
         processRowUpdate={processRowUpdate}
         checkboxSelection // Enable checkbox selection
-        selectionModel={selectionModel}
-        onSelectionModelChange={(newSelection) => {
-          setSelectionModel(newSelection);
-        }}
+        rowSelectionModel={rowSelection}
+        onRowSelectionModelChange={handleRowSelectionChange}
         slots={{
           toolbar: EditToolbar,
         }}
@@ -195,7 +213,7 @@ const PassengerList = () => {
         disableRowSelectionOnClick // Optional: Prevent row selection on click
         hideFooter
       />
-       {rows.length === 0 && (
+      {rows.length === 0 && (
         <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
           No passengers added.
         </Box>
