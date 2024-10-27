@@ -1,125 +1,166 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
-  Typography,
-  TextField,
   Button,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  FormControlLabel,
-  Checkbox,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAppContext } from '../contexts/AppContext';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Close';
+import { DataGrid, GridToolbarContainer, GridActionsCellItem, GridRowModes } from '@mui/x-data-grid';
+import PropTypes from 'prop-types';
 
-const PassengerNames = () => {
-  const { formData, handleChange } = useAppContext();
-  const [newPassenger, setNewPassenger] = useState('');
+// Toolbar for adding passengers
+function EditToolbar(props) {
+  const { setRows, setRowModesModel } = props;
 
-  const handleAddPassenger = () => {
-    if (newPassenger.trim()) {
-      const updatedNames = [...formData.passengerNames, newPassenger.trim()];
-      handleChange({
-        target: { name: 'passengerNames', value: updatedNames },
-      });
-      setNewPassenger('');
-    }
+  const handleClick = () => {
+    const id = Date.now(); // Generate a unique ID based on the current timestamp
+    setRows((oldRows) => [
+      ...oldRows,
+      { id, name: '', isNew: true },
+    ]);
+    setRowModesModel((oldModel) => ({
+      ...oldModel,
+      [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
+    }));
   };
 
-  const handleRemovePassenger = (index) => {
-    const updatedNames = formData.passengerNames.filter((_, i) => i !== index);
-    handleChange({
-      target: { name: 'passengerNames', value: updatedNames },
-    });
-  };
-
-  const handleKeyPress = (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      handleAddPassenger();
-    }
+  // Prop types validation
+  EditToolbar.propTypes = {
+    setRows: PropTypes.func.isRequired,
+    setRowModesModel: PropTypes.func.isRequired,
   };
 
   return (
-    <Box>
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={formData.masterData}
-            onChange={handleChange}
-            name='masterData'
-            sx={{ color: '#007BFF', '&.Mui-checked': { color: '#0056b3' } }}
-          />
+    <GridToolbarContainer>
+      <Button color="primary" startIcon={<AddIcon />} onClick={handleClick}>
+        Add Passenger
+      </Button>
+    </GridToolbarContainer>
+  );
+}
+
+const PassengerNames = () => {
+  const { formData, handleChange } = useAppContext();
+
+  const columns = [
+    { field: 'name', headerName: 'Name', width: 180, editable: true },
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      cellClassName: 'actions',
+      getActions: ({ id }) => {
+        const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
+        if (isInEditMode) {
+          return [
+            <GridActionsCellItem key="save" icon={<SaveIcon />} label="Save" sx={{ color: 'primary.main' }} onClick={handleSaveClick(id)} />,
+            <GridActionsCellItem key="cancel" icon={<CancelIcon />} label="Cancel" onClick={handleCancelClick(id)} color="inherit" />,
+          ];
         }
-        label='Use IRCTC Master Data'
-      />
 
-      <Box
-        sx={{
-          p: 3,
-          mb: 3,
+        return [
+          <GridActionsCellItem key="edit" icon={<EditIcon />} label="Edit" onClick={handleEditClick(id)} color="primary" />,
+          <GridActionsCellItem key="delete" icon={<DeleteIcon />} label="Delete" onClick={handleDeleteClick(id)} color="error" />,
+        ];
+      },
+    },
+  ];
 
-          backgroundColor: '#f9f9f9',
+  const [rows, setRows] = useState([]);
+  const [rowModesModel, setRowModesModel] = useState({});
+  const [selectionModel, setSelectionModel] = useState([]);
 
-          display: 'flex',
-          justifyContent: 'space-between',
+  useEffect(() => {
+  
+    setRows(formData.passengerNames);
+  }, [formData])
+
+  const handleRowEditStop = (params, event) => {
+    if (params.reason === 'rowFocusOut') {
+      event.defaultMuiPrevented = true;
+    }
+  };
+
+  const handleEditClick = (id) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
+  };
+
+  const handleSaveClick = (id) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
+  };
+
+  const handleDeleteClick = (id) => () => {
+    const filterRows = rows.filter((row) => row.id !== id);
+    setRows(filterRows);
+    setSelectionModel(selectionModel.filter((selectedId) => selectedId !== id)); // Remove deleted id from selection
+    // Call handleChange with the updated passenger names
+    handleChange({ target: { name: 'passengerNames', value: filterRows } });
+  };
+
+  const handleCancelClick = (id) => () => {
+    setRowModesModel({
+      ...rowModesModel,
+      [id]: { mode: GridRowModes.View, ignoreModifications: true },
+    });
+
+    const editedRow = rows.find((row) => row.id === id);
+    if (editedRow.isNew) {
+      setRows(rows.filter((row) => row.id !== id));
+    }
+  };
+
+  const processRowUpdate = (newRow) => {
+    const updatedRow = { ...newRow, isNew: false };
+    // Update the rows state
+    const updatedRows = rows.map((row) => (row.id === newRow.id ? updatedRow : row));
+    setRows(updatedRows);
+    // Call handleChange with the updated passenger names
+    handleChange({ target: { name: 'passengerNames', value: updatedRows } });
+    return updatedRow;
+  };
+
+  const handleRowModesModelChange = (newRowModesModel) => {
+    setRowModesModel(newRowModesModel);
+  };
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        editMode="row"
+        rowModesModel={rowModesModel}
+        onRowModesModelChange={handleRowModesModelChange}
+        onRowEditStop={handleRowEditStop}
+        processRowUpdate={processRowUpdate}
+        checkboxSelection // Enable checkbox selection
+        selectionModel={selectionModel}
+        onSelectionModelChange={(newSelection) => {
+          setSelectionModel(newSelection);
         }}
-      >
-        <Box sx={{ flex: 1, mr: 2 }}>
-          {formData.passengerNames.length > 0 ? (
-            <List>
-              {formData.passengerNames.map((name, index) => (
-                <ListItem
-                  key={index}
-                  secondaryAction={
-                    <IconButton
-                      edge='end'
-                      aria-label='delete'
-                      onClick={() => handleRemovePassenger(index)}
-                      color='error'
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  }
-                  sx={{ mb: 1, p: 1, boxShadow: 2, borderRadius: '4px' }}
-                >
-                  <ListItemText primary={`${index + 1}. ${name}`} />{' '}
-                  {/* Displaying number */}
-                </ListItem>
-              ))}
-            </List>
-          ) : (
-            <Typography variant='body1' color='textSecondary'>
-              No passenger name added.
-            </Typography>
-          )}
+        slots={{
+          toolbar: EditToolbar,
+        }}
+        slotProps={{
+          toolbar: { setRows, setRowModesModel },
+        }}
+        pagination={false}  // Disable pagination
+        disableColumnFilter // Disable filtering
+        disableColumnSelector // Disable column management
+        disableDensitySelector // Disable density selector
+        disableRowSelectionOnClick
+        hideFooter
+      />
+       {rows.length === 0 && (
+        <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
+          No passengers added.
         </Box>
-
-        <Box sx={{ flex: 1, ml: 2 }}>
-          <Box sx={{ display: 'flex', mb: 2 }}>
-            <TextField
-              fullWidth
-              variant='outlined'
-              size='small'
-              placeholder='Enter first name matching with IRCTC Master Data'
-              value={newPassenger}
-              onChange={(e) => setNewPassenger(e.target.value)}
-              onKeyPress={handleKeyPress}
-              sx={{ backgroundColor: 'white' }}
-            />
-            <Button
-              variant='contained'
-              color='primary'
-              onClick={handleAddPassenger}
-              sx={{ ml: 1 }}
-            >
-              Add
-            </Button>
-          </Box>
-        </Box>
-      </Box>
+      )}
     </Box>
   );
 };

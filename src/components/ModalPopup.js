@@ -42,7 +42,7 @@ const ModalPopup = ({
       case 'info':
       default:
         return {
-          color: 'info.main',
+          color: 'primary.main',
           confirmText: 'OK',
           showCancel: false,
         };
@@ -54,7 +54,14 @@ const ModalPopup = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth='xs' fullWidth>
       <DialogTitle>
-        <Typography variant='h6' color={color}>
+        <Typography
+          variant='h6'
+          color={color}
+          sx={{
+            fontWeight: 'bold',
+            letterSpacing: '0.3px',
+          }}
+        >
           {title}
         </Typography>
       </DialogTitle>
@@ -65,11 +72,11 @@ const ModalPopup = ({
       </DialogContent>
       <DialogActions>
         {showCancel && (
-          <Button onClick={onClose} color='secondary'>
+          <Button onClick={onClose} color='primary' variant='outlined'>
             {cancelText}
           </Button>
         )}
-        <Button onClick={onConfirm} color='primary' autoFocus>
+        <Button onClick={onConfirm} variant='outlined'  color={showCancel? 'error':'primary'} autoFocus={!showCancel}>
           {confirmText}
         </Button>
       </DialogActions>

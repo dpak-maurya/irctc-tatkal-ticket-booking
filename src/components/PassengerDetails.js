@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Tabs, Tab, Box, Typography } from '@mui/material';
+import { AppBar, Tabs, Tab, Box, Checkbox, Typography, FormControlLabel, Stack } from '@mui/material';
 import PassengerNames from './PassengerNames';
 import PassengerList from './PassengerList';
 import { sharedStyles } from '../styles';
@@ -28,24 +28,60 @@ const PassengerDetails = () => {
   };
 
   return (
-    <Box sx={sharedStyles.container}>
+    <Box sx={{...sharedStyles.container, minHeight: '350px'}}>
       <Typography variant="h5" gutterBottom align="center" sx={{ fontWeight: 'bold', color: '#333' }}>
         Passenger Details
       </Typography>
-      <AppBar position="static" color="default">
-        <Tabs value={value} onChange={handleTabChange} textColor="primary" indicatorColor="primary">
-          <Tab label="Passenger List" />
-          <Tab label="Passenger Master Data" />
-        </Tabs>
-      </AppBar>
 
-      <Box p={2} sx={{ bgcolor: '#f5f5f5', borderBottomLeftRadius: 8, borderBottomRightRadius: 8, boxShadow: 2 }}>
-        {value === 0 && (
-          <PassengerList formData={formData} setFormData={setFormData} />
-        )}
-        {value === 1 && (
-          <PassengerNames formData={formData} handleChange={handleChange} />
-        )}
+      <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 1 }}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ width: '100%', overflow: 'hidden', paddingX: 2 }}
+        >
+          {/* AppBar with Tabs on the left side */}
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <AppBar position="static" color="default">
+              <Tabs
+                value={value}
+                onChange={handleTabChange}
+                textColor="primary"
+                indicatorColor="primary"
+              >
+                <Tab label="Passenger List" />
+                <Tab label="Passenger Master Data" />
+              </Tabs>
+            </AppBar>
+          </Box>
+
+          {/* Checkbox on the right side */}
+          <Box sx={{ flexShrink: 0, marginLeft: 2 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.masterData}
+                  onChange={handleChange}
+                  name="masterData"
+                  color="primary"
+                  size="small"
+                  sx={{ color: 'rebeccapurple', '&.Mui-checked': { color: 'primary.main' } }}
+                />
+              }
+              label="Use IRCTC Master Data"
+              sx={{ whiteSpace: 'nowrap' }}
+            />
+          </Box>
+        </Stack>
+
+        <Box p={2}>
+          {value === 0 && (
+            <PassengerList formData={formData} setFormData={setFormData} />
+          )}
+          {value === 1 && (
+            <PassengerNames formData={formData} handleChange={handleChange} />
+          )}
+        </Box>
       </Box>
     </Box>
   );
