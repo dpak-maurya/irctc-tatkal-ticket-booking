@@ -52,13 +52,13 @@ const Footer = () => {
               onClick={() =>
                 openModal(
                   'confirmation',
-                  'Reset Settings',
-                  'Are you sure you want to reset all settings?',
+                  'Clear Booking Details',
+                  'Are you sure you want to clear all booking details?',
                   resetSettings
                 )
               }
             >
-              Reset Settings
+              Clear Booking Details
             </Button>
 
             {/* Save Settings Button */}
@@ -69,13 +69,13 @@ const Footer = () => {
               onClick={() =>
                 openModal(
                   'info',
-                  'Save Settings',
-                  'Settings saved.',
+                  'Save Booking Details',
+                  'Your booking details have been saved.',
                   saveFormData
                 )
               }
             >
-              Save Settings
+              Save Booking Details
             </Button>
           </Stack>
         </Stack>
