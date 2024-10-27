@@ -594,7 +594,7 @@ async function removeFirstRow(){
   }
 }
 function processInput() {
-  const copyPassengerNames = passengerNames
+  copyPassengerNames = passengerNames
     .filter((passenger) => passenger.isSelected)
     .map((passenger) => passenger.name);
 
