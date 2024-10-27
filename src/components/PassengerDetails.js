@@ -41,16 +41,18 @@ const PassengerDetails = () => {
           sx={{ width: '100%', overflow: 'hidden', paddingX: 2 }}
         >
           {/* AppBar with Tabs on the left side */}
-          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+          <Box sx={{ flexGrow: 1, minWidth: 0 }} >
             <AppBar position="static" color="default">
               <Tabs
                 value={value}
                 onChange={handleTabChange}
                 textColor="primary"
                 indicatorColor="primary"
+                variant='body2'
+                color='black'
               >
-                <Tab label="Passenger List" />
-                <Tab label="Passenger Master Data" />
+                 <Tab label="Passenger List" sx={{ fontWeight: 'bold', fontSize: '.9rem' }}/>
+                 <Tab label="Passenger Master Data" sx={{ fontWeight: 'bold', fontSize: '.9rem' }} />
               </Tabs>
             </AppBar>
           </Box>
@@ -68,7 +70,11 @@ const PassengerDetails = () => {
                   sx={{ color: 'rebeccapurple', '&.Mui-checked': { color: 'primary.main' } }}
                 />
               }
-              label="Use IRCTC Master Data"
+              label={
+                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                  Use IRCTC Master Data
+                </Typography>
+              } 
               sx={{ whiteSpace: 'nowrap' }}
             />
           </Box>

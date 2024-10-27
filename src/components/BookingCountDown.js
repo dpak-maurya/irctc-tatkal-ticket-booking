@@ -62,7 +62,7 @@ const BookingCountdown = () => {
             ) : (
                 <Button
                     id="book-button"
-                    variant="contained"
+                    variant="outlined"
                     color="secondary"
                     onClick={() => window.open('https://www.irctc.co.in/nget/train-search', '_blank')}
                 >

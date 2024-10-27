@@ -64,7 +64,7 @@ const Header = () => {
             {formData.quotaType === 'GENERAL' && (
               <Button
                 id='book-button'
-                variant='contained'
+                variant='outlined'
                 color='secondary'
                 onClick={() =>
                   window.open(

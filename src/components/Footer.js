@@ -46,7 +46,7 @@ const Footer = () => {
           >
             {/* Reset Settings Button */}
             <Button
-              variant='contained'
+              variant='outlined'
               color='secondary'
               size='large'
               onClick={() =>
