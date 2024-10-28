@@ -1,9 +1,9 @@
 {
-  "name": "IRCTC Tatkal Ticket Booking",
+  "name": "Fast Tatkal Booking",
   "version": "3.0",
   "manifest_version": 3,
   "minimum_chrome_version": "120",
-  "description": "Streamline your Tatkal ticket booking process with lightning-fast efficiency. Experience seamless clicks and secure your confirmed tickets hassle-free.",
+  "description": "Enhance your Tatkal booking speed with fast, automated clicks to secure confirmed tickets effortlessly.",
   "background": {
     "service_worker": "sw.js"
   },

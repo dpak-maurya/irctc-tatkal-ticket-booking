@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   entry: './src/index.js', // Entry point for the React app
   output: {
-    path: path.resolve(__dirname, 'dist'), // Output directory for bundled files
+    path: path.resolve(__dirname, 'build/dist'), // Output directory for bundled files
     filename: 'bundle.js', // Output file name
   },
   module: {
@@ -26,5 +26,5 @@ module.exports = {
       filename: 'options.html', // Output file (Chrome extension)
     }),
   ],
-  mode: 'development', // Can be changed to 'production' for final build
+  mode: 'production', // Can be changed to 'production' for final build
 };
