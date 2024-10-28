@@ -9,7 +9,7 @@ const filesToCopy = [
   'public'
 ];
 
-const destDir = path.join(__dirname, 'build');
+const destDir = path.join(__dirname, 'dist');
 
 async function copyFiles() {
   try {
