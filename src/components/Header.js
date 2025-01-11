@@ -5,6 +5,7 @@ import LogoIcon from './LogoIcon';
 import CustomSwitch from './CustomSwitch';
 import { useAppContext } from '../contexts/AppContext';
 import BookingCountdown from './BookingCountDown';
+import DebugSettings from './DebugSettings';
 
 const Header = () => {
   const { formData, toggleAutomation } = useAppContext();
@@ -51,6 +52,9 @@ const Header = () => {
                 >
                     How to Use
                 </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <DebugSettings />
+                </Box>
           </Stack>
 
           <Stack

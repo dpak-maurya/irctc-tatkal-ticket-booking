@@ -1,3 +1,55 @@
+// Logger utility with toggle mechanism and stack trace
+const Logger = {
+  isEnabled: false,
+
+  enable() {
+    this.isEnabled = true;
+  },
+
+  disable() {
+    this.isEnabled = false;
+  },
+
+  _getCallerInfo() {
+    const error = new Error();
+    const stack = error.stack.split('\n')[3]; // Get caller's stack info
+    const match = stack.match(/at\s+(?:\w+\s+)?\(?(.+):(\d+):(\d+)\)?/);
+    if (match) {
+      const [, file, line] = match;
+      const fileName = file.split('/').pop(); // Get just the filename
+      return `[${fileName}:${line}]`;
+    }
+    return '';
+  },
+
+  log(...args) {
+    if (this.isEnabled) {
+      const callerInfo = this._getCallerInfo();
+      console.log(`[IRCTC-Bot]${callerInfo}:`, ...args);
+    }
+  },
+
+  error(...args) {
+    if (this.isEnabled) {
+      const callerInfo = this._getCallerInfo();
+      console.error(`[IRCTC-Bot]${callerInfo}:`, ...args);
+    }
+  },
+
+  warn(...args) {
+    if (this.isEnabled) {
+      const callerInfo = this._getCallerInfo();
+      console.warn(`[IRCTC-Bot]${callerInfo}:`, ...args);
+    }
+  },
+
+  info(...args) {
+    if (this.isEnabled) {
+      const callerInfo = this._getCallerInfo();
+      console.info(`[IRCTC-Bot]${callerInfo}:`, ...args);
+    }
+  }
+};
 
 let automationStatus = false;
 let username = '';
@@ -132,17 +184,26 @@ const PAYMENT_PROVIDER = '.bank-text';
 const PAY_BUTTON ='.btn-primary.ng-star-inserted';
 const PAY_BUTTON_TEXT = 'Pay & Book ';
 
+// Enable/disable logging based on storage setting
+chrome.storage.local.get('debugMode', function(result) {
+  if (result.debugMode) {
+    Logger.enable();
+  } else {
+    Logger.disable();
+  }
+});
+
 // Define a function to wait for an element to appear on the page
 async function waitForElementToAppear(selector) {
   if(intervalId) clearInterval(intervalId);
-  const startTime = new Date(); // Record the start time
+  const startTime = new Date();
   return new Promise((resolve) => {
     const interval = setInterval(() => {
       const element = document.querySelector(selector);
       if (element) {
         clearInterval(interval);
-        const endTime = new Date(); // Record the end time
-        console.log(
+        const endTime = new Date();
+        Logger.info(
           'Element loaded:',
           selector,
           'Time taken:',
@@ -333,7 +394,7 @@ async function waitForAppLoginToDisappear() {
       // Check if the app-login element is still in the DOM
       if (!document.contains(appLogin)) {
         // If the app-login element has been removed, resolve the promise
-        console.log('app-login disappear');
+        Logger.info('app-login disappear');
         resolve();
         // Disconnect the observer
         observer.disconnect();
@@ -387,7 +448,7 @@ async function findRootTrain() {
   const trainHeadingElements = document.querySelectorAll(FIND_TRAIN_NUMBER);
 
   if (!trainHeadingElements || !trainHeadingElements.length) {
-    console.log('No Available Trains');
+    Logger.warn('No Available Trains');
     return null;
   }
 
@@ -396,14 +457,14 @@ async function findRootTrain() {
     const trainHeadingElement = trainHeadingElements[i];
     if (textIncludes(trainHeadingElement.textContent, trainNumber)) {
       rootElement = trainHeadingElement.closest(TRAIN_COMPONENT);
-      console.log('Found train number:', trainNumber);
-      trainFoundAtPosition = i; // Store the index of the found train
+      Logger.info('Found train number:', trainNumber);
+      trainFoundAtPosition = i;
       break;
     }
   }
 
   if (!rootElement) {
-    console.log('No train found for train number:', trainNumber);
+    Logger.warn('No train found for train number:', trainNumber);
     return null;
   }
   return rootElement;
@@ -416,7 +477,7 @@ async function scrollToFoundTrainAndSelectClass() {
 
   const availableClasses = rootElement.querySelectorAll(AVAILABLE_CLASS);
   if (!availableClasses || !availableClasses.length) {
-    console.log('No available classes found.');
+    Logger.warn('No available classes found.');
     return;
   }
   delay(500);
@@ -432,14 +493,14 @@ async function scrollToFoundTrainAndSelectClass() {
   }
 
   if (!selectedClass) {
-    console.log('No matching accommodation class found:', accommodationClass);
+    Logger.warn('No matching accommodation class found:', accommodationClass);
     return;
   }
   
   delay(200);
   await selectedClass.click();
 
-  console.log(
+  Logger.info(
     'Selected train number:',
     trainNumber,
     ', and accommodation class:',
@@ -452,14 +513,13 @@ async function refreshTrain() {
     const rootElement = document.querySelectorAll(TRAIN_COMPONENT)[trainFoundAtPosition];
     const selectedTab = rootElement.querySelector(SELECTED_CLASS_TAB);
     delay(100);
-    // Simulate a click on the selected tab
     if (selectedTab) {
       await selectedTab.click();
     } else {
-      console.warn('Selected accommodation tab not found.');
+      Logger.warn('Selected accommodation tab not found.');
     }
   } catch (error) {
-    console.error('An error occurred while refreshing the train:', error);
+    Logger.error('An error occurred while refreshing the train:', error);
   }
 }
 async function selectAvailableTicket() {
@@ -474,10 +534,9 @@ async function selectAvailableTicket() {
     const availableSeatElement = availableDateElement.querySelector('.AVAILABLE');
 
     if (!availableSeatElement && confirmberths) {
-        console.log('confirmberths is true. Halting script execution.');
-        alert('Confirm Births Seat are not available.');
-        return false;
-        throw new Error('Halting Script: No AVAILABLE class found and confirmberths is true');
+      Logger.warn('Confirm Births Seat are not available.');
+      alert('Confirm Births Seat are not available.');
+      return false;
     }
     // Parse the date string to extract day and month
     const [day, month] = avlDate.split(', ')[1].split(' ');
@@ -509,8 +568,7 @@ const observer = new MutationObserver((mutationsList, observer) => {
         // Check if node matches the selector
         if (node.matches(LINK_INSERTED)) {
           mutationCompletionCounter++;
-          // For example, you can click on the element or store a reference to it
-          console.log('element refreshed : available accommodation classes' );
+          Logger.info('Element refreshed: available accommodation classes');
         }
       }
     }
@@ -549,7 +607,7 @@ async function bookTicket() {
             }
         } catch (error) {
             // Handle any errors that occur during ticket selection or train refresh
-            console.error("An error occurred:", error);
+            Logger.error("An error occurred:", error);
             // Optionally, you can choose to break the loop or handle the error differently
         }
     }
@@ -558,23 +616,22 @@ async function bookTicket() {
 
   // Proceed with booking the ticket
   const endTime = new Date(); // Record the end time
-  console.log(
+  Logger.info(
     'Search Train and Select Class Page Time taken:',
     endTime - startTime,
     'ms'
   );
-  console.log(endTime);
+  Logger.info(endTime);
 }
 // Function to check for the presence of the popup and close it if it exists
 function closePopupToProceed() {
   let popup = document.querySelector(DIALOG_FROM);
   
   if (popup) {
-    // Close the popup by clicking the close button or any other suitable action
     document.querySelector(DIALOG_ACCEPT).click();
-    console.log('Popup closed.');
+    Logger.info('Popup closed.');
   } else {
-    console.log('Popup not found.');
+    Logger.info('Popup not found.');
   }
 }
 async function addNextRow() {
@@ -583,7 +640,7 @@ async function addNextRow() {
   if (prenextSpan && prenextSpan.textContent.trim() === PASSENGER_NEXT_ROW_TEXT) {
     await prenextSpan.closest('a').click();
   } else {
-    console.log('Span text does not match or element not found.');
+    Logger.warn('Span text does not match or element not found.');
   }
 }
 async function removeFirstRow(){
@@ -599,9 +656,9 @@ function processInput() {
     .map((passenger) => passenger.name);
 
   if (copyPassengerNames.length === 0) {
-    console.log('No selected passenger names found.');
+    Logger.warn('No selected passenger names found.');
   } else {
-    console.log('Selected passenger names:', copyPassengerNames);
+    Logger.info('Selected passenger names:', copyPassengerNames);
   }
 }
 
@@ -640,7 +697,7 @@ async function selectAutocompleteOption(index=0,name = passengerNames) {
         if (textIncludes(itemText,name)) {
             // Select the list item by simulating a click
             item.click();
-            console.log("Selected item:", itemText);
+            Logger.info("Selected item:", itemText);
             // Exit the loop after selecting the item
             return;
         }
@@ -727,9 +784,9 @@ async function addMobileNumber() {
     mobileInput.value = pMobileNumber;
     mobileInput.dispatchEvent(new Event('input'));
     await delay(50);
-    console.log('Mobile number set:', pMobileNumber);
+    Logger.info('Mobile number set:', pMobileNumber);
   } else {
-    console.error('Invalid mobile number:', pMobileNumber);
+    Logger.error('Invalid mobile number:', pMobileNumber);
   }
 }
 async function selectPreferences(){
@@ -756,11 +813,12 @@ async function selectPreferences(){
         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         // Trigger a click event on the input radio element
         await input.click();
-        console.log('Clicked on radio button for:', travelInsuranceOpted);
+        Logger.info('Clicked on radio button for:', travelInsuranceOpted);
         break; // Exit the loop after clicking the input radio
       }
     }
   }
+  Logger.info('Auto Upgradation:', autoUpgradation, 'Confirm Berths:', confirmberths, 'Travel Insurance Opted:', travelInsuranceOpted);
 }
 async function selectPaymentType() {
   // Find all input elements of type radio
@@ -777,7 +835,7 @@ async function selectPaymentType() {
         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         // Trigger a click event on the input radio element
         await input.click();
-        console.log('Clicked on radio button for:', paymentType);
+        Logger.info('Clicked on radio button for:', paymentType);
         break; // Exit the loop after clicking the input radio
       }
     }
@@ -793,7 +851,7 @@ async function addPassengerInputAndContinue() {
     await addCustomPassengerList();
   }
   await addMobileNumber();
-  console.log(autoUpgradation,confirmberths,travelInsuranceOpted);
+  
   await selectPreferences();
   // Call the function to select the radio button
   await selectPaymentType();
@@ -807,16 +865,16 @@ async function addPassengerInputAndContinue() {
     // Simulate a click on the button
     await continueButton.click();
   } else {
-    console.log('Continue button not found.');
+    Logger.info('Continue button not found.');
   }
    // Proceed with booking the ticket
    const endTime = new Date(); // Record the end time
-   console.log(
+   Logger.info(
      'Add Passenger Input Page Time taken:',
      endTime - startTime,
      'ms'
    );
-   console.log(endTime);
+   Logger.info(endTime);
 }
 async function handleCaptchaAndContinue() {
   await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
@@ -864,12 +922,12 @@ async function selectPaymentMethod() {
       if (textIncludes(element.textContent, paymentMethod)) {
         // Click on the element
         await element.click();
-        console.log('Clicked on :', paymentMethod);
+        Logger.info('Clicked on :', paymentMethod);
         return; // Exit the loop after clicking the element
       }
     }
   } else {
-    console.log('No elements found with the specified classes.');
+    Logger.info('No elements found with the specified classes.');
   }
 }
 async function selectPaymentProvider() {
@@ -885,12 +943,12 @@ async function selectPaymentProvider() {
       if (textIncludes(element.textContent, paymentProvider)) {
         // Simulate a click on the element
         await element.click();
-        console.log('Selected text:', element.textContent);
+        Logger.info('Selected text:', element.textContent);
         return; // Exit the loop after selecting the text
       }
     }
   }
-  console.log("No text found containing",paymentProvider);
+  Logger.info("No text found containing",paymentProvider);
 }
 async function clickPayButton() {
   // Find the button with the class "btn-primary" and "ng-star-inserted"
@@ -900,9 +958,9 @@ async function clickPayButton() {
   if (button && textIncludes(button.textContent, PAY_BUTTON_TEXT)) {
     // Simulate a click on the button
     await button.click();
-    console.log('Clicked on button:', button.textContent);
+    Logger.info('Clicked on button:', button.textContent);
   } else {
-    console.log("No button found containing 'Pay'.");
+    Logger.info("No button found containing 'Pay'.");
   }
 }
 function waitForTargetTime(targetTimeString) {
@@ -912,7 +970,7 @@ function waitForTargetTime(targetTimeString) {
     const currentTimeElement = document.querySelector(CURRENT_TIME);
 
     if (!currentTimeElement) {
-      console.error('Current time element not found.');
+      Logger.error('Current time element not found.');
       clearInterval(intervalId);
       return;
     }
@@ -933,7 +991,7 @@ function waitForTargetTime(targetTimeString) {
       if (searchButton) {
         searchButton.click();
       } else {
-        console.log('Search button not found.');
+        Logger.warn('Search button not found.');
       }
       clearInterval(intervalId); // Stop the interval once the action is triggered
     }
@@ -942,12 +1000,12 @@ function waitForTargetTime(targetTimeString) {
 function getSettings() {
   chrome.storage.local.get(STORAGE_KEY, function (result) {
     if (chrome.runtime.lastError) {
-      console.error("Error retrieving settings:", chrome.runtime.lastError);
+      Logger.error("Error retrieving settings:", chrome.runtime.lastError);
       return;
     }
 
-    const items = result[STORAGE_KEY] || defaultSettings; // Use defaultSettings if not found
-    console.log(items);
+    const items = result[STORAGE_KEY] || defaultSettings;
+    Logger.info('Settings loaded:', items);
     // Now 'items' will contain all the settings, either retrieved from storage or the defaults
     username = items.username;
     password = items.password;
@@ -977,7 +1035,7 @@ function getAutomationStatus() {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get(STORAGE_KEY, function (result) {
       if (chrome.runtime.lastError) {
-        console.error("Error retrieving automation status:", chrome.runtime.lastError);
+        Logger.error("Error retrieving automation status:", chrome.runtime.lastError);
         resolve(defaultSettings.automationStatus); // Resolve with default if error
         return;
       }
@@ -989,11 +1047,11 @@ function getAutomationStatus() {
   });
 }
 async function executeFunctions() {
-  console.log("User script running!");
+  Logger.info("User script running!");
 
   try {
     const currentAutomationStatus = await getAutomationStatus();
-    console.log('automation',currentAutomationStatus);
+    Logger.info('Automation status:', currentAutomationStatus);
     if (!currentAutomationStatus) return;
     // read the passenger information for ticket booking
     getSettings();
@@ -1041,7 +1099,7 @@ async function executeFunctions() {
       // now scan the QR and do the the payment
     }
   } catch (error) {
-    console.error("An error occurred during execution:", error);
+    Logger.error("An error occurred during execution:", error);
     // You can add additional error handling here if needed
   }
 }
