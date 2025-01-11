@@ -1,0 +1,16 @@
+.step-section {
+    margin-bottom: 40px;
+  }
+  
+  .info {
+    background-color: #e7f3fe;
+    border-left: 6px solid #2196F3;
+    padding-left: 20px;
+  }
+  
+  .warning {
+    background-color: #ffffcc;
+    border-left: 6px solid #f7ec8c;
+    padding-left: 20px;
+  }
+  

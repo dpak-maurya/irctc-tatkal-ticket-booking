@@ -13,8 +13,8 @@ let quotaType = '';
 let accommodationClass = '';
 let dateString = '';
 let refreshTime = 5000; // 5 seconds;
-let paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / net banking
-let paymentMethod = 'BHIM/ UPI/ USSD';
+let paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / net banking / wallets
+let paymentMethod = 'BHIM/ UPI/ USSD';   // or IRCTC eWallet
 let paymentProvider = 'PAYTM'; // paytm or amazon
 let autoPay = false;  // auto click on pay button
 let autoProcessPopup = false;
@@ -23,6 +23,8 @@ let autoUpgradation = false;
 let confirmberths = false;
 let travelInsuranceOpted = 'yes';
 
+const STORAGE_KEY = 'tatkalTicketBookingFormData';
+
 const defaultSettings = {
   automationStatus: false,
   username: '',
@@ -30,7 +32,7 @@ const defaultSettings = {
   targetTime: '09:59:53',
   passengerList: [],
   masterData: false,
-  passengerNames: '',
+  passengerNames: [],
   trainNumber: '',
   from: '',
   to: '',
@@ -474,6 +476,7 @@ async function selectAvailableTicket() {
     if (!availableSeatElement && confirmberths) {
         console.log('confirmberths is true. Halting script execution.');
         alert('Confirm Births Seat are not available.');
+        return false;
         throw new Error('Halting Script: No AVAILABLE class found and confirmberths is true');
     }
     // Parse the date string to extract day and month
@@ -591,11 +594,17 @@ async function removeFirstRow(){
   }
 }
 function processInput() {
-  copyPassengerNames = passengerNames.split(',');
+  copyPassengerNames = passengerNames
+    .filter((passenger) => passenger.isSelected)
+    .map((passenger) => passenger.name);
+
   if (copyPassengerNames.length === 0) {
-    console.log('No passenger names found.');
+    console.log('No selected passenger names found.');
+  } else {
+    console.log('Selected passenger names:', copyPassengerNames);
   }
 }
+
 //autocomplete function
 async function selectAutocompleteOption(index=0,name = passengerNames) {
   var row = document.querySelectorAll(PASSENGER_COMPONENT)[index];
@@ -645,7 +654,7 @@ async function addMasterPassengerList() {
   processInput();
   // If there's only one passenger name, fill the input data and return
   if (copyPassengerNames.length === 1) {
-    await selectAutocompleteOption();
+    await selectAutocompleteOption(0,copyPassengerNames[0]);
   }
   else{
     const firstRow = document.querySelector(PASSENGER_REMOVE_ROW);
@@ -931,12 +940,14 @@ function waitForTargetTime(targetTimeString) {
   }, 1000); // Interval set to 1 second (1000 milliseconds)
 }
 function getSettings() {
-  chrome.storage.local.get(defaultSettings, function (items, error) {
-    if (error) {
-      console.error("Error retrieving settings:", error);
-      // Handle the error here, maybe use default values
+  chrome.storage.local.get(STORAGE_KEY, function (result) {
+    if (chrome.runtime.lastError) {
+      console.error("Error retrieving settings:", chrome.runtime.lastError);
       return;
     }
+
+    const items = result[STORAGE_KEY] || defaultSettings; // Use defaultSettings if not found
+    console.log(items);
     // Now 'items' will contain all the settings, either retrieved from storage or the defaults
     username = items.username;
     password = items.password;
@@ -949,7 +960,7 @@ function getSettings() {
     to = items.to;
     quotaType = items.quotaType;
     accommodationClass = items.accommodationClass;
-    dateString = items.dateString;
+    dateString = new Date(items.dateString).toLocaleDateString('en-GB');
     refreshTime = items.refreshTime;
     autoPay = items.autoPay;
     paymentType = items.paymentType;
@@ -964,20 +975,25 @@ function getSettings() {
 }
 function getAutomationStatus() {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get(
-      {
-        automationStatus: false, // Default value if not found
-      },
-      function (items) {
-        const automationStatus = items.automationStatus;
-        resolve(automationStatus);
+    chrome.storage.local.get(STORAGE_KEY, function (result) {
+      if (chrome.runtime.lastError) {
+        console.error("Error retrieving automation status:", chrome.runtime.lastError);
+        resolve(defaultSettings.automationStatus); // Resolve with default if error
+        return;
       }
-    );
+
+      const settings = result[STORAGE_KEY] || {}; // Use empty object if not found
+      const automationStatus = settings.automationStatus !== undefined ? settings.automationStatus : defaultSettings.automationStatus; // Use default if not found
+      resolve(automationStatus);
+    });
   });
 }
 async function executeFunctions() {
+  console.log("User script running!");
+
   try {
     const currentAutomationStatus = await getAutomationStatus();
+    console.log('automation',currentAutomationStatus);
     if (!currentAutomationStatus) return;
     // read the passenger information for ticket booking
     getSettings();
