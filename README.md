@@ -30,12 +30,12 @@ This Chrome extension is a personal project developed for educational purposes t
 ## Installation
 
 To install the IRCTC Tatkal Booking Chrome Extension, follow these steps:
-1. Download the extension files from the [release page](https://github.com/dpak-maurya/irctc-tatkal-ticket-booking/releases).
-2. Extract the files to a folder on your computer.
-3. Open Google Chrome.
-4. Go to `chrome://extensions/`.
-5. Enable Developer mode.
-6. Click on "Load unpacked" and select the folder where you extracted the extension files.
+1. Download the extension files from the [release page](https://github.com/dpak-maurya/irctc-tatkal-ticket-booking/releases). For version v6.0.0 and onwards, please download asset file i.e v6.0.0-alpha.zip
+3. Extract the files to a folder on your computer.
+4. Open Google Chrome.
+5. Go to `chrome://extensions/`.
+6. Enable Developer mode.
+7. Click on "Load unpacked" and select the folder where you extracted the extension files.
 
 ## Usage
 
