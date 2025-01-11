@@ -68,7 +68,7 @@ const Footer = () => {
               size='large'
               onClick={() =>
                 openModal(
-                  'info',
+                  'success',
                   'Save Booking Details',
                   'Your booking details have been saved.',
                   saveFormData

@@ -143,6 +143,7 @@ function TrainDetails() {
           <MenuItem value='EC'>Exec. Chair Car (EC)</MenuItem>
           <MenuItem value='CC'>AC Chair car (CC)</MenuItem>
           <MenuItem value='EV'>Vistadome AC (EV)</MenuItem>
+          <MenuItem value='2S'>Second Sitting (2S)</MenuItem>
         </Select>
       </FormControl>
     </Box>
