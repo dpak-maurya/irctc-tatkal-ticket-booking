@@ -7,7 +7,15 @@ import {
   DialogActions,
   Button,
   Typography,
+  IconButton,
 } from '@mui/material';
+import {
+  Close as CloseIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  Info as InfoIcon,
+  CheckCircle as SuccessIcon
+} from '@mui/icons-material';
 
 const ModalPopup = ({
   open,
@@ -15,68 +23,161 @@ const ModalPopup = ({
   onConfirm,
   title,
   message,
-  variant = 'info', // Accepts 'info', 'warning', 'error', 'confirmation'
+  variant,
 }) => {
-  // Define styles and actions based on variant
   const getVariantProps = () => {
     switch (variant) {
       case 'warning':
         return {
-          color: 'warning.main',
+          icon: <WarningIcon sx={{ fontSize: 28, color: 'white' }} />,
+          backgroundColor: '#ED6C02',
           confirmText: 'OK',
           showCancel: false,
         };
       case 'error':
         return {
-          color: 'error.main',
+          icon: <ErrorIcon sx={{ fontSize: 28, color: 'white' }} />,
+          backgroundColor: '#D32F2F',
           confirmText: 'Dismiss',
           showCancel: false,
         };
       case 'confirmation':
         return {
-          color: 'primary.main',
+          icon: <WarningIcon sx={{ fontSize: 28, color: 'white' }} />,
+          backgroundColor: '#D32F2F',
           confirmText: 'Confirm',
           cancelText: 'Cancel',
           showCancel: true,
         };
+      case 'success':
+        return {
+          icon: <SuccessIcon sx={{ fontSize: 28, color: 'white' }} />,
+          backgroundColor: '#2E7D32',
+          confirmText: 'OK',
+          showCancel: false,
+        };
       case 'info':
       default:
         return {
-          color: 'primary.main',
+          icon: <InfoIcon sx={{ fontSize: 28, color: 'white' }} />,
+          backgroundColor: '#0288D1',
           confirmText: 'OK',
           showCancel: false,
         };
     }
   };
 
-  const { color, confirmText, cancelText, showCancel } = getVariantProps();
+  const { icon, backgroundColor, confirmText, cancelText, showCancel } = getVariantProps();
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth='xs' fullWidth>
-      <DialogTitle>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth='xs'
+      PaperProps={{
+        sx: {
+          borderRadius: '8px',
+          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+          minWidth: '400px',
+          maxWidth: '500px',
+          margin: '16px'
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          m: 0,
+          p: 2,
+          backgroundColor: backgroundColor,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          color: 'white',
+          position: 'relative',
+        }}
+      >
+        {icon}
         <Typography
           variant='h6'
-          color={color}
+          component="div"
           sx={{
-            fontWeight: 'bold',
-            letterSpacing: '0.3px',
+            color: 'white',
+            fontWeight: 600,
+            flex: 1,
+            fontSize: '1.125rem',
           }}
         >
           {title}
         </Typography>
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: 'white',
+            '&:hover': {
+              backgroundColor: 'rgba(255,255,255,0.1)',
+            },
+          }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
       </DialogTitle>
-      <DialogContent dividers>
-        <Typography variant='body1' color='text.secondary'>
+
+      <DialogContent sx={{ py: 2.5, px: 3 }}>
+        <Typography 
+          variant='body1'
+          sx={{ 
+            color: 'rgba(0, 0, 0, 0.67)',
+            lineHeight: 1.5,
+            fontSize: '1rem',
+            my:1,
+          }}
+        >
           {message}
         </Typography>
       </DialogContent>
-      <DialogActions>
+
+      <DialogActions 
+        sx={{ 
+          p: 2,
+          px: 3,
+          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+          gap: 1,
+        }}
+      >
         {showCancel && (
-          <Button onClick={onClose} color='primary' variant='outlined'>
+          <Button 
+            onClick={onClose} 
+            variant='outlined'
+            sx={{
+              minWidth: '100px',
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+            }}
+          >
             {cancelText}
           </Button>
         )}
-        <Button onClick={onConfirm} variant='outlined'  color={showCancel? 'error':'primary'} autoFocus={!showCancel}>
+        <Button 
+          onClick={onConfirm} 
+          variant='contained'
+          sx={{
+            minWidth: '100px',
+            textTransform: 'none',
+            fontWeight: 500,
+            px: 2,
+            backgroundColor: backgroundColor,
+            '&:hover': {
+              backgroundColor: backgroundColor,
+              filter: 'brightness(0.9)',
+            }
+          }}
+          autoFocus={!showCancel}
+        >
           {confirmText}
         </Button>
       </DialogActions>
@@ -90,7 +191,7 @@ ModalPopup.propTypes = {
   onConfirm: PropTypes.func,
   title: PropTypes.string.isRequired,
   message: PropTypes.string.isRequired,
-  variant: PropTypes.oneOf(['info', 'warning', 'error', 'confirmation']),
+  variant: PropTypes.oneOf(['info', 'warning', 'error', 'confirmation', 'success']),
 };
 
 export default ModalPopup;

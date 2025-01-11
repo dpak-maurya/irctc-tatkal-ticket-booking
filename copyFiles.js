@@ -5,6 +5,8 @@ const filesToCopy = [
   'manifest.json',
   'images', // Directory for any images/icons used in the extension
   'user-script.js',
+  'how-to-use.html',
+  'options.css',
   'sw.js',
   'public'
 ];
