@@ -7,7 +7,8 @@ import {
   FormControl, 
   InputLabel, 
   Select, 
-  MenuItem 
+  MenuItem, 
+  Tooltip
 } from '@mui/material';
 import { sharedStyles } from '../styles';
 import { useAppContext } from '../contexts/AppContext';
@@ -131,17 +132,23 @@ function PaymentDetails() {
         </Select>
       </FormControl>
 
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={formData.autoPay}
-            onChange={handleChange}
-            name="autoPay"
-            color="primary"
-          />
-        }
-        label="Pay & Book (Show QR Code Page)"
-      />
+      <Tooltip title={<>
+        <Typography variant="body1" style={{ fontFamily: 'Arial, sans-serif', fontSize: '14px'}}>
+          {formData.paymentType === 'Wallets' ? 'Enabling this will directly deduct the payment from your wallet.' : 'Enabling this will show the QR code page for payment.'}
+        </Typography>
+      </>}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.autoPay}
+              onChange={handleChange}
+              name="autoPay"
+              color="primary"
+            />
+          }
+          label={`Pay & Book ${formData.paymentType === 'Wallets' ? '(Direct Deduction)' : '(Show QR Code Page)'}`}
+        />
+      </Tooltip>
 
        <ModalPopup
           open={isModalOpen}

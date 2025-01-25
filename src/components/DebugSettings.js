@@ -2,6 +2,7 @@ import React from 'react';
 import { 
   FormControlLabel, 
   Switch,
+  Tooltip,
 } from '@mui/material';
 
 function DebugSettings() {
@@ -25,25 +26,27 @@ function DebugSettings() {
   };
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={debugMode}
-          onChange={handleDebugModeChange}
-          name="debugMode"
-          size="small"
-          color="primary"
-        />
-      }
-      label="Console Log"
-      sx={{ 
-        ml: 0,
-        '& .MuiFormControlLabel-label': {
-          fontSize: '0.875rem',
-          color: 'text.secondary'
+    <Tooltip title="console logging to view script events in the browser console.">
+      <FormControlLabel
+        control={
+          <Switch
+            checked={debugMode}
+            onChange={handleDebugModeChange}
+            name="debugMode"
+            size="small"
+            color="primary"
+          />
         }
-      }}
-    />
+        label="Console Log"
+        sx={{ 
+          ml: 0,
+          '& .MuiFormControlLabel-label': {
+            fontSize: '0.875rem',
+            color: 'text.secondary'
+          }
+        }}
+      />
+    </Tooltip>
   );
 }
 

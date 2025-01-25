@@ -67,7 +67,7 @@ let dateString = '';
 let refreshTime = 5000; // 5 seconds;
 let paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / net banking / wallets
 let paymentMethod = 'BHIM/ UPI/ USSD';   // or IRCTC eWallet
-let paymentProvider = 'PAYTM'; // paytm or amazon
+let paymentProvider = 'PAYTM'; // paytm, amazon /  or IRCTC eWallet
 let autoPay = false;  // auto click on pay button
 let autoProcessPopup = false;
 let mobileNumber = '';
@@ -183,6 +183,12 @@ const PAYMENT_METHOD = '.bank-type.ng-star-inserted';
 const PAYMENT_PROVIDER = '.bank-text';
 const PAY_BUTTON ='.btn-primary.ng-star-inserted';
 const PAY_BUTTON_TEXT = 'Pay & Book ';
+
+
+const EWALLET_IRCTC_DEFAULT = 'IRCTC eWallet';
+const EWALLET_COMPONENT = 'app-ewallet-confirm';
+const EWALLET_BUTTON_LIST = 'button.mob-bot-btn.search_btn';
+const EWALLET_CONFIRM_BUTTON_TEXT = 'CONFIRM';
 
 // Enable/disable logging based on storage setting
 chrome.storage.local.get('debugMode', function(result) {
@@ -963,6 +969,30 @@ async function clickPayButton() {
     Logger.info("No button found containing 'Pay'.");
   }
 }
+
+// Function to click the confirm button in the eWallet component
+async function clickEwalletConfirmButton() {
+  const ewalletComponent = document.querySelector(EWALLET_COMPONENT);
+  if (ewalletComponent) {
+    const buttons = ewalletComponent.querySelectorAll(EWALLET_BUTTON_LIST); // Select all buttons
+    let confirmButton = null;
+    for (const button of buttons) {
+      if (textIncludes(button.textContent,EWALLET_CONFIRM_BUTTON_TEXT)) {
+        confirmButton = button;
+        break;
+      }
+    }
+    if (confirmButton) {
+      await confirmButton.click();
+      Logger.info('Clicked on eWallet confirm button.');
+    } else {
+      Logger.info('eWallet confirm button not found.');
+    }
+  } else {
+    Logger.info('eWallet component not found.');
+  }
+}
+
 function waitForTargetTime(targetTimeString) {
   // Define the interval function
   const intervalId = setInterval(() => {
@@ -1094,9 +1124,14 @@ async function executeFunctions() {
     await selectPaymentMethod();
     await selectPaymentProvider();
 
-    if(autoPay){
+    if (autoPay) {
       await clickPayButton();
-      // now scan the QR and do the the payment
+
+      // Payment Confirmation for Ewallet <Page 5>
+      if (paymentMethod === EWALLET_IRCTC_DEFAULT) {
+        await waitForElementToAppear(EWALLET_COMPONENT);
+        await clickEwalletConfirmButton();
+      }
     }
   } catch (error) {
     Logger.error("An error occurred during execution:", error);
