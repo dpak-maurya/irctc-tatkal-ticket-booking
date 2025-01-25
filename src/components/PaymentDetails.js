@@ -146,7 +146,7 @@ function PaymentDetails() {
               color="primary"
             />
           }
-          label={`Pay & Book ${formData.paymentType === 'Wallets' ? '(Direct Deduction)' : '(Show QR Code Page)'}`}
+          label={<strong style={{ color: '#1E2A38' }}>Pay & Book {formData.paymentType === 'Wallets' ? '(Direct Deduction)' : '(Show QR Code Page)'}</strong>}
         />
       </Tooltip>
 
