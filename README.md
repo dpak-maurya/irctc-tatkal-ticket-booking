@@ -6,6 +6,14 @@ Streamline your Tatkal ticket booking process with lightning-fast efficiency. Ex
 <img width="1624" alt="Screenshot 2025-01-25 at 2 19 15 PM" src="https://github.com/user-attachments/assets/0e41db27-30a1-487e-a3cb-f969ce322c4a" />
 
 
+# Project Demo Video:
+
+<a href="https://www.youtube.com/watch?v=MvgoZzUy7Uo" target="_blank">
+  <img src="https://img.youtube.com/vi/MvgoZzUy7Uo/0.jpg" alt="Watch the Video" style="max-width:100%; height:auto;">
+</a>
+
+
+https://www.youtube.com/watch?v=MvgoZzUy7Uo
 
 
 ## Table of Contents
