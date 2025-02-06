@@ -206,7 +206,7 @@ const PassengerList = () => {
         slotProps={{
           toolbar: { setRows, setRowModesModel },
         }}
-        pagination={false}  // Disable pagination
+        // pagination  // Disable pagination
         disableColumnFilter // Disable filtering
         disableColumnSelector // Disable column management
         disableDensitySelector // Disable density selector

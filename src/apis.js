@@ -1,15 +1,22 @@
 // apis.js
 const STORAGE_KEY = 'tatkalTicketBookingFormData';
 
+import defaultSettings from './defaultSettings';
 // Async function to get data from Chrome storage
 export const getFormDataFromStorage = async () => {
   if (typeof chrome !== 'undefined' && chrome.storage) {
-    return new Promise((resolve, reject) => {
-      chrome.storage.local.get([STORAGE_KEY], (result) => {
+    return new Promise(async (resolve, reject) => {
+      chrome.storage.local.get([STORAGE_KEY], async (result) => {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
         } else {
-          resolve(result[STORAGE_KEY]);
+          if (!result[STORAGE_KEY]) {
+            // Initialize storage with default settings if empty
+            await saveFormDataToStorage(defaultSettings);
+            resolve(defaultSettings); // Return default settings
+          } else {
+            resolve(result[STORAGE_KEY]);
+          }
         }
       });
     });

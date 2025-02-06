@@ -136,7 +136,7 @@ function PaymentDetails() {
         <Typography variant="body1" style={{ fontFamily: 'Arial, sans-serif', fontSize: '14px'}}>
           {formData.paymentType === 'Wallets' ? 'Enabling this will directly deduct the payment from your wallet.' : 'Enabling this will show the QR code page for payment.'}
         </Typography>
-      </>}>
+      </> } arrow>
         <FormControlLabel
           control={
             <Checkbox

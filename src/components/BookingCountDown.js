@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { getTimeFromString } from '../utils'; // Ensure you have this utility function
-import { Button, Typography } from '@mui/material';
+import { Button, Typography,Box } from '@mui/material';
 
 const BookingCountdown = () => {
     const {savedData,formData} = useAppContext();
@@ -56,7 +56,7 @@ const BookingCountdown = () => {
     }, [automationStatus, targetTime, loginMinutesBefore]);
 
     return (
-        <div>
+        <Box sx={{ maxWidth: '300px', maxHeight: '50px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             {timeRemaining > 0 ? (
                 <Typography variant="body1" color='secondary' fontSize="bold" fontWeight="600" >Automatic Login to IRCTC starts in: {timeRemaining} seconds</Typography>
             ) : (
@@ -65,11 +65,12 @@ const BookingCountdown = () => {
                     variant="outlined"
                     color="secondary"
                     onClick={() => window.open('https://www.irctc.co.in/nget/train-search', '_blank')}
+                    sx={{ maxWidth: '200px' }}
                 >
                     {isBookingReady ? 'Book Ticket on IRCTC' : 'Go to IRCTC Website'}
                 </Button>
             )}
-        </div>
+        </Box>
     );
 };
 
