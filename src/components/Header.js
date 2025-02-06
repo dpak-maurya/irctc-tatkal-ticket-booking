@@ -98,7 +98,7 @@ const Header = () => {
             spacing={3}
             flexWrap='wrap'
           >
-            {formData.quotaType === 'TATKAL' && <BookingCountdown />}
+            {['TATKAL', 'PREMIUM TATKAL'].includes(formData.quotaType) && <BookingCountdown />}
             {formData.quotaType === 'GENERAL' && (
               <Button
                 id='book-button'

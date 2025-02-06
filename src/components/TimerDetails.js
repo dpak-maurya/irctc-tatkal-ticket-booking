@@ -1,11 +1,14 @@
 import React from 'react';
-import { TextField, Box, Typography } from '@mui/material';
+import { TextField, Box, Typography, Tooltip } from '@mui/material';
 import { sharedStyles } from '../styles';
 import MyTimePicker from './MyTimePicker';
 import { useAppContext } from '../contexts/AppContext';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 function TimerDetails() {
   const { formData, handleChange } = useAppContext();
+  const isDisabled = formData.quotaType === 'GENERAL';
+
   return (
     (<Box sx={sharedStyles.container} >
       <Typography
@@ -17,16 +20,22 @@ function TimerDetails() {
         Timer Details
       </Typography>
       
-      <MyTimePicker formData={formData} handleChange={handleChange} />
+      <MyTimePicker formData={formData} handleChange={handleChange} isDisabled={isDisabled} />
       <TextField
         fullWidth
-        label="Refresh Time (ms)"
+        label={
+          <span>
+            Refresh Time (ms)
+            <Tooltip title="Refresh the train availability status every 5 seconds(5000 milliseconds) on the IRCTC page">
+              <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
+            </Tooltip>
+          </span>
+          }
         id="refreshTime"
         name="refreshTime"
         value={formData.refreshTime}
         onChange={handleChange}
         margin="normal"
-        required
         type="number"
         variant="outlined"
         placeholder="Enter refresh time(milli seconds)"
@@ -35,16 +44,23 @@ function TimerDetails() {
             sx: sharedStyles.input, // Apply shared input styles
           }
         }}
+        disabled={isDisabled}
       />
       <TextField
         fullWidth
-        label="Login Minutes Before"
+        label={
+          <span>
+            Login Minutes Before
+            <Tooltip title="Login at specified minutes(i.e. 2 minutes) before Tatkal start timer">
+              <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
+            </Tooltip>
+          </span>
+          }
         id="loginMinutesBefore"
         name="loginMinutesBefore"
         value={formData.loginMinutesBefore}
         onChange={handleChange}
         margin="normal"
-        required
         type="number"
         variant="outlined"
         placeholder="Enter minutes before Tatkal timer to login"
@@ -53,6 +69,7 @@ function TimerDetails() {
             sx: sharedStyles.input, // Apply shared input styles
           }
         }}
+        disabled={isDisabled}
       />
     </Box>)
   );

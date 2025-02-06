@@ -33,11 +33,7 @@ function TrainDetails() {
     let targetTime;
 
     // Set targetTime based on selected accommodation class
-    if (value === 'SL') {
-      targetTime = '10:59:53';
-    } else {
-      targetTime = '09:59:53';
-    }
+    targetTime = ['SL', 'FC', '2S', 'VS'].includes(value) ? '10:59:53' : '09:59:53';
 
     // Update formData with the new accommodation class and targetTime
     setFormData({ ...formData, accommodationClass: value, targetTime });
@@ -119,6 +115,7 @@ function TrainDetails() {
         >
           <MenuItem value='GENERAL'>GENERAL</MenuItem>
           <MenuItem value='TATKAL'>TATKAL</MenuItem>
+          <MenuItem value='PREMIUM TATKAL'>PREMIUM TATKAL</MenuItem>
         </Select>
       </FormControl>
       <FormControl fullWidth margin='normal'>
@@ -144,6 +141,9 @@ function TrainDetails() {
           <MenuItem value='CC'>AC Chair car (CC)</MenuItem>
           <MenuItem value='EV'>Vistadome AC (EV)</MenuItem>
           <MenuItem value='2S'>Second Sitting (2S)</MenuItem>
+          <MenuItem value='FC'>First Class (FC)</MenuItem>
+          <MenuItem value='VC'>Vistadome Chair Car (VC)</MenuItem>
+          <MenuItem value='VS'>Vistadome Non AC (VS)</MenuItem>
         </Select>
       </FormControl>
     </Box>

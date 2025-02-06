@@ -4,8 +4,10 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import PropTypes from 'prop-types';
 import dayjs from 'dayjs';
 import { useAppContext } from '../contexts/AppContext';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import Tooltip from '@mui/material/Tooltip';
 
-function MyTimePicker() {
+function MyTimePicker({isDisabled}) {
   const { formData,handleChange } = useAppContext();
   const [selectedTime, setSelectedTime] = useState(null);
 
@@ -31,16 +33,23 @@ function MyTimePicker() {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <TimePicker
-        label="Tatkal Start Timer"
+       label={
+        <span>
+          Tatkal Start Timer
+          <Tooltip title="This timer auto-clicks the 'Search' button when it matches the IRCTC clock, moving you from 'Search Train' to 'Train List' automatically.">
+            <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
+          </Tooltip>
+        </span>
+        }
         value={selectedTime}
         onChange={handleTimeChange}
-        views={['hours', 'minutes', 'seconds']} // Only hours, minutes, and seconds
-        format="HH:mm:ss" // Ensure the format is set
-        // Ensure 24-hour format
-        ampm={false} // Disable AM/PM
+        views={['hours', 'minutes', 'seconds']}
+        format="HH:mm:ss"
+        ampm={false}
         timeSteps={{ hours: 1, minutes: 1, seconds: 1 }}
         placeholder="Enter Tatkal Start Timer i.e. 09:59:53"
-        sx={{ width: '100%', backgroundColor: 'white', borderRadius: 1 }} // Optional styling
+        sx={{ width: '100%', backgroundColor: 'white', borderRadius: 1 }}
+        disabled={isDisabled}
       />
     </LocalizationProvider>
   );
@@ -52,6 +61,7 @@ MyTimePicker.propTypes = {
     targetTime: PropTypes.string, // Validate targetTime as a string
   }).isRequired,
   handleChange: PropTypes.func.isRequired, // Validate handleChange as a function
+  isDisabled: PropTypes.bool // Add this line
 };
 
 export default MyTimePicker;
