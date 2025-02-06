@@ -27,42 +27,76 @@ const Header = () => {
       <Container>
         <Stack
           spacing={2}
-          direction={isSmallScreen ? 'column' : 'row'} // Change direction based on screen size
-          justifyContent='space-between'
-          alignItems='center'
+          direction={isSmallScreen ? 'column' : 'row'} // Use column for small screens, row for larger
+          justifyContent='space-between' // Align items to the start (left)
+          alignItems={isSmallScreen ? 'flex-start' : 'center'} // Align items to the start for small screens
+          flexWrap='wrap'
         >
           <Stack
             display='flex'
-            direction='row'
+            direction='row' // Keep logo and title on the same line
             justifyContent='start'
             alignItems='center'
             spacing={2}
           >
-           
             <LogoIcon />
             <Typography variant='h5' fontWeight='bold'>
               Tatkal Ticket Booking
             </Typography>
-            <Button
-                    variant="outlined"
-                    color="primary"
-                    size='small'
-                    onClick={() => window.open('/how-to-use.html', '_blank')}
-                    
-                >
-                    How to Use
-                </Button>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <DebugSettings />
-                </Box>
+            {!isSmallScreen && (
+            <Stack
+              display='flex'
+              direction='row' // Keep button and debug settings on the same line
+              justifyContent='start'
+              alignItems='center'
+              spacing={2}
+            >
+              <Button
+                variant="outlined"
+                color="primary"
+                size='small'
+                onClick={() => window.open('/how-to-use.html', '_blank')}
+              >
+                How to Use
+              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <DebugSettings />
+              </Box>
+            </Stack>
+            )}
           </Stack>
+            
+
+          {isSmallScreen && ( // Conditional rendering for small screens
+            <Stack
+              display='flex'
+              direction='row' // Keep button and debug settings on the same line
+              justifyContent='start'
+              alignItems='center'
+              spacing={2}
+              flexWrap='wrap'
+            >
+              <Button
+                variant="outlined"
+                color="primary"
+                size='small'
+                onClick={() => window.open('/how-to-use.html', '_blank')}
+              >
+                How to Use
+              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <DebugSettings />
+              </Box>
+            </Stack>
+          )} 
 
           <Stack
             display='flex'
-            direction='row'
-            justifyContent='start'
+            direction='row' // Keep remaining buttons/switch on the same line
+            justifyContent='end'
             alignItems='center'
             spacing={3}
+            flexWrap='wrap'
           >
             {formData.quotaType === 'TATKAL' && <BookingCountdown />}
             {formData.quotaType === 'GENERAL' && (

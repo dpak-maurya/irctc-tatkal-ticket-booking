@@ -1,6 +1,6 @@
 // App.js
 import React from 'react';
-import { Container, Stack, Box } from '@mui/material';
+import { Container, Stack, Box, useMediaQuery } from '@mui/material';
 import LoginDetails from './components/LoginDetails';
 import TrainDetails from './components/TrainDetails';
 import PaymentDetails from './components/PaymentDetails';
@@ -13,13 +13,13 @@ import Footer from './components/Footer'; // Import the new Footer component
 
 
 const App = () => {
+  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   return (
     <Container maxWidth="lg" sx={{ mt: 8, pb: 8, pt: 8, boxShadow:2 }}>
       <Header />
       
-
       {/* Updated layout for Login+Timer, Train, and Payment Details */}
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={3}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={3} mt={isSmallScreen ? 6 : 0}>
         <Box flex={1} >
           <LoginDetails />
           <TimerDetails />

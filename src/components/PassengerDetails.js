@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Tabs, Tab, Box, Checkbox, Typography, FormControlLabel, Stack } from '@mui/material';
+import { AppBar, Tabs, Tab, Box, Checkbox, Typography, FormControlLabel, Stack, Tooltip } from '@mui/material';
 import PassengerNames from './PassengerNames';
 import PassengerList from './PassengerList';
 import { sharedStyles } from '../styles';
@@ -48,7 +48,7 @@ const PassengerDetails = () => {
                 onChange={handleTabChange}
                 textColor="primary"
                 indicatorColor="primary"
-                variant='body2'
+                variant='scrollable'
                 color='black'
               >
                  <Tab label="Passenger List" sx={{ fontWeight: 'bold', fontSize: '.9rem' }}/>
@@ -59,24 +59,26 @@ const PassengerDetails = () => {
 
           {/* Checkbox on the right side */}
           <Box sx={{ flexShrink: 0, marginLeft: 2 }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={formData.masterData}
-                  onChange={handleChange}
-                  name="masterData"
-                  color="primary"
-                  size="small"
-                  sx={{ color: 'rebeccapurple', '&.Mui-checked': { color: 'primary.main' } }}
-                />
-              }
-              label={
-                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                  Use IRCTC Master Data
-                </Typography>
-              } 
-              sx={{ whiteSpace: 'nowrap' }}
-            />
+            <Tooltip title="If you want to use IRCTC Master Data, please fill in the passenger's first name in Passenger Master Data." arrow>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.masterData}
+                    onChange={handleChange}
+                    name="masterData"
+                    color="primary"
+                    size="small"
+                    sx={{ color: 'rebeccapurple', '&.Mui-checked': { color: 'primary.main' } }}
+                  />
+                }
+                label={
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                    Use IRCTC Master Data
+                  </Typography>
+                } 
+                sx={{ whiteSpace: 'nowrap' }}
+              />
+            </Tooltip>
           </Box>
         </Stack>
 

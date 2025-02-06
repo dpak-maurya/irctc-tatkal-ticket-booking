@@ -1,6 +1,6 @@
 // components/Footer.js
 import React from 'react';
-import { Stack, Button, Box, Container } from '@mui/material';
+import { Stack, Button, Box, Container, useMediaQuery } from '@mui/material';
 import ModalPopup from './ModalPopup';
 import { useModalContext } from '../contexts/ModalContext';
 import { useAppContext } from '../contexts/AppContext';
@@ -8,6 +8,7 @@ import { useAppContext } from '../contexts/AppContext';
 const Footer = () => {
   const { isModalOpen, modalConfig, openModal, closeModal } = useModalContext();
   const { isDirty, saveFormData, resetSettings } = useAppContext();
+  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
   return (
     <Box
@@ -25,14 +26,14 @@ const Footer = () => {
       <Container>
         <Stack
           display='flex'
-          direction='row'
+          direction={isSmallScreen ? 'column' : 'row'}
           justifyContent='space-between'
           alignItems='center'
         >
           <Box>
             {/* Unsaved changes warning */}
             {isDirty && (
-              <Button color='error' variant="text" size='large' >
+              <Button color='error' variant="text" size='large' fullWidth={isSmallScreen}>
                 Unsaved changes!
               </Button>
             )}
@@ -41,8 +42,9 @@ const Footer = () => {
             display='flex'
             direction='row'
             spacing={3}
-            justifyContent='end'
+            justifyContent={isSmallScreen ? 'center' : 'end'}
             alignItems='center'
+            width={isSmallScreen ? '100%' : 'auto'}
           >
             {/* Reset Settings Button */}
             <Button
@@ -57,6 +59,7 @@ const Footer = () => {
                   resetSettings
                 )
               }
+              fullWidth={isSmallScreen}
             >
               Clear Booking Details
             </Button>
@@ -74,6 +77,7 @@ const Footer = () => {
                   saveFormData
                 )
               }
+              fullWidth={isSmallScreen}
             >
               Save Booking Details
             </Button>

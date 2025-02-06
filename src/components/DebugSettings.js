@@ -9,24 +9,29 @@ function DebugSettings() {
   const [debugMode, setDebugMode] = React.useState(false);
 
   React.useEffect(() => {
-    chrome.storage.local.get('debugMode', function(result) {
-      setDebugMode(result.debugMode || false);
-    });
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.get('debugMode', function(result) {
+        setDebugMode(result.debugMode || false);
+      });
+    } else {
+      console.warn('Chrome storage is not available.');
+    }
   }, []);
 
   const handleDebugModeChange = (event) => {
     const newDebugMode = event.target.checked;
     setDebugMode(newDebugMode);
-    
-    chrome.storage.local.set({ debugMode: newDebugMode }, function() {
-      if (chrome.runtime.lastError) {
-        console.error('Error saving debug mode:', chrome.runtime.lastError);
-      }
-    });
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      chrome.storage.local.set({ debugMode: newDebugMode }, function() {
+        if (chrome.runtime.lastError) {
+          console.error('Error saving debug mode:', chrome.runtime.lastError);
+        }
+      });
+    }
   };
 
   return (
-    <Tooltip title="console logging to view script events in the browser console.">
+    <Tooltip title="Enable event logging to view script events in the IRCTC console." arrow>
       <FormControlLabel
         control={
           <Switch
