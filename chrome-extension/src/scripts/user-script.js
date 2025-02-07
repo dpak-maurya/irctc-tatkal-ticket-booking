@@ -1,55 +1,5 @@
-// Logger utility with toggle mechanism and stack trace
-const Logger = {
-  isEnabled: false,
+import Logger from './logger';
 
-  enable() {
-    this.isEnabled = true;
-  },
-
-  disable() {
-    this.isEnabled = false;
-  },
-
-  _getCallerInfo() {
-    const error = new Error();
-    const stack = error.stack.split('\n')[3]; // Get caller's stack info
-    const match = stack.match(/at\s+(?:\w+\s+)?\(?(.+):(\d+):(\d+)\)?/);
-    if (match) {
-      const [, file, line] = match;
-      const fileName = file.split('/').pop(); // Get just the filename
-      return `[${fileName}:${line}]`;
-    }
-    return '';
-  },
-
-  log(...args) {
-    if (this.isEnabled) {
-      const callerInfo = this._getCallerInfo();
-      console.log(`[IRCTC-Bot]${callerInfo}:`, ...args);
-    }
-  },
-
-  error(...args) {
-    if (this.isEnabled) {
-      const callerInfo = this._getCallerInfo();
-      console.error(`[IRCTC-Bot]${callerInfo}:`, ...args);
-    }
-  },
-
-  warn(...args) {
-    if (this.isEnabled) {
-      const callerInfo = this._getCallerInfo();
-      console.warn(`[IRCTC-Bot]${callerInfo}:`, ...args);
-    }
-  },
-
-  info(...args) {
-    if (this.isEnabled) {
-      const callerInfo = this._getCallerInfo();
-      console.info(`[IRCTC-Bot]${callerInfo}:`, ...args);
-    }
-  }
-};
 
 let automationStatus = false;
 let username = '';

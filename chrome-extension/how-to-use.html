@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tatkal Ticket Booking - How to Use</title>
-    <link rel="icon" type="image/svg" href="images/icon.svg">
+    <link rel="icon" type="image/svg" href="assets/icon.svg">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="options.css">
     <style>
@@ -41,6 +41,7 @@
         <h2 class="text-center large font-weight-bold" >How to Use the Tatkal Ticket Booking Extension</h2>
         <section class="step-section mt-5">
             <h3>Fill all the form Login , Train and Payment Details</h3>
+            <hr>
             <ol>
                 <li>Fill in your login details. Don't worry, your information is safe and stored securely in your Chrome
                     local storage.</li>
@@ -82,6 +83,7 @@
 
         <section class="step-section">
             <h3>Auto Booking Switch</h3>
+            <hr>
             <ol>
                 <li>If the switch is turned on, the extension will run automatically whenever you visit the IRCTC
                     website
@@ -96,41 +98,46 @@
         </section>
 
         <section class="step-section">
-
-            <h3>How to Add Master Data Passenger</h3>
-            <ol> 
-                <li>
-                    Enter Passenger First name or exact name present in IRCTC master data
-                </li>
-                <li>If there are multiple passengers, please provide comma separate name. let's say in your irctc master data,
-                    there are two passenger Ajay Singh, Rahul Singh. you just enter <code>Ajay,Rahul</code> in textarea</li>
-            </ol>
-            <h3>How to Add a New Passenger</h3>
-            <ol>
-                <li>Fill in the passenger's details including name, age, gender, and preference.</li>
-                <li>Click on the <code>Add Passenger</code> button.</li>
-                <li>The newly added passenger will be automatically selected for Tatkal ticket booking.</li>
-                <li>If you don't want to include a passenger in the booking, you can uncheck or delete them.</li>
-            </ol>
+            <h3>How to Add Passengers for Tatkal Booking 🚆</h3>
+            <hr>
+            <h5>Adding a New Passenger</h5>
+            <ul>
+                <li>Select the <strong>Passengers List Tab</strong></li>
+                <li>Click on <code>Add Passenger</code> and Fill in the <strong>Name, Age, Gender, and Seat Preference</strong>.</li>
+                <li>Click the <code>Save Icon</code> button to save them.</li>
+                <li>Now select the checkbox and the added passenger will be <strong>selected</strong> for booking.</li>
+                <li>If you don’t want to book for a passenger, simply <strong>uncheck or delete</strong> them.</li>
+            </ul>
+            
+            <h5>Using Master Data Passengers</h5>
+            <ul>
+                <li>Select the <strong>Passengers Master Data Tab</strong> option to use saved names.</li>
+                <li>Click on <code>Add Passenger</code> and enter the passenger's first name or the exact name as listed in IRCTC's master data.</li>
+                <li>You can add multiple passenger by following above step</li>
+                <li><strong>Example:</strong> If your IRCTC master data contains <code>Ajay Singh</code> and <code>Rahul Singh</code>,
+                    add <strong>Ajay</strong> and <strong>Rahul</strong> as separate entries.</li>
+            </ul>
+            <p><strong>Note:</strong> Master Data passengers are auto-filled during booking.</p>
+        
             <div class="warning">
-                <p>
-                    Please check the <code>IRCTC Master Data</code> checkbox to use master data present in IRCTC account Otherwise leave the checkbox unchecked.<br/> Please note only one type of passenger allowed either master or new passenger 
-                </p>
-                
-            </code>
+                <p><strong>⚠ Important:</strong> You can either use <strong>Master Data</strong> OR <strong>New Passenger Data</strong>—not both at the same time.</p>
+            </div>
         </section>
-
+        
         <section class="step-section">
-            <h3>What to Do on the IRCTC Site While Booking?</h3>
-            <ol>
-                <li>At the login prompt, fill in the captcha and press Enter on your keyboard.</li>
-                <li>At the Review and Captcha Page, a prompt will appear displaying the Current Seats Status: . Use this
-                    information to decide whether to
-                    proceed with booking the ticket. If you decide to proceed, fill in the captcha shown on the page in
-                    the
-                    prompt, then press Enter on your keyboard.</li>
-            </ol>
+            <h3>What to Do on the IRCTC Site While Booking? 🎟️</h3>
+            <hr>
+            <ul>
+                <li><strong>Step 1:</strong> When prompted to log in, enter the captcha and <strong>press Enter</strong>.</li>
+                <li><strong>Step 2:</strong> On the <strong>Review & Captcha Page</strong>, a prompt will display the <strong>Current Seat Availability</strong>.</li>
+                <ul>
+                    <li>Decide whether to proceed with booking.</li>
+                    <li>If continuing, enter the captcha in the prompt and <strong>press Enter</strong> to confirm.</li>
+                </ul>
+            </ul>
+            <p>✅ <strong>The script will handle the rest automatically!</strong> 🚀</p>
         </section>
+        
 
     </div>
 

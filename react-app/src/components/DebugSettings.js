@@ -42,7 +42,7 @@ function DebugSettings() {
             color="primary"
           />
         }
-        label="Console Log"
+        label="Debug Mode"
         sx={{ 
           ml: 0,
           '& .MuiFormControlLabel-label': {
