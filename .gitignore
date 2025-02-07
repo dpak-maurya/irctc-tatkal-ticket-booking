@@ -1,5 +1,7 @@
 # Dependencies
 /node_modules
+/chrome-extension/node_modules
+/react-app/node_modules
 /.pnp
 .pnp.js
 
@@ -8,6 +10,7 @@
 
 # Production
 /build
+/dist
 
 # Misc
 .DS_Store
@@ -89,3 +92,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 v*.zip
+
