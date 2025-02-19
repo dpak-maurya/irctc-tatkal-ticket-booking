@@ -62,6 +62,7 @@ export const PASSENGER_SELECTORS = {
     PASSENGER_AGE_INPUT: 'input[formcontrolname="passengerAge"]',
     PASSENGER_GENDER_INPUT: 'select[formcontrolname="passengerGender"]',
     PASSENGER_BERTH_CHOICE: 'select[formcontrolname="passengerBerthChoice"]',
+    PASSENGER_FOOD_CHOICE : 'select[formcontrolname="passengerFoodChoice"]',
     PASSENGER_MOBILE_NUMBER: 'mobileNumber',
     PASSENGER_PREFERENCE_AUTOUPGRADATION: 'autoUpgradation',
     PASSENGER_PREFERENCE_CONFIRMBERTHS: 'confirmberths',

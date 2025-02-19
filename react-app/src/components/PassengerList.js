@@ -27,6 +27,16 @@ const preferenceOptions = [
   { value: 'SU', label: 'Side Upper' },
 ];
 
+const foodOptions = [
+  { value: '', label: '-' },
+  { value: 'V', label: 'Veg' },
+  { value: 'N', label: 'Non Veg' },
+  { value: 'J', label: 'Jain Meal' },
+  { value: 'F', label: 'Veg (Diabetic)' },
+  { value: 'G', label: 'Non Veg (Diabetic)' },
+  { value: 'D', label: 'No Food' },
+];
+
 function EditToolbar(props) {
   const { setRows, setRowModesModel } = props;
 
@@ -34,7 +44,7 @@ function EditToolbar(props) {
     const id = Date.now(); // Generate a new ID
     setRows((oldRows) => [
       ...oldRows,
-      { id, name: '', age: '', gender: '', preference: '', isNew: true },
+      { id, name: '', age: '', gender: '', preference: '', foodChoice: '', isNew: true },
     ]);
     setRowModesModel((oldModel) => ({
       ...oldModel,
@@ -112,12 +122,23 @@ const PassengerList = () => {
     }
   };
 
-  // Handle row updates
   const processRowUpdate = (newRow) => {
-    const updatedRow = { ...newRow, isNew: false };
+    const updatedRow = { 
+      ...newRow,
+      name: newRow?.name?.slice(0, 16), // Enforce max 16 characters
+      isNew: false 
+    };
+  
+    // Validate age
+    const isAgeValid = newRow.age >= 1 && newRow.age <= 125 && !isNaN(newRow.age);
+    if (!isAgeValid) {
+      return { ...newRow, error: true }; // Keeps the error indicator
+    }
+  
     const updatedRows = rows.map((row) => (row.id === newRow.id ? updatedRow : row));
     setRows(updatedRows);
     syncPassengerList(updatedRows);
+    
     return updatedRow;
   };
 
@@ -140,7 +161,12 @@ const PassengerList = () => {
   };
 
   const columns = [
-    { field: 'name', headerName: 'Name', width: 180, editable: true },
+    {
+      field: 'name',
+      headerName: 'Name',
+      width: 180,
+      editable: true
+    },
     {
       field: 'age',
       headerName: 'Age',
@@ -163,6 +189,14 @@ const PassengerList = () => {
       editable: true,
       type: 'singleSelect',
       valueOptions: preferenceOptions,
+    },
+    {
+      field: 'foodChoice',
+      headerName: 'Food Choice',
+      width: 180,
+      editable: true,
+      type: 'singleSelect',
+      valueOptions: foodOptions,
     },
     {
       field: 'actions',
@@ -200,6 +234,7 @@ const PassengerList = () => {
         checkboxSelection // Enable checkbox selection
         rowSelectionModel={rowSelection}
         onRowSelectionModelChange={handleRowSelectionChange}
+        experimentalFeatures={{ newEditingApi: true }} // Enables new editing features including error highlighting
         slots={{
           toolbar: EditToolbar,
         }}

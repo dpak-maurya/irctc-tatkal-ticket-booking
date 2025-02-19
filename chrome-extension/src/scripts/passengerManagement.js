@@ -8,9 +8,9 @@ import { passengerList, masterData, passengerNames, confirmberths, mobileNumber,
 let copyPassengerNames = '';
 
 async function addNextRow() {
-  const prenextSpan = document.querySelector(PASSENGER_SELECTORS.NEXT_ROW);
+  const prenextSpan = document.querySelector(PASSENGER_SELECTORS.PASSENGER_NEXT_ROW);
 
-  if (prenextSpan && prenextSpan.textContent.trim() === PASSENGER_SELECTORS.NEXT_ROW_TEXT) {
+  if (prenextSpan && prenextSpan.textContent.trim() === PASSENGER_SELECTORS.PASSENGER_NEXT_ROW_TEXT) {
     await prenextSpan.closest('a').click();
   } else {
     logger.warn('Span text does not match or element not found.');
@@ -18,7 +18,7 @@ async function addNextRow() {
 }
 async function removeFirstRow(){
   // delete the first row
-  const firstRow = document.querySelector(PASSENGER_SELECTORS.REMOVE_ROW);
+  const firstRow = document.querySelector(PASSENGER_SELECTORS.PASSENGER_REMOVE_ROW);
   if(firstRow){
     await firstRow.click();
   }
@@ -37,10 +37,10 @@ function processInput() {
 
 //autocomplete function
 async function selectAutocompleteOption(index=0,name = passengerNames) {
-  var row = document.querySelectorAll(PASSENGER_SELECTORS.COMPONENT)[index];
+  var row = document.querySelectorAll(PASSENGER_SELECTORS.PASSENGER_COMPONENT)[index];
   // Find the autocomplete input element
-  var autocompleteInput = row.querySelector(PASSENGER_SELECTORS.NAME_INPUT);
-  var ageInput = row.querySelector(PASSENGER_SELECTORS.AGE_INPUT);
+  var autocompleteInput = row.querySelector(PASSENGER_SELECTORS.PASSENGER_NAME_INPUT);
+  var ageInput = row.querySelector(PASSENGER_SELECTORS.PASSENGER_AGE_INPUT);
   name = name.trim().toLowerCase();
   // Wait until the age input field is not empty
   while (ageInput && ageInput.value === '') {
@@ -60,7 +60,7 @@ async function selectAutocompleteOption(index=0,name = passengerNames) {
     await delay(600);
 
     // Get all list items within the autocomplete dropdown
-    var listItems = document.querySelectorAll(PASSENGER_SELECTORS.NAME_LIST);
+    var listItems = document.querySelectorAll(PASSENGER_SELECTORS.PASSENGER_NAME_LIST);
     // Loop through each list item
     listItems.forEach(function(item) {
         // Get the text content of the list item
@@ -87,7 +87,7 @@ async function addMasterPassengerList() {
     await selectAutocompleteOption(0,copyPassengerNames[0]);
   }
   else{
-    const firstRow = document.querySelector(PASSENGER_SELECTORS.REMOVE_ROW);
+    const firstRow = document.querySelector(PASSENGER_SELECTORS.PASSENGER_REMOVE_ROW);
     await firstRow.click();
     for (let index = 0; index < copyPassengerNames.length; index++) {
       await addNextRow();
@@ -99,13 +99,14 @@ async function addMasterPassengerList() {
 function fillCustomPassengerDetails(passenger, row = null) {
   // If row is not provided, select the last added row
   if (!row) {
-    row = document.querySelector(PASSENGER_SELECTORS.COMPONENT);
+    row = document.querySelector(PASSENGER_SELECTORS.PASSENGER_COMPONENT);
   }
 
-  var nameInput = row.querySelector(PASSENGER_SELECTORS.NAME_INPUT);
-  var ageInput = row.querySelector(PASSENGER_SELECTORS.AGE_INPUT);
-  var genderSelect = row.querySelector(PASSENGER_SELECTORS.GENDER_INPUT);
-  var preferenceSelect = row.querySelector(PASSENGER_SELECTORS.BERTH_CHOICE);
+  var nameInput = row.querySelector(PASSENGER_SELECTORS.PASSENGER_NAME_INPUT);
+  var ageInput = row.querySelector(PASSENGER_SELECTORS.PASSENGER_AGE_INPUT);
+  var genderSelect = row.querySelector(PASSENGER_SELECTORS.PASSENGER_GENDER_INPUT);
+  var preferenceSelect = row.querySelector(PASSENGER_SELECTORS.PASSENGER_BERTH_CHOICE);
+  var foodSelect = row.querySelector(PASSENGER_SELECTORS.PASSENGER_FOOD_CHOICE);
   
   nameInput.value = passenger.name;
   nameInput.dispatchEvent(new Event('input'));
@@ -122,6 +123,12 @@ function fillCustomPassengerDetails(passenger, row = null) {
   preferenceSelect.value = passenger.preference;
   preferenceSelect.dispatchEvent(new Event('change'));
   delay(100);
+
+  if(foodSelect && passenger && passenger.foodChoice){
+    foodSelect.value = passenger.foodChoice;
+    foodSelect.dispatchEvent(new Event('change'));
+    delay(100);
+  }
 }
 async function addCustomPassengerList() {
   // If there's only one passenger in the list and the row is already available, fill it directly
@@ -139,7 +146,7 @@ async function addCustomPassengerList() {
       // Add a new row for each passenger
       await addNextRow();
       delay(50);
-      var rows = document.querySelectorAll(PASSENGER_SELECTORS.COMPONENT);
+      var rows = document.querySelectorAll(PASSENGER_SELECTORS.PASSENGER_COMPONENT);
       var currentRow = rows[rows.length - 1];
 
       fillCustomPassengerDetails(passenger, currentRow);
@@ -152,7 +159,7 @@ async function addMobileNumber() {
   const pMobileNumber = mobileNumber;
   // Validate the mobile number
   if (pMobileNumber && /^\d{10}$/.test(pMobileNumber)) {
-    var mobileInput = document.getElementById(PASSENGER_SELECTORS.MOBILE_NUMBER);
+    var mobileInput = document.getElementById(PASSENGER_SELECTORS.PASSENGER_MOBILE_NUMBER);
     mobileInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
     mobileInput.value = pMobileNumber;
     mobileInput.dispatchEvent(new Event('input'));
@@ -163,17 +170,17 @@ async function addMobileNumber() {
   }
 }
 async function selectPreferences(){
-  var autoUpgradationInput = document.getElementById(PASSENGER_SELECTORS.PREFERENCE_AUTOUPGRADATION);
+  var autoUpgradationInput = document.getElementById(PASSENGER_SELECTORS.PASSENGER_PREFERENCE_AUTOUPGRADATION);
   autoUpgradationInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
   if(autoUpgradationInput && autoUpgradation)
      autoUpgradationInput.click();
   
-  var confirmberthsInput = document.getElementById(PASSENGER_SELECTORS.PREFERENCE_CONFIRMBERTHS);
+  var confirmberthsInput = document.getElementById(PASSENGER_SELECTORS.PASSENGER_PREFERENCE_CONFIRMBERTHS);
   if(confirmberthsInput && confirmberths)
     confirmberthsInput.click();
 
   // Find all input elements of type radio
-  var inputs = document.querySelectorAll(PASSENGER_SELECTORS.PREFERENCE_TRAVELINSURANCEOPTED);
+  var inputs = document.querySelectorAll(PASSENGER_SELECTORS.PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED);
 
   if (inputs) {
     // Loop through each input element using for...of loop
@@ -231,7 +238,7 @@ export async function addPassengerInputAndContinue() {
   await delay(50);
 
   // Find the "Continue" button
-  var continueButton = document.querySelector(PASSENGER_SELECTORS.SUBMIT_BUTTON);
+  var continueButton = document.querySelector(PASSENGER_SELECTORS.PASSENGER_SUBMIT_BUTTON);
   // Check if the button exists
   if (continueButton) {
     continueButton.focus();
