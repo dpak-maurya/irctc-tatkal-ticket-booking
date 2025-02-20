@@ -1,50 +1,40 @@
 import React from 'react';
-import {
-  TextField,
-  Box,
-  Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
-
+import { TextField, Box, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { sharedStyles } from '../styles';
 import MyDatePicker from './MyDatePicker';
 import { useAppContext } from '../contexts/AppContext';
+
+const getTargetTime = (quotaType, accommodationClass) => {
+  if (quotaType === 'GENERAL') return '07:59:53';
+  if (['SL', 'FC', '2S', 'VS'].includes(accommodationClass)) return '10:59:53';
+  return '09:59:53';
+};
+
+const formatStationCode = (value) => value.toUpperCase().replace(/[^A-Z]/g, '');
+const formatTrainNumber = (value) => value.replace(/\D/g, '');
 
 function TrainDetails() {
   const { formData, setFormData, handleChange } = useAppContext();
 
   const handleStationCode = (event) => {
     const { name, value } = event.target;
-    const formattedValue = value.toUpperCase().replace(/[^A-Z]/g, '');
-    setFormData({ ...formData, [name]: formattedValue });
+    setFormData({ ...formData, [name]: formatStationCode(value) });
   };
 
   const handleTrainNumber = (event) => {
     const { name, value } = event.target;
-    const formattedValue = value.replace(/\D/g, '');
-    setFormData({ ...formData, [name]: formattedValue });
+    setFormData({ ...formData, [name]: formatTrainNumber(value) });
   };
-  
+
   const handleQuotaTypeChange = (event) => {
     const { value } = event.target;
-    const isPriorityQuota = ['SL', 'FC', '2S', 'VS'].includes(formData?.accommodationClass);
-    const targetTime = value === 'GENERAL' ? '07:59:53' : isPriorityQuota ? '10:59:53' : '09:59:53';
-
-    // Update formData with the new quota and targetTime
+    const targetTime = getTargetTime(value, formData?.accommodationClass);
     setFormData({ ...formData, quotaType: value, targetTime });
   };
 
   const handleAccommodationClassChange = (event) => {
     const { value } = event.target;
-    let targetTime;
-
-    // Set targetTime based on selected accommodation class
-    targetTime = ['SL', 'FC', '2S', 'VS'].includes(value) ? '10:59:53' : '09:59:53';
-
-    // Update formData with the new accommodation class and targetTime
+    const targetTime = getTargetTime(formData?.quotaType, value);
     setFormData({ ...formData, accommodationClass: value, targetTime });
   };
 
@@ -136,7 +126,7 @@ function TrainDetails() {
           id='accommodationClass'
           name='accommodationClass'
           value={formData.accommodationClass}
-          onChange={handleAccommodationClassChange} // Use the new handler
+          onChange={handleAccommodationClassChange}
           label='Accommodation Class'
           variant='outlined'
           sx={{ backgroundColor: 'white' }}
