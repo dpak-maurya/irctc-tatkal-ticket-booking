@@ -5,7 +5,7 @@ import defaultSettings from './defaultSettings';
 // Async function to get data from Chrome storage
 export const getFormDataFromStorage = async () => {
   if (typeof chrome !== 'undefined' && chrome.storage) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       chrome.storage.local.get([STORAGE_KEY], async (result) => {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);

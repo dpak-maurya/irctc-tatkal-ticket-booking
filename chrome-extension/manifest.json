@@ -1,5 +1,5 @@
 {
-  "name": "Fast Tatkal Booking",
+  "name": "Tatkal Ticket Booking",
   "version": "3.0",
   "manifest_version": 3,
   "minimum_chrome_version": "120",
@@ -10,26 +10,26 @@
   "content_scripts": [
     {
         "matches": ["https://www.irctc.co.in/*"],
-        "js": ["user-script.js"]
+        "js": ["content.js"]
     }
   ],
   "permissions": ["storage"],
   "host_permissions": ["https://www.irctc.co.in/*"],
   "action": {
     "default_icon": {
-      "16": "images/icon-16.png",
-      "32": "images/icon-32.png",
-      "48": "images/icon-48.png",
-      "64": "images/icon-64.png",
-      "128": "images/icon-128.png"
+      "16": "assets/icon-16.png",
+      "32": "assets/icon-32.png",
+      "48": "assets/icon-48.png",
+      "64": "assets/icon-64.png",
+      "128": "assets/icon-128.png"
 		}
   },
-  "options_page": "build/options.html",
+  "options_page": "options.html",
   "icons": {
-    "16": "images/icon-16.png",
-    "32": "images/icon-32.png",
-    "48": "images/icon-48.png",
-    "64": "images/icon-64.png",
-    "128": "images/icon-128.png"
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "64": "assets/icon-64.png",
+    "128": "assets/icon-128.png"
 	}
 }

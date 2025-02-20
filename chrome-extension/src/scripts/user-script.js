@@ -1,55 +1,5 @@
-// Logger utility with toggle mechanism and stack trace
-const Logger = {
-  isEnabled: false,
+import Logger from './logger';
 
-  enable() {
-    this.isEnabled = true;
-  },
-
-  disable() {
-    this.isEnabled = false;
-  },
-
-  _getCallerInfo() {
-    const error = new Error();
-    const stack = error.stack.split('\n')[3]; // Get caller's stack info
-    const match = stack.match(/at\s+(?:\w+\s+)?\(?(.+):(\d+):(\d+)\)?/);
-    if (match) {
-      const [, file, line] = match;
-      const fileName = file.split('/').pop(); // Get just the filename
-      return `[${fileName}:${line}]`;
-    }
-    return '';
-  },
-
-  log(...args) {
-    if (this.isEnabled) {
-      const callerInfo = this._getCallerInfo();
-      console.log(`[IRCTC-Bot]${callerInfo}:`, ...args);
-    }
-  },
-
-  error(...args) {
-    if (this.isEnabled) {
-      const callerInfo = this._getCallerInfo();
-      console.error(`[IRCTC-Bot]${callerInfo}:`, ...args);
-    }
-  },
-
-  warn(...args) {
-    if (this.isEnabled) {
-      const callerInfo = this._getCallerInfo();
-      console.warn(`[IRCTC-Bot]${callerInfo}:`, ...args);
-    }
-  },
-
-  info(...args) {
-    if (this.isEnabled) {
-      const callerInfo = this._getCallerInfo();
-      console.info(`[IRCTC-Bot]${callerInfo}:`, ...args);
-    }
-  }
-};
 
 let automationStatus = false;
 let username = '';
@@ -161,6 +111,7 @@ const PASSENGER_NAME_LIST = '.ui-autocomplete-items li';
 const PASSENGER_AGE_INPUT = 'input[formcontrolname="passengerAge"]';
 const PASSENGER_GENDER_INPUT = 'select[formcontrolname="passengerGender"]';
 const PASSENGER_BERTH_CHOICE = 'select[formcontrolname="passengerBerthChoice"]';
+const PASSENGER_FOOD_CHOICE = 'select[formcontrolname="passengerFoodChoice"]';
 const PASSENGER_MOBILE_NUMBER = 'mobileNumber';
 const PASSENGER_PREFERENCE_AUTOUPGRADATION = 'autoUpgradation';
 const PASSENGER_PREFERENCE_CONFIRMBERTHS = 'confirmberths';
@@ -739,6 +690,7 @@ function fillCustomPassengerDetails(passenger, row = null) {
   var ageInput = row.querySelector(PASSENGER_AGE_INPUT);
   var genderSelect = row.querySelector(PASSENGER_GENDER_INPUT);
   var preferenceSelect = row.querySelector(PASSENGER_BERTH_CHOICE);
+  var foodSelect = row.querySelector(PASSENGER_FOOD_CHOICE);
   
   nameInput.value = passenger.name;
   nameInput.dispatchEvent(new Event('input'));
@@ -755,6 +707,13 @@ function fillCustomPassengerDetails(passenger, row = null) {
   preferenceSelect.value = passenger.preference;
   preferenceSelect.dispatchEvent(new Event('change'));
   delay(100);
+
+  if(foodSelect && passenger && passenger.foodChoice){
+    foodSelect.value = passenger.foodChoice;
+    foodSelect.dispatchEvent(new Event('change'));
+    delay(100);
+  }
+  
 }
 async function addCustomPassengerList() {
   // If there's only one passenger in the list and the row is already available, fill it directly

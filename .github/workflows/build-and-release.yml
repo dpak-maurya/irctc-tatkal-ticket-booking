@@ -1,0 +1,62 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tag push
+  release:
+    types: [created]  # Trigger when a release is created
+  pull_request:
+    branches:
+      - main  # Trigger on PR merge to main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Chrome Extension and React App
+        run: npm run build
+
+      # 🌟 Get the Tag Name (if exists)
+      - name: Get the Tag Name
+        id: get_tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "tag_name=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          else
+            echo "tag_name=none" >> $GITHUB_ENV
+          fi
+
+      # 📁 Zip only if it's a tagged release
+      - name: Zip the dist folder
+        if: env.tag_name != 'none'
+        run: |
+          repo_name=${GITHUB_REPOSITORY##*/}
+          zip -r "${repo_name}-${{ env.tag_name }}.zip" dist
+
+      # 📤 Upload release asset if it's a release event
+      - name: Upload Release Asset
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: "${{ github.event.release.upload_url }}"
+          asset_path: "./${repo_name}-${{ env.tag_name }}.zip"
+          asset_name: "${repo_name}-${{ env.tag_name }}.zip"
+          asset_content_type: application/zip
+
+      # 📢 Notify on Tag Push
+      - name: Notify on Tag Push
+        if: startsWith(github.ref, 'refs/tags/')
+        run: echo "✅ Tag push detected. Zip file created: ${repo_name}-${{ env.tag_name }}.zip"

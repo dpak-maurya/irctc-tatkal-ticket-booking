@@ -7,7 +7,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 function TimerDetails() {
   const { formData, handleChange } = useAppContext();
-  const isDisabled = formData.quotaType === 'GENERAL';
+  const isDisabled = false && formData.quotaType === 'GENERAL';  // Allowing general booking 2 months before at 8AM
 
   return (
     (<Box sx={sharedStyles.container} >
