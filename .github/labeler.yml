@@ -1,41 +1,15 @@
-# 📁 Chrome Extension changes
-chrome-extension:
-  - 'chrome-extension/**'
+chrome-extension: ["chrome-extension/**"]
 
-# ⚛️ React App changes
-react-app:
-  - 'react-app/**'
+react-app: ["react-app/**"]
 
-# 🚀 New Features
-feature:
-  - '**/features/**'
-  - '**/new/**'
+feature: ["**/features/**", "**/new/**"]
 
-# 🐛 Bug Fixes
-bug:
-  - '**/bugfix/**'
-  - '**/*.fix.js'
+bug: ["**/bugfix/**", "**/*.fix.js"]
 
-# 💄 UI Changes
-ui:
-  - '**/components/**'
-  - '**/*.css'
-  - '**/*.scss'
+ui: ["**/components/**", "**/*.css", "**/*.scss"]
 
-# 🧹 Refactoring
-refactor:
-  - '**/refactor/**'
-  - '**/*.ref.js'
+refactor: ["**/refactor/**", "**/*.ref.js"]
 
-# 📝 Documentation
-docs:
-  - '**/*.md'
-  - 'docs/**'
+docs: ["**/*.md", "docs/**"]
 
-# 📦 Dependency Updates
-config:
-  - 'package.json'
-  - 'package-lock.json'
-  - 'yarn.lock'
-  - 'webpack.*.js'
-  - '.github/workflows/**'
+config: ["package.json", "package-lock.json", "yarn.lock", "webpack.*.js", ".github/workflows/**"]
