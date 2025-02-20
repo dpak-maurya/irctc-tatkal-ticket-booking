@@ -27,6 +27,15 @@ function TrainDetails() {
     const formattedValue = value.replace(/\D/g, '');
     setFormData({ ...formData, [name]: formattedValue });
   };
+  
+  const handleQuotaTypeChange = (event) => {
+    const { value } = event.target;
+    const isPriorityQuota = ['SL', 'FC', '2S', 'VS'].includes(formData?.accommodationClass);
+    const targetTime = value === 'GENERAL' ? '07:59:53' : isPriorityQuota ? '10:59:53' : '09:59:53';
+
+    // Update formData with the new quota and targetTime
+    setFormData({ ...formData, quotaType: value, targetTime });
+  };
 
   const handleAccommodationClassChange = (event) => {
     const { value } = event.target;
@@ -108,7 +117,7 @@ function TrainDetails() {
           id='quotaType'
           name='quotaType'
           value={formData.quotaType}
-          onChange={handleChange}
+          onChange={handleQuotaTypeChange}
           label='Quota Type'
           variant='outlined'
           sx={{ backgroundColor: 'white' }}
