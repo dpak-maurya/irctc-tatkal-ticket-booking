@@ -33,7 +33,9 @@ docs:
   - 'docs/**'
 
 # 📦 Dependency Updates
-dependencies:
+config:
   - 'package.json'
   - 'package-lock.json'
   - 'yarn.lock'
+  - 'webpack.*.js'
+  - '.github/workflows/**'
