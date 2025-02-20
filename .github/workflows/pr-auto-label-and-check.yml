@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, edited, labeled, unlabeled]
 
+permissions:
+  pull-requests: write  # Allow write access to pull requests
+  contents: read        # Allow read access to repository contents
+
 jobs:
   auto-label:
     runs-on: ubuntu-latest
