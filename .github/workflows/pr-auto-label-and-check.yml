@@ -1,0 +1,70 @@
+name: PR Auto Label & Label Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      # 📁 Auto-label based on file changes
+      - name: Auto Label PR (File Paths)
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 🏷️ Auto-label based on PR title
+      - name: Auto Label PR (Title-Based)
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prTitle = context.payload.pull_request.title.toLowerCase();
+            const labels = [];
+
+            if (prTitle.startsWith('feat:')) labels.push('feature');
+            if (prTitle.startsWith('fix:')) labels.push('bug');
+            if (prTitle.startsWith('refactor:')) labels.push('refactor');
+            if (prTitle.startsWith('docs:')) labels.push('docs');
+            if (prTitle.startsWith('ui:')) labels.push('ui');
+            if (prTitle.startsWith('chore:')) labels.push('chore');
+            if (prTitle.startsWith('deps:')) labels.push('dependencies');
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labels
+              });
+              console.log(`✅ Added labels: ${labels.join(', ')}`);
+            } else {
+              console.log('ℹ️ No matching labels found for PR title.');
+            }
+
+  check-labels:
+    runs-on: ubuntu-latest
+    needs: auto-label  # Waits for auto-label job to finish
+    steps:
+      - name: Check PR for Labels
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+
+            if (labels.length === 0) {
+              core.setFailed("🚨 PR must have at least one label before merging.");
+            } else {
+              console.log(`✅ PR has labels: ${labels.map(label => label.name).join(', ')}`);
+            }

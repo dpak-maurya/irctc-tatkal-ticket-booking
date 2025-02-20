@@ -1,0 +1,39 @@
+# 📁 Chrome Extension changes
+Chrome Extension:
+  - 'chrome-extension/**'
+
+# ⚛️ React App changes
+React App:
+  - 'react-app/**'
+
+# 🚀 New Features
+feature:
+  - '**/features/**'
+  - '**/new/**'
+
+# 🐛 Bug Fixes
+bug:
+  - '**/bugfix/**'
+  - '**/*.fix.js'
+
+# 💄 UI Changes
+ui:
+  - '**/components/**'
+  - '**/*.css'
+  - '**/*.scss'
+
+# 🧹 Refactoring
+refactor:
+  - '**/refactor/**'
+  - '**/*.ref.js'
+
+# 📝 Documentation
+docs:
+  - '**/*.md'
+  - 'docs/**'
+
+# 📦 Dependency Updates
+dependencies:
+  - 'package.json'
+  - 'package-lock.json'
+  - 'yarn.lock'
