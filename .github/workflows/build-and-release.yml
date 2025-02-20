@@ -98,4 +98,26 @@
           run: |
             echo "✅ Tag push detected. Zip file created: ${{ github.event.repository.name }}-${{ env.tag_name }}.zip"
   
+    # Auto-sync dev branch with main after a successful release
+    sync-dev:
+      needs: build
+      runs-on: ubuntu-latest
+      if: github.ref == 'refs/heads/main'
+      steps:
+        - name: Check out repository
+          uses: actions/checkout@v3
+  
+        - name: Configure Git
+          run: |
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+  
+        - name: Sync main to dev
+          run: |
+            git fetch origin
+            git checkout dev
+            git merge origin/main --no-ff -m "🔄 Sync main to dev"
+            git push origin dev
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
