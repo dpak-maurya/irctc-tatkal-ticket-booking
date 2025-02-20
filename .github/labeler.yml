@@ -1,15 +1,33 @@
-chrome-extension: ["chrome-extension/**"]
+chrome-extension:
+  - "chrome-extension/**"
 
-react-app: ["react-app/**"]
+react-app:
+  - "react-app/**"
 
-feature: ["**/features/**", "**/new/**"]
+feature:
+  - "**/features/**"
+  - "**/new/**"
 
-bug: ["**/bugfix/**", "**/*.fix.js"]
+bug:
+  - "**/bugfix/**"
+  - "**/*.fix.js"
 
-ui: ["**/components/**", "**/*.css", "**/*.scss"]
+ui:
+  - "**/components/**"
+  - "**/*.css"
+  - "**/*.scss"
 
-refactor: ["**/refactor/**", "**/*.ref.js"]
+refactor:
+  - "**/refactor/**"
+  - "**/*.ref.js"
 
-docs: ["**/*.md", "docs/**"]
+docs:
+  - "**/*.md"
+  - "docs/**"
 
-config: ["package.json", "package-lock.json", "yarn.lock", "webpack.*.js", ".github/workflows/**"]
+config:
+  - "package.json"
+  - "package-lock.json"
+  - "yarn.lock"
+  - "webpack.*.js"
+  - ".github/workflows/**"
