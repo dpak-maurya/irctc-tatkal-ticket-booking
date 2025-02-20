@@ -1,9 +1,9 @@
 # 📁 Chrome Extension changes
-Chrome Extension:
+chrome-extension:
   - 'chrome-extension/**'
 
 # ⚛️ React App changes
-React App:
+react-app:
   - 'react-app/**'
 
 # 🚀 New Features
