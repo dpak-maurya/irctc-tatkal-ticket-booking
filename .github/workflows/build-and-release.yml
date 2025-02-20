@@ -1,53 +1,124 @@
 ---
-name: Build and Release
-on:
-  push:
-    tags:
-      - v*
-  release:
-    types:
-      - created
-  pull_request:
-    branches:
-      - main
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-      - name: Install dependencies
-        run: npm install
-      - name: Build Chrome Extension and React App
-        run: npm run build
-      - name: Get the Tag Name
-        id: get_tag
-        run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "tag_name=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          else
-            echo "tag_name=none" >> $GITHUB_ENV
-          fi
-      - name: Zip the dist folder
-        if: env.tag_name != 'none'
-        run: |
-          zip -r "${{ github.event.repository.name }}-${{ env.tag_name }}.zip" dist
-      - name: Upload Release Asset
-        if: github.event_name == 'release'
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./${{ github.event.repository.name }}-${{ env.tag_name }}.zip
-          asset_name: ${{ github.event.repository.name }}-${{ env.tag_name }}.zip
-          asset_content_type: application/zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Notify on Tag Push
-        if: startsWith(github.ref, 'refs/tags/')
-        run: >
-          echo "✅ Tag push detected. Zip file created: ${{ env.repo_name }}-${{
-          env.tag_name }}.zip"
+
+  name: Build and Release
+  
+  # Trigger the workflow on tag push, release creation, or PR to main
+  on:
+    push:
+      tags:
+        - v*
+    release:
+      types:
+        - created
+    pull_request:
+      branches:
+        - main
+  
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+      steps:
+        # Checkout the repository
+        - name: Check out the repository
+          uses: actions/checkout@v3
+  
+        # Cache Node.js modules for faster builds
+        - name: Cache Node.js modules
+          uses: actions/cache@v3
+          with:
+            path: ~/.npm
+            key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+            restore-keys: |
+              ${{ runner.os }}-node-
+  
+        # Set up Node.js environment
+        - name: Set up Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: "16"
+  
+        # Install project dependencies
+        - name: Install dependencies
+          run: npm install
+  
+        # Build Chrome Extension and React App
+        - name: Build Chrome Extension and React App
+          run: npm run build
+  
+        # Extract the tag name from the GitHub ref
+        - name: Get the Tag Name
+          id: get_tag
+          run: |
+            if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+              echo "tag_name=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+            else
+              echo "tag_name=none" >> $GITHUB_ENV
+            fi
+  
+        # Ensure dist folder exists after build
+        - name: Check if dist exists
+          if: env.tag_name != 'none'
+          run: |
+            if [ ! -d "dist" ]; then
+              echo "❌ dist folder not found. Build failed."
+              exit 1
+            fi
+  
+        # Zip the dist folder with repo name and tag
+        - name: Zip the dist folder
+          if: env.tag_name != 'none'
+          run: |
+            ZIP_NAME="${{ github.event.repository.name }}-${{ env.tag_name }}"
+            mv dist "$ZIP_NAME"
+            zip -r "$ZIP_NAME.zip" "$ZIP_NAME"
+  
+        # Create GitHub Release if a tag is pushed
+        - name: Create GitHub Release
+          if: startsWith(github.ref, 'refs/tags/')
+          uses: softprops/action-gh-release@v1
+          with:
+            tag_name: ${{ env.tag_name }}
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+        # Upload the zipped build as a release asset
+        - name: Upload Release Asset
+          if: github.event_name == 'release'
+          uses: actions/upload-release-asset@v1
+          with:
+            upload_url: ${{ github.event.release.upload_url }}
+            asset_path: ./${{ github.event.repository.name }}-${{ env.tag_name }}.zip
+            asset_name: ${{ github.event.repository.name }}-${{ env.tag_name }}.zip
+            asset_content_type: application/zip
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+        # Notify on successful tag push
+        - name: Notify on Tag Push
+          if: startsWith(github.ref, 'refs/tags/')
+          run: |
+            echo "✅ Tag push detected. Zip file created: ${{ github.event.repository.name }}-${{ env.tag_name }}.zip"
+  
+    # Auto-sync dev branch with main after a successful release
+    sync-dev:
+      needs: build
+      runs-on: ubuntu-latest
+      if: github.ref == 'refs/heads/main'
+      steps:
+        - name: Check out repository
+          uses: actions/checkout@v3
+  
+        - name: Configure Git
+          run: |
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+  
+        - name: Sync main to dev
+          run: |
+            git fetch origin
+            git checkout dev
+            git merge origin/main --no-ff -m "🔄 Sync main to dev"
+            git push origin dev
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
