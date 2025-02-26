@@ -1,4 +1,5 @@
 import Logger from './logger';
+import extractTextFromImage from './ocr-reader';
 
 
 let automationStatus = false;
@@ -24,6 +25,8 @@ let mobileNumber = '';
 let autoUpgradation = false;
 let confirmberths = false;
 let travelInsuranceOpted = 'yes';
+let autoSolveCaptcha = false;
+let autoSubmitCaptcha = false;
 
 const STORAGE_KEY = 'tatkalTicketBookingFormData';
 
@@ -50,7 +53,9 @@ const defaultSettings = {
   mobileNumber:'',
   autoUpgradation:false,
   confirmberths:false,
-  travelInsuranceOpted:'yes'
+  travelInsuranceOpted:'yes',
+  autoSolveCaptcha:false,
+  autoSubmitCaptcha:false
 };
 
 
@@ -213,22 +218,65 @@ async function simulateTyping(element, text) {
   // Trigger blur event to simulate losing focus
   element.dispatchEvent(new Event('blur', { bubbles: true }));
 }
-async function fillLoginCaptcha() {
-  // Find the captcha input element
+// async function fillLoginCaptcha() {
+//   // Find the captcha input element
+//   var captchaInput = document.querySelector(LOGIN_CAPTCHA_INPUT);
+
+//   // Scroll the captcha input field into view smoothly
+//   if (captchaInput) {
+//     await scrollToElement(captchaInput);
+//   }
+//   var captchaValue = prompt('Please enter the Captcha:');
+
+//   // Fill the captcha input field with the provided value
+//   if (captchaInput && captchaValue) {
+//     await simulateTyping(captchaInput, captchaValue);
+//     await delay(50);
+//   }
+// }
+
+async function fillLoginCaptcha(loginModal) {
+  // Wait for the captcha image to appear
+  await waitForElementToAppear(LOGIN_CAPTCHA_IMAGE);
+
+  // Find the captcha image and input field
+  var captchaImage = document.querySelector(LOGIN_CAPTCHA_IMAGE);
   var captchaInput = document.querySelector(LOGIN_CAPTCHA_INPUT);
 
-  // Scroll the captcha input field into view smoothly
-  if (captchaInput) {
-    await scrollToElement(captchaInput);
+  if (!captchaImage || !captchaInput) {
+      Logger.warn("Captcha image or input field not found!");
+      return;
   }
-  var captchaValue = prompt('Please enter the Captcha:');
 
-  // Fill the captcha input field with the provided value
-  if (captchaInput && captchaValue) {
-    await simulateTyping(captchaInput, captchaValue);
+  // Scroll the captcha input field into view smoothly
+  await scrollToElement(captchaInput);
+
+  Logger.info('autoSolveCaptcha,autoSubmitCaptcha',autoSolveCaptcha,autoSubmitCaptcha);
+  // Check if autoSolveCaptcha is enabled
+  if (autoSolveCaptcha) {
+    // Extract text from captcha image using OCR
+    let captchaText = await extractTextFromImage(captchaImage.src);
+    Logger.info("Captcha text:",captchaText);
+
+    // Fill the captcha input field with the extracted value
+    await simulateTyping(captchaInput, captchaText);
     await delay(50);
+    if (autoSubmitCaptcha) {
+      const signInButton = loginModal.querySelector('button[type="submit"]');
+      await signInButton.click();
+    }
+  } else {
+    // Prompt user with the extracted text (allowing edits)
+    let userInput = prompt("Please enter the Captcha:");
+    if (userInput) {
+        await simulateTyping(captchaInput, userInput);
+        await delay(50);
+        const signInButton = loginModal.querySelector('button[type="submit"]');
+        await signInButton.click();
+    }
   }
 }
+
 // Function to Login
 async function login() {
   let loginButton = document.querySelector(LOGIN_BUTTON);
@@ -247,9 +295,7 @@ async function login() {
   await simulateTyping(usernameInput, username);
   await simulateTyping(passwordInput, password);
   if(username && password){
-    await fillLoginCaptcha();
-    const signInButton = loginModal.querySelector('button[type="submit"]');
-    await signInButton.click();
+    await fillLoginCaptcha(loginModal);
   }
 }
 async function autoComplete(element, value) {
@@ -841,37 +887,99 @@ async function addPassengerInputAndContinue() {
    );
    Logger.info(endTime);
 }
+// async function handleCaptchaAndContinue() {
+//   await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
+//   // Find the captcha input element
+//   var captchaInput = document.getElementById(REVIEW_CAPTCHA_INPUT);
+
+//   // Scroll the captcha input field into view smoothly
+//   if (captchaInput) {
+//     await scrollToElement(captchaInput);
+//   }
+//   delay(100);
+//   // Prompt the user to enter the captcha value
+//   var trainHeader = document.querySelector(REVIEW_TRAIN_HEADER);
+//   var available = trainHeader.querySelector(REVIEW_AVAILABLE);
+//   var waitingList = trainHeader.querySelector(REVIEW_WAITING);
+//   var seatsAvailable = (available || waitingList)?.textContent;
+//   var captchaValue = prompt(
+//     'Current Seats Status: ' + seatsAvailable + '\nPlease enter the Captcha:'
+//   );
+
+//   // Fill the captcha input field with the provided value
+//   if (captchaInput && captchaValue) {
+//     await simulateTyping(captchaInput, captchaValue);
+//     await delay(50);
+//   }
+
+//   // Find the "Continue" button
+//   var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
+
+//   // Click the "Continue" button
+//   if (continueButton) {
+//     await continueButton.click();
+//   }
+// }
 async function handleCaptchaAndContinue() {
   await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
-  // Find the captcha input element
+  // Find the captcha input element and image
   var captchaInput = document.getElementById(REVIEW_CAPTCHA_INPUT);
+  var captchaImage = document.querySelector(REVIEW_CAPTCHA_IMAGE);
+
+  if (!captchaImage || !captchaInput) {
+    Logger.warn("Captcha image or input field not found!");
+    return;
+  }
 
   // Scroll the captcha input field into view smoothly
-  if (captchaInput) {
-    await scrollToElement(captchaInput);
-  }
-  delay(100);
-  // Prompt the user to enter the captcha value
-  var trainHeader = document.querySelector(REVIEW_TRAIN_HEADER);
-  var available = trainHeader.querySelector(REVIEW_AVAILABLE);
-  var waitingList = trainHeader.querySelector(REVIEW_WAITING);
-  var seatsAvailable = (available || waitingList)?.textContent;
-  var captchaValue = prompt(
-    'Current Seats Status: ' + seatsAvailable + '\nPlease enter the Captcha:'
-  );
+  await scrollToElement(captchaInput);
+  
+  await delay(100);
 
-  // Fill the captcha input field with the provided value
-  if (captchaInput && captchaValue) {
-    await simulateTyping(captchaInput, captchaValue);
+  // Check if autoSolveCaptcha is enabled
+  if (autoSolveCaptcha) {
+    // Extract text from captcha image using OCR
+    let captchaText = await extractTextFromImage(captchaImage.src);
+    Logger.info("Review Captcha text:",captchaText);
+
+    // Fill the captcha input field with the extracted value
+    await simulateTyping(captchaInput, captchaText);
     await delay(50);
-  }
 
-  // Find the "Continue" button
-  var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
+    // Check if autoSubmitCaptcha is enabled
+    if (autoSubmitCaptcha) {
+      // Find the "Continue" button
+      var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
 
-  // Click the "Continue" button
-  if (continueButton) {
-    await continueButton.click();
+      // Click the "Continue" button
+      if (continueButton) {
+        await continueButton.click();
+      }
+    }
+  } else {
+    // Prompt the user to enter the captcha value
+    var trainHeader = document.querySelector(REVIEW_TRAIN_HEADER);
+    var available = trainHeader.querySelector(REVIEW_AVAILABLE);
+    var waitingList = trainHeader.querySelector(REVIEW_WAITING);
+    var seatsAvailable = (available || waitingList)?.textContent;
+
+    var captchaValue = prompt(
+      'Current Seats Status: ' + seatsAvailable + '\nPlease enter the Captcha:'
+    );
+
+    // Fill the captcha input field with the provided value
+    if (captchaValue) {
+      await simulateTyping(captchaInput, captchaValue);
+      await delay(50);
+
+      // Find the "Continue" button
+      var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
+
+      // Click the "Continue" button
+      if (continueButton) {
+        await continueButton.click();
+      }
+    }
   }
 }
 async function selectPaymentMethod() {
@@ -1018,6 +1126,8 @@ function getSettings() {
     autoUpgradation = items.autoUpgradation;
     confirmberths = items.confirmberths;
     travelInsuranceOpted = items.travelInsuranceOpted;
+    autoSolveCaptcha = items.autoSolveCaptcha;
+    autoSubmitCaptcha = items.autoSubmitCaptcha;
   });
 }
 function getAutomationStatus() {

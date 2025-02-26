@@ -14,7 +14,7 @@
     }
   ],
   "permissions": ["storage"],
-  "host_permissions": ["https://www.irctc.co.in/*"],
+  "host_permissions": ["https://www.irctc.co.in/*","https://api.ocr.space/*"],
   "action": {
     "default_icon": {
       "16": "assets/icon-16.png",
