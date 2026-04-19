@@ -1,26 +1,41 @@
 import { LOGIN_SELECTORS } from './domSelectors';
 import { scrollToElement } from './elementUtils';
 import { delay, simulateTyping, waitForElementToAppear } from './utils';
-import logger from './logger';
+import Logger from './logger';
 
 import { username, password } from './storage';
+import extractTextFromImage from './ocr-reader';
 
 async function fillLoginCaptcha() {
-    // Find the captcha input element
-    var captchaInput = document.querySelector(LOGIN_SELECTORS.LOGIN_CAPTCHA_INPUT);
-  
-    // Scroll the captcha input field into view smoothly
-    if (captchaInput) {
-      await scrollToElement(captchaInput);
-    }
-    var captchaValue = prompt('Please enter the Captcha:');
-  
-    // Fill the captcha input field with the provided value
-    if (captchaInput && captchaValue) {
-      await simulateTyping(captchaInput, captchaValue);
-      await delay(50);
-    }
+  // Wait for the captcha image to appear
+  await waitForElementToAppear(LOGIN_SELECTORS.LOGIN_CAPTCHA_IMAGE);
+
+  // Find the captcha image and input field
+  var captchaImage = document.querySelector(LOGIN_SELECTORS.LOGIN_CAPTCHA_IMAGE);
+  var captchaInput = document.querySelector(LOGIN_SELECTORS.LOGIN_CAPTCHA_INPUT);
+
+  if (!captchaImage || !captchaInput) {
+      Logger.warn("Captcha image or input field not found!");
+      return;
   }
+
+  // Scroll the captcha input field into view smoothly
+  await scrollToElement(captchaInput);
+
+  // Extract text from captcha image using OCR
+  let captchaText = await extractTextFromImage(captchaImage.src);
+  Logger.info("Captcha text:",captchaText);
+  
+  // Prompt user with the extracted text (allowing edits)
+  let userInput = prompt("Please enter the Captcha:", captchaText);
+
+  // Fill the captcha input field with the user-confirmed value
+  if (userInput) {
+      await simulateTyping(captchaInput, userInput);
+      await delay(50);
+  }
+}
+
 
 // Function to Login
 async function login() {
@@ -64,7 +79,7 @@ async function waitForAppLoginToDisappear() {
         // Check if the app-login element is still in the DOM
         if (!document.contains(appLogin)) {
           // If the app-login element has been removed, resolve the promise
-          logger.info('app-login disappear');
+          Logger.info('app-login disappear');
           resolve();
           // Disconnect the observer
           observer.disconnect();
