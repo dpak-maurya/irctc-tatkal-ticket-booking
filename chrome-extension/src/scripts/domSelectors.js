@@ -22,7 +22,7 @@ export const JOURNEY_SELECTORS = {
     JOURNEY_QUOTA_LIST: '#journeyQuota p-dropdownitem span',
     JOURNEY_DATE: '#jDate input',
     CURRENT_TIME: 'app-header .h_head1>span strong',
-    JOURNEY_SEARCH_BUTTON: 'button[type="submit"][label="Find Trains"].search_btn.train_Search',
+    JOURNEY_SEARCH_BUTTON: 'app-jp-input button[type="submit"].search_btn',
 };
 
 // Modify Search Train Elements

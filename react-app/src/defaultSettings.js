@@ -22,6 +22,8 @@ const defaultSettings = {
     passengerNames: [],
     masterData: false,
     passengerList: [],
+    autoSolveCaptcha:false,
+    autoSubmitCaptcha:false
   };
 
 export default defaultSettings;
