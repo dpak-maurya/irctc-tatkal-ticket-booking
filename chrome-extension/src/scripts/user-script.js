@@ -65,86 +65,178 @@ let isAvlEnquiryCompleted = false;
 let mutationCompletionCounter = 0;
 let copyPassengerNames = '';
 
-const APP_HEADER = 'app-header';
+// --- DOM Selectors (overridable via Selector Editor in options page) ---
+
+let APP_HEADER = 'app-header';
 
 // Login Element 
-const LOGIN_BUTTON = 'app-header a.loginText';
-const LOGIN_COMPONENT = 'app-login';
-const LOGIN_USERID = 'input[formcontrolname="userid"]';
-const LOGIN_PASSWORD = 'input[formcontrolname="password"]';
-const LOGIN_CAPTCHA_IMAGE = 'app-captcha .captcha-img';
-const LOGIN_CAPTCHA_INPUT = 'app-captcha #captcha';
+let LOGIN_BUTTON = 'app-header a.loginText';
+let LOGIN_COMPONENT = 'app-login';
+let LOGIN_USERID = 'input[formcontrolname="userid"]';
+let LOGIN_PASSWORD = 'input[formcontrolname="password"]';
+let LOGIN_CAPTCHA_IMAGE = 'app-captcha .captcha-img';
+let LOGIN_CAPTCHA_INPUT = 'app-captcha #captcha';
 
 // Search Journey Element
-const JOURNEY_INPUT_COMPONENT = 'app-jp-input';
-const ORIGIN_STATION_CODE = '#origin input';
-const DESTINATION_STATION_CODE = '#destination input';
-const STATION_CODE_LIST = '.ui-autocomplete-items li';
-const JOURNEY_QUOTA = '#journeyQuota>div';
-const JOURNEY_QUOTA_LIST = '#journeyQuota p-dropdownitem span';
-const JOURNEY_DATE = '#jDate input';
-const CURRENT_TIME = 'app-header .h_head1>span strong';
-const JOURNEY_SEARCH_BUTTON = 'button[type="submit"][label="Find Trains"].search_btn.train_Search';
+let JOURNEY_INPUT_COMPONENT = 'app-jp-input';
+let ORIGIN_STATION_CODE = '#origin input';
+let DESTINATION_STATION_CODE = '#destination input';
+let STATION_CODE_LIST = '.ui-autocomplete-items li';
+let JOURNEY_QUOTA = '#journeyQuota>div';
+let JOURNEY_QUOTA_LIST = '#journeyQuota p-dropdownitem span';
+let JOURNEY_DATE = '#jDate input';
+let CURRENT_TIME = 'app-header .h_head1>span strong';
+let JOURNEY_SEARCH_BUTTON = 'app-jp-input button[type="submit"].search_btn';
 
 // Modify Search Train Element 
-const MODIFY_SEARCH_COMPONENT = 'app-modify-search';
-const MODIFY_JOURNEY_DATE = '#journeyDate input';
+let MODIFY_SEARCH_COMPONENT = 'app-modify-search';
+let MODIFY_JOURNEY_DATE = '#journeyDate input';
 
 // TRAIN LIST 
-const TRAIN_LIST_COMPONENT = 'app-train-list';
-const TRAIN_COMPONENT = 'app-train-avl-enq';
-const FIND_TRAIN_NUMBER = 'app-train-avl-enq .train-heading';
-const AVAILABLE_CLASS = '.pre-avl';
-const SELECTED_CLASS_TAB = 'p-tabmenu li[role="tab"][aria-selected="true"][aria-expanded="true"] a>div';
-const BOOK_NOW_BUTTON = 'button.btnDefault.train_Search';
-const BUTTON_DISABLE_CLASS = 'disable-book';
-const LINK_INSERTED = '.link.ng-star-inserted';
+let TRAIN_LIST_COMPONENT = 'app-train-list';
+let TRAIN_COMPONENT = 'app-train-avl-enq';
+let FIND_TRAIN_NUMBER = 'app-train-avl-enq .train-heading';
+let AVAILABLE_CLASS = '.pre-avl';
+let SELECTED_CLASS_TAB = 'p-tabmenu li[role="tab"][aria-selected="true"][aria-expanded="true"] a>div';
+let BOOK_NOW_BUTTON = 'button.btnDefault.train_Search';
+let BUTTON_DISABLE_CLASS = 'disable-book';
+let LINK_INSERTED = '.link.ng-star-inserted';
 
 // POP UP
-const DIALOG_FROM = 'p-confirmdialog[key="tofrom"]';
-const DIALOG_ACCEPT = '.ui-confirmdialog-acceptbutton';
+let DIALOG_FROM = 'p-confirmdialog[key="tofrom"]';
+let DIALOG_ACCEPT = '.ui-confirmdialog-acceptbutton';
 
 // Pasenger Input
-const PASSENGER_APP_COMPONENT = 'app-passenger-input';
-const PASSENGER_COMPONENT = 'app-passenger';
-const PASSENGER_NEXT_ROW = 'app-passenger-input p-panel .prenext';
-const PASSENGER_NEXT_ROW_TEXT = '+ Add Passenger';
-const PASSENGER_REMOVE_ROW = 'app-passenger-input p-panel a.fa-remove';
-const PASSENGER_INPUT_COMPONENT = 'app-passenger-input';
-const PASSENGER_NAME_INPUT = 'p-autocomplete input';
-const PASSENGER_NAME_LIST = '.ui-autocomplete-items li';
-const PASSENGER_AGE_INPUT = 'input[formcontrolname="passengerAge"]';
-const PASSENGER_GENDER_INPUT = 'select[formcontrolname="passengerGender"]';
-const PASSENGER_BERTH_CHOICE = 'select[formcontrolname="passengerBerthChoice"]';
-const PASSENGER_FOOD_CHOICE = 'select[formcontrolname="passengerFoodChoice"]';
-const PASSENGER_MOBILE_NUMBER = 'mobileNumber';
-const PASSENGER_PREFERENCE_AUTOUPGRADATION = 'autoUpgradation';
-const PASSENGER_PREFERENCE_CONFIRMBERTHS = 'confirmberths';
-const PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = 'input[type="radio"][name="travelInsuranceOpted-0"]';
-const PASSENGER_SUBMIT_BUTTON = 'app-passenger-input button.btnDefault.train_Search';
+let PASSENGER_APP_COMPONENT = 'app-passenger-input';
+let PASSENGER_COMPONENT = 'app-passenger';
+let PASSENGER_NEXT_ROW = 'app-passenger-input p-panel .prenext';
+let PASSENGER_NEXT_ROW_TEXT = '+ Add Passenger';
+let PASSENGER_REMOVE_ROW = 'app-passenger-input p-panel a.fa-remove';
+let PASSENGER_INPUT_COMPONENT = 'app-passenger-input';
+let PASSENGER_NAME_INPUT = 'p-autocomplete input';
+let PASSENGER_NAME_LIST = '.ui-autocomplete-items li';
+let PASSENGER_AGE_INPUT = 'input[formcontrolname="passengerAge"]';
+let PASSENGER_GENDER_INPUT = 'select[formcontrolname="passengerGender"]';
+let PASSENGER_BERTH_CHOICE = 'select[formcontrolname="passengerBerthChoice"]';
+let PASSENGER_FOOD_CHOICE = 'select[formcontrolname="passengerFoodChoice"]';
+let PASSENGER_MOBILE_NUMBER = 'mobileNumber';
+let PASSENGER_PREFERENCE_AUTOUPGRADATION = 'autoUpgradation';
+let PASSENGER_PREFERENCE_CONFIRMBERTHS = 'confirmberths';
+let PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = 'input[type="radio"][name="travelInsuranceOpted-0"]';
+let PASSENGER_SUBMIT_BUTTON = 'app-passenger-input button.btnDefault.train_Search';
 
 // Review Ticket and Fill Captcha
-const REVIEW_COMPONENT = 'app-review-booking';
-const REVIEW_TRAIN_HEADER = 'app-train-header';
-const REVIEW_CAPTCHA_IMAGE = 'app-captcha .captcha-img';
-const REVIEW_CAPTCHA_INPUT = 'captcha';
-const REVIEW_AVAILABLE = '.AVAILABLE';
-const REVIEW_WAITING = '.WL';
-const REVIEW_SUBMIT_BUTTON = 'app-review-booking button.btnDefault.train_Search';
+let REVIEW_COMPONENT = 'app-review-booking';
+let REVIEW_TRAIN_HEADER = 'app-train-header';
+let REVIEW_CAPTCHA_IMAGE = 'app-captcha .captcha-img';
+let REVIEW_CAPTCHA_INPUT = 'captcha';
+let REVIEW_AVAILABLE = '.AVAILABLE';
+let REVIEW_WAITING = '.WL';
+let REVIEW_SUBMIT_BUTTON = 'app-review-booking button.btnDefault.train_Search';
 
 // Payment Details
-const PAYEMENT_COMPONENT = 'app-payment-options';
-const PAYMENT_TYPE = 'input[type="radio"][name="paymentType"]';
-const PAYMENT_METHOD = '.bank-type.ng-star-inserted';
-const PAYMENT_PROVIDER = '.bank-text';
-const PAY_BUTTON ='.btn-primary.ng-star-inserted';
-const PAY_BUTTON_TEXT = 'Pay & Book ';
+let PAYEMENT_COMPONENT = 'app-payment-options';
+let PAYMENT_TYPE = 'input[type="radio"][name="paymentType"]';
+let PAYMENT_METHOD = '.bank-type.ng-star-inserted';
+let PAYMENT_PROVIDER = '.bank-text';
+let PAY_BUTTON ='.btn-primary.ng-star-inserted';
+let PAY_BUTTON_TEXT = 'Pay & Book ';
 
 
-const EWALLET_IRCTC_DEFAULT = 'IRCTC eWallet';
-const EWALLET_COMPONENT = 'app-ewallet-confirm';
-const EWALLET_BUTTON_LIST = 'button.mob-bot-btn.search_btn';
-const EWALLET_CONFIRM_BUTTON_TEXT = 'CONFIRM';
+let EWALLET_IRCTC_DEFAULT = 'IRCTC eWallet';
+let EWALLET_COMPONENT = 'app-ewallet-confirm';
+let EWALLET_BUTTON_LIST = 'button.mob-bot-btn.search_btn';
+let EWALLET_CONFIRM_BUTTON_TEXT = 'CONFIRM';
+
+// --- Selector Override System ---
+// Loads user-customized selectors from chrome.storage and applies them
+// This allows users to fix broken selectors when IRCTC changes their HTML
+
+const CUSTOM_SELECTORS_STORAGE_KEY = 'customDomSelectors';
+
+const SELECTOR_VAR_MAP = {
+  APP_HEADER: (v) => { APP_HEADER = v; },
+  LOGIN_BUTTON: (v) => { LOGIN_BUTTON = v; },
+  LOGIN_COMPONENT: (v) => { LOGIN_COMPONENT = v; },
+  LOGIN_USERID: (v) => { LOGIN_USERID = v; },
+  LOGIN_PASSWORD: (v) => { LOGIN_PASSWORD = v; },
+  LOGIN_CAPTCHA_IMAGE: (v) => { LOGIN_CAPTCHA_IMAGE = v; },
+  LOGIN_CAPTCHA_INPUT: (v) => { LOGIN_CAPTCHA_INPUT = v; },
+  JOURNEY_INPUT_COMPONENT: (v) => { JOURNEY_INPUT_COMPONENT = v; },
+  ORIGIN_STATION_CODE: (v) => { ORIGIN_STATION_CODE = v; },
+  DESTINATION_STATION_CODE: (v) => { DESTINATION_STATION_CODE = v; },
+  STATION_CODE_LIST: (v) => { STATION_CODE_LIST = v; },
+  JOURNEY_QUOTA: (v) => { JOURNEY_QUOTA = v; },
+  JOURNEY_QUOTA_LIST: (v) => { JOURNEY_QUOTA_LIST = v; },
+  JOURNEY_DATE: (v) => { JOURNEY_DATE = v; },
+  CURRENT_TIME: (v) => { CURRENT_TIME = v; },
+  JOURNEY_SEARCH_BUTTON: (v) => { JOURNEY_SEARCH_BUTTON = v; },
+  MODIFY_SEARCH_COMPONENT: (v) => { MODIFY_SEARCH_COMPONENT = v; },
+  MODIFY_JOURNEY_DATE: (v) => { MODIFY_JOURNEY_DATE = v; },
+  TRAIN_LIST_COMPONENT: (v) => { TRAIN_LIST_COMPONENT = v; },
+  TRAIN_COMPONENT: (v) => { TRAIN_COMPONENT = v; },
+  FIND_TRAIN_NUMBER: (v) => { FIND_TRAIN_NUMBER = v; },
+  AVAILABLE_CLASS: (v) => { AVAILABLE_CLASS = v; },
+  SELECTED_CLASS_TAB: (v) => { SELECTED_CLASS_TAB = v; },
+  BOOK_NOW_BUTTON: (v) => { BOOK_NOW_BUTTON = v; },
+  BUTTON_DISABLE_CLASS: (v) => { BUTTON_DISABLE_CLASS = v; },
+  LINK_INSERTED: (v) => { LINK_INSERTED = v; },
+  DIALOG_FROM: (v) => { DIALOG_FROM = v; },
+  DIALOG_ACCEPT: (v) => { DIALOG_ACCEPT = v; },
+  PASSENGER_APP_COMPONENT: (v) => { PASSENGER_APP_COMPONENT = v; },
+  PASSENGER_COMPONENT: (v) => { PASSENGER_COMPONENT = v; },
+  PASSENGER_NEXT_ROW: (v) => { PASSENGER_NEXT_ROW = v; },
+  PASSENGER_NEXT_ROW_TEXT: (v) => { PASSENGER_NEXT_ROW_TEXT = v; },
+  PASSENGER_REMOVE_ROW: (v) => { PASSENGER_REMOVE_ROW = v; },
+  PASSENGER_INPUT_COMPONENT: (v) => { PASSENGER_INPUT_COMPONENT = v; },
+  PASSENGER_NAME_INPUT: (v) => { PASSENGER_NAME_INPUT = v; },
+  PASSENGER_NAME_LIST: (v) => { PASSENGER_NAME_LIST = v; },
+  PASSENGER_AGE_INPUT: (v) => { PASSENGER_AGE_INPUT = v; },
+  PASSENGER_GENDER_INPUT: (v) => { PASSENGER_GENDER_INPUT = v; },
+  PASSENGER_BERTH_CHOICE: (v) => { PASSENGER_BERTH_CHOICE = v; },
+  PASSENGER_FOOD_CHOICE: (v) => { PASSENGER_FOOD_CHOICE = v; },
+  PASSENGER_MOBILE_NUMBER: (v) => { PASSENGER_MOBILE_NUMBER = v; },
+  PASSENGER_PREFERENCE_AUTOUPGRADATION: (v) => { PASSENGER_PREFERENCE_AUTOUPGRADATION = v; },
+  PASSENGER_PREFERENCE_CONFIRMBERTHS: (v) => { PASSENGER_PREFERENCE_CONFIRMBERTHS = v; },
+  PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED: (v) => { PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = v; },
+  PASSENGER_SUBMIT_BUTTON: (v) => { PASSENGER_SUBMIT_BUTTON = v; },
+  REVIEW_COMPONENT: (v) => { REVIEW_COMPONENT = v; },
+  REVIEW_TRAIN_HEADER: (v) => { REVIEW_TRAIN_HEADER = v; },
+  REVIEW_CAPTCHA_IMAGE: (v) => { REVIEW_CAPTCHA_IMAGE = v; },
+  REVIEW_CAPTCHA_INPUT: (v) => { REVIEW_CAPTCHA_INPUT = v; },
+  REVIEW_AVAILABLE: (v) => { REVIEW_AVAILABLE = v; },
+  REVIEW_WAITING: (v) => { REVIEW_WAITING = v; },
+  REVIEW_SUBMIT_BUTTON: (v) => { REVIEW_SUBMIT_BUTTON = v; },
+  PAYEMENT_COMPONENT: (v) => { PAYEMENT_COMPONENT = v; },
+  PAYMENT_TYPE: (v) => { PAYMENT_TYPE = v; },
+  PAYMENT_METHOD: (v) => { PAYMENT_METHOD = v; },
+  PAYMENT_PROVIDER: (v) => { PAYMENT_PROVIDER = v; },
+  PAY_BUTTON: (v) => { PAY_BUTTON = v; },
+  PAY_BUTTON_TEXT: (v) => { PAY_BUTTON_TEXT = v; },
+  EWALLET_IRCTC_DEFAULT: (v) => { EWALLET_IRCTC_DEFAULT = v; },
+  EWALLET_COMPONENT: (v) => { EWALLET_COMPONENT = v; },
+  EWALLET_BUTTON_LIST: (v) => { EWALLET_BUTTON_LIST = v; },
+  EWALLET_CONFIRM_BUTTON_TEXT: (v) => { EWALLET_CONFIRM_BUTTON_TEXT = v; },
+};
+
+async function loadSelectorOverrides() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(CUSTOM_SELECTORS_STORAGE_KEY, (result) => {
+      const overrides = result[CUSTOM_SELECTORS_STORAGE_KEY] || {};
+      const overrideKeys = Object.keys(overrides);
+      if (overrideKeys.length > 0) {
+        Logger.info('Loading selector overrides:', overrideKeys);
+        for (const key of overrideKeys) {
+          if (SELECTOR_VAR_MAP[key] && overrides[key]) {
+            Logger.info(`Applying override for ${key}:`, overrides[key]);
+            SELECTOR_VAR_MAP[key](overrides[key]);
+          }
+        }
+      }
+      resolve();
+    });
+  });
+}
 
 // Enable/disable logging based on storage setting
 chrome.storage.local.get('debugMode', function(result) {
@@ -156,23 +248,41 @@ chrome.storage.local.get('debugMode', function(result) {
 });
 
 // Define a function to wait for an element to appear on the page
-async function waitForElementToAppear(selector) {
-  if(intervalId) clearInterval(intervalId);
-  const startTime = new Date();
+async function waitForElementToAppear(selector, timeoutMs = 0) {
+  Logger.info('Waiting for element:', selector, timeoutMs > 0 ? `(timeout: ${timeoutMs}ms)` : '');
+  const startTime = Date.now();
+  
   return new Promise((resolve) => {
     const interval = setInterval(() => {
-      const element = document.querySelector(selector);
-      if (element) {
+      try {
+        if (!selector || typeof selector !== 'string') {
+          Logger.error('Invalid selector passed to waitForElementToAppear:', selector);
+          clearInterval(interval);
+          resolve(false);
+          return;
+        }
+        
+        const element = document.querySelector(selector);
+        if (element) {
+          clearInterval(interval);
+          const endTime = Date.now();
+          Logger.info(
+            'Element loaded:',
+            selector,
+            'Time taken:',
+            endTime - startTime,
+            'ms'
+          );
+          resolve(true);
+        } else if (timeoutMs > 0 && (Date.now() - startTime) > timeoutMs) {
+          clearInterval(interval);
+          Logger.info('Wait timed out for element:', selector);
+          resolve(false);
+        }
+      } catch (e) {
+        Logger.error('Error in waitForElementToAppear interval:', e);
         clearInterval(interval);
-        const endTime = new Date();
-        Logger.info(
-          'Element loaded:',
-          selector,
-          'Time taken:',
-          endTime - startTime,
-          'ms'
-        );
-        resolve();
+        resolve(false);
       }
     }, 500);
   });
@@ -203,19 +313,26 @@ function scrollToElement(element) {
 async function simulateTyping(element, text) {
   if (!element) return;
 
-  // Trigger compositionstart event
-  element.dispatchEvent(new Event('compositionstart', { bubbles: true }));
+  // Focus the element first — Angular may not process events on unfocused elements
+  element.focus();
+  await delay(50);
 
-  // Set the value of the input field
-  element.value = text;
+  // Use the native HTMLInputElement setter to bypass Angular's property interception.
+  // Angular overrides the 'value' property on form inputs; using the native setter
+  // ensures the DOM value is set cleanly before we dispatch events.
+  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype, 'value'
+  ).set;
+  nativeInputValueSetter.call(element, text);
 
-  // Trigger input event
+  // Dispatch 'input' event — Angular's DefaultValueAccessor listens for this
+  // to update the reactive form model. No composition events needed.
   element.dispatchEvent(new Event('input', { bubbles: true }));
 
-  // Trigger compositionend event
-  element.dispatchEvent(new Event('compositionend', { bubbles: true }));
+  // Dispatch 'change' event as a fallback for non-reactive form listeners
+  element.dispatchEvent(new Event('change', { bubbles: true }));
 
-  // Trigger blur event to simulate losing focus
+  // Trigger blur to finalize and trigger validation
   element.dispatchEvent(new Event('blur', { bubbles: true }));
 }
 // async function fillLoginCaptcha() {
@@ -283,19 +400,50 @@ async function login() {
   if(loginButton){
     await loginButton.click();
   }
+  
+  // Wait for the login component and specific input field to be present
   await waitForElementToAppear(LOGIN_COMPONENT);
-  await waitForElementToAppear(LOGIN_CAPTCHA_IMAGE);
+  const userFieldFound = await waitForElementToAppear(LOGIN_USERID, 5000);
+  
+  if (!userFieldFound) {
+    Logger.error('Login UserID field not found within 5 seconds. Check selector:', LOGIN_USERID);
+    return;
+  }
+  
+  await delay(200); // Give Angular a moment to stabilize the form
 
   let loginModal = document.querySelector(LOGIN_COMPONENT);
-
-  if (!loginModal) return;
+  if (!loginModal) {
+    Logger.error('Login modal not found after wait');
+    return;
+  }
 
   const usernameInput = loginModal.querySelector(LOGIN_USERID);
   const passwordInput = loginModal.querySelector(LOGIN_PASSWORD);
+
+  if (!usernameInput || !passwordInput) {
+    Logger.warn('Username or Password input not found inside the modal despite wait');
+    return;
+  }
+
+  Logger.info('Filling credentials. User:', username, 'Password provided:', !!password);
   await simulateTyping(usernameInput, username);
   await simulateTyping(passwordInput, password);
+
   if(username && password){
-    await fillLoginCaptcha(loginModal);
+    // NOW wait for captcha after credentials are typed with a 2-second timeout
+    // In off-peak hours, IRCTC sometimes doesn't show a captcha
+    const captchaAppeared = await waitForElementToAppear(LOGIN_CAPTCHA_IMAGE, 2000);
+    
+    if (captchaAppeared) {
+      await fillLoginCaptcha(loginModal);
+    } else {
+      Logger.info('No login captcha detected after 2s. Proceeding directly to sign in.');
+      const signInButton = loginModal.querySelector('button[type="submit"]');
+      if (signInButton) {
+        await signInButton.click();
+      }
+    }
   }
 }
 async function autoComplete(element, value) {
@@ -1088,46 +1236,50 @@ function waitForTargetTime(targetTimeString) {
       if (searchButton) {
         searchButton.click();
       } else {
-        Logger.warn('Search button not found.');
+        Logger.warn('Search button not found using selector:', JOURNEY_SEARCH_BUTTON);
       }
       clearInterval(intervalId); // Stop the interval once the action is triggered
     }
   }, 1000); // Interval set to 1 second (1000 milliseconds)
 }
-function getSettings() {
-  chrome.storage.local.get(STORAGE_KEY, function (result) {
-    if (chrome.runtime.lastError) {
-      Logger.error("Error retrieving settings:", chrome.runtime.lastError);
-      return;
-    }
+async function getSettings() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(STORAGE_KEY, function (result) {
+      if (chrome.runtime.lastError) {
+        Logger.error("Error retrieving settings:", chrome.runtime.lastError);
+        resolve(); // Resolve anyway to not hang
+        return;
+      }
 
-    const items = result[STORAGE_KEY] || defaultSettings;
-    Logger.info('Settings loaded:', items);
-    // Now 'items' will contain all the settings, either retrieved from storage or the defaults
-    username = items.username;
-    password = items.password;
-    targetTime = items.targetTime;
-    passengerList = items.passengerList;
-    masterData = items.masterData;
-    passengerNames = items.passengerNames;
-    trainNumber = items.trainNumber;
-    from = items.from;
-    to = items.to;
-    quotaType = items.quotaType;
-    accommodationClass = items.accommodationClass;
-    dateString = new Date(items.dateString).toLocaleDateString('en-GB');
-    refreshTime = items.refreshTime;
-    autoPay = items.autoPay;
-    paymentType = items.paymentType;
-    paymentMethod = items.paymentMethod;
-    paymentProvider = items.paymentProvider;
-    autoProcessPopup = items.autoProcessPopup;
-    mobileNumber = items.mobileNumber;
-    autoUpgradation = items.autoUpgradation;
-    confirmberths = items.confirmberths;
-    travelInsuranceOpted = items.travelInsuranceOpted;
-    autoSolveCaptcha = items.autoSolveCaptcha;
-    autoSubmitCaptcha = items.autoSubmitCaptcha;
+      const items = result[STORAGE_KEY] || defaultSettings;
+      Logger.info('Settings loaded:', items);
+      // Now 'items' will contain all the settings, either retrieved from storage or the defaults
+      username = items.username;
+      password = items.password;
+      targetTime = items.targetTime;
+      passengerList = items.passengerList;
+      masterData = items.masterData;
+      passengerNames = items.passengerNames;
+      trainNumber = items.trainNumber;
+      from = items.from;
+      to = items.to;
+      quotaType = items.quotaType;
+      accommodationClass = items.accommodationClass;
+      dateString = new Date(items.dateString).toLocaleDateString('en-GB');
+      refreshTime = items.refreshTime;
+      autoPay = items.autoPay;
+      paymentType = items.paymentType;
+      paymentMethod = items.paymentMethod;
+      paymentProvider = items.paymentProvider;
+      autoProcessPopup = items.autoProcessPopup;
+      mobileNumber = items.mobileNumber;
+      autoUpgradation = items.autoUpgradation;
+      confirmberths = items.confirmberths;
+      travelInsuranceOpted = items.travelInsuranceOpted;
+      autoSolveCaptcha = items.autoSolveCaptcha;
+      autoSubmitCaptcha = items.autoSubmitCaptcha;
+      resolve();
+    });
   });
 }
 function getAutomationStatus() {
@@ -1152,8 +1304,12 @@ async function executeFunctions() {
     const currentAutomationStatus = await getAutomationStatus();
     Logger.info('Automation status:', currentAutomationStatus);
     if (!currentAutomationStatus) return;
+
+    // Load any user-customized DOM selectors before automation begins
+    await loadSelectorOverrides();
+
     // read the passenger information for ticket booking
-    getSettings();
+    await getSettings();
 
     // wait for home page to load
     await waitForElementToAppear(APP_HEADER);
