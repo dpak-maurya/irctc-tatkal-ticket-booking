@@ -2,17 +2,17 @@
 
   name: Build and Release
   
-  # Trigger the workflow on tag push, release creation, or PR to main
+  # Trigger the workflow on tag push or PR to main
   on:
     push:
       tags:
         - v*
-    release:
-      types:
-        - created
     pull_request:
       branches:
         - main
+
+  permissions:
+    contents: write
   
   jobs:
     build:
@@ -75,22 +75,11 @@
         # Create GitHub Release if a tag is pushed
         - name: Create GitHub Release
           if: startsWith(github.ref, 'refs/tags/')
-          uses: softprops/action-gh-release@v1
+          uses: softprops/action-gh-release@v2
           with:
             tag_name: ${{ env.tag_name }}
             generate_release_notes: true
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
-        # Upload the zipped build as a release asset
-        - name: Upload Release Asset
-          if: github.event_name == 'release'
-          uses: actions/upload-release-asset@v1
-          with:
-            upload_url: ${{ github.event.release.upload_url }}
-            asset_path: ./${{ github.event.repository.name }}-${{ env.tag_name }}.zip
-            asset_name: ${{ github.event.repository.name }}-${{ env.tag_name }}.zip
-            asset_content_type: application/zip
+            files: ./${{ github.event.repository.name }}-${{ env.tag_name }}.zip
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
@@ -99,4 +88,3 @@
           if: startsWith(github.ref, 'refs/tags/')
           run: |
             echo "✅ Tag push detected. Zip file created: ${{ github.event.repository.name }}-${{ env.tag_name }}.zip"
-
