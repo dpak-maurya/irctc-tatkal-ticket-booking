@@ -93,3 +93,6 @@ dist
 .pnp.*
 v*.zip
 
+chrome-extension/src/scripts/codesourcedebug.js
+chrome-extension/src/scripts/main-es2015.a4ef6179ca478a39096e.js
+chrome-extension/src/scripts/x5Y35zQwQC-sensorrequest
