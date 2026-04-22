@@ -18,7 +18,7 @@ let dateString = '';
 let refreshTime = 5000; // 5 seconds;
 let paymentType = 'BHIM/UPI'; // Rs 20 chargs for bhim/upi, Rs 30 for cards / net banking / wallets
 let paymentMethod = 'BHIM/ UPI/ USSD';   // or IRCTC eWallet
-let paymentProvider = 'PAYTM'; // paytm, amazon /  or IRCTC eWallet
+let paymentProvider = 'PAYTM'; // paytm, amazon 
 let autoPay = false;  // auto click on pay button
 let autoProcessPopup = false;
 let mobileNumber = '';
@@ -124,6 +124,7 @@ let PASSENGER_PREFERENCE_AUTOUPGRADATION = 'autoUpgradation';
 let PASSENGER_PREFERENCE_CONFIRMBERTHS = 'confirmberths';
 let PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = 'input[type="radio"][name="travelInsuranceOpted-0"]';
 let PASSENGER_SUBMIT_BUTTON = 'app-passenger-input button.btnDefault.train_Search';
+let PASSENGER_PAYMENT_TYPE = 'p-radiobutton[name="paymentType"] input';
 
 // Review Ticket and Fill Captcha
 let REVIEW_COMPONENT = 'app-review-booking';
@@ -135,15 +136,15 @@ let REVIEW_WAITING = '.WL';
 let REVIEW_SUBMIT_BUTTON = 'app-review-booking button.btnDefault.train_Search';
 
 // Payment Details
-let PAYEMENT_COMPONENT = 'app-payment-options';
-let PAYMENT_TYPE = 'input[type="radio"][name="paymentType"]';
-let PAYMENT_METHOD = '.bank-type.ng-star-inserted';
-let PAYMENT_PROVIDER = '.bank-text';
-let PAY_BUTTON ='.btn-primary.ng-star-inserted';
+let PAYMENT_COMPONENT = 'app-payment-options';
+let PAYMENT_TYPE = '#pay-type .bank-type';
+let PAYMENT_METHOD = '#pay-type .bank-type';
+let PAYMENT_PROVIDER = '#bank-type .bank-text, #bank-type .pay_tax_text';
+let PAY_BUTTON ='button.btn-primary.ng-star-inserted';
 let PAY_BUTTON_TEXT = 'Pay & Book ';
 
 
-let EWALLET_IRCTC_DEFAULT = 'IRCTC eWallet';
+let EWALLET_IRCTC_DEFAULT = 'E-Wallet';
 let EWALLET_COMPONENT = 'app-ewallet-confirm';
 let EWALLET_BUTTON_LIST = 'button.mob-bot-btn.search_btn';
 let EWALLET_CONFIRM_BUTTON_TEXT = 'CONFIRM';
@@ -200,6 +201,7 @@ const SELECTOR_VAR_MAP = {
   PASSENGER_PREFERENCE_CONFIRMBERTHS: (v) => { PASSENGER_PREFERENCE_CONFIRMBERTHS = v; },
   PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED: (v) => { PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = v; },
   PASSENGER_SUBMIT_BUTTON: (v) => { PASSENGER_SUBMIT_BUTTON = v; },
+  PASSENGER_PAYMENT_TYPE: (v) => { PASSENGER_PAYMENT_TYPE = v; },
   REVIEW_COMPONENT: (v) => { REVIEW_COMPONENT = v; },
   REVIEW_TRAIN_HEADER: (v) => { REVIEW_TRAIN_HEADER = v; },
   REVIEW_CAPTCHA_IMAGE: (v) => { REVIEW_CAPTCHA_IMAGE = v; },
@@ -207,7 +209,7 @@ const SELECTOR_VAR_MAP = {
   REVIEW_AVAILABLE: (v) => { REVIEW_AVAILABLE = v; },
   REVIEW_WAITING: (v) => { REVIEW_WAITING = v; },
   REVIEW_SUBMIT_BUTTON: (v) => { REVIEW_SUBMIT_BUTTON = v; },
-  PAYEMENT_COMPONENT: (v) => { PAYEMENT_COMPONENT = v; },
+  PAYMENT_COMPONENT: (v) => { PAYMENT_COMPONENT = v; },
   PAYMENT_TYPE: (v) => { PAYMENT_TYPE = v; },
   PAYMENT_METHOD: (v) => { PAYMENT_METHOD = v; },
   PAYMENT_PROVIDER: (v) => { PAYMENT_PROVIDER = v; },
@@ -299,6 +301,93 @@ function monthToNumber(month) {
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+// --- GHOST CURSOR UTILITIES ---
+window.virtualCursor = window.virtualCursor || { 
+  x: Math.random() * window.innerWidth, 
+  y: Math.random() * window.innerHeight,
+  isActive: false
+};
+
+async function moveMouseTo(element) {
+  if (!element) return;
+  window.virtualCursor.isActive = true;
+  
+  const rect = element.getBoundingClientRect();
+  
+  // Humans rarely click the exact dead-center pixel. Add a random offset 
+  // confined within the inner 60% of the element's bounding box.
+  const offsetX = (Math.random() - 0.5) * (rect.width * 0.6);
+  const offsetY = (Math.random() - 0.5) * (rect.height * 0.6);
+  
+  const targetX = rect.left + rect.width / 2 + offsetX;
+  const targetY = rect.top + rect.height / 2 + offsetY;
+  
+  const steps = 5;
+  const stepX = (targetX - window.virtualCursor.x) / steps;
+  const stepY = (targetY - window.virtualCursor.y) / steps;
+  
+  for (let i = 1; i <= steps; i++) {
+    window.virtualCursor.x += stepX + (Math.random() - 0.5) * 5; // slight jitter
+    window.virtualCursor.y += stepY + (Math.random() - 0.5) * 5;
+    
+    document.dispatchEvent(new MouseEvent('mousemove', {
+      view: window,
+      bubbles: true,
+      cancelable: true,
+      clientX: window.virtualCursor.x,
+      clientY: window.virtualCursor.y
+    }));
+    await delay(10);
+  }
+  
+  window.virtualCursor.x = targetX;
+  window.virtualCursor.y = targetY;
+  window.virtualCursor.isActive = false;
+}
+
+async function humanClick(element) {
+  if (!element) return;
+  await moveMouseTo(element);
+  
+  const eventOpts = {
+    view: window, bubbles: true, cancelable: true,
+    clientX: window.virtualCursor.x, clientY: window.virtualCursor.y
+  };
+  
+  element.dispatchEvent(new MouseEvent('mouseover', eventOpts));
+  await delay(10);
+  element.dispatchEvent(new MouseEvent('mousedown', eventOpts));
+  await delay(10);
+  element.dispatchEvent(new MouseEvent('mouseup', eventOpts));
+  await delay(10);
+  
+  // Finally, trigger native click
+  element.click(); 
+}
+
+// Background idle heartbeat
+if (!window.heartbeatStarted) {
+  window.heartbeatStarted = true;
+  const jitter = () => {
+    if (!window.virtualCursor.isActive) {
+      window.virtualCursor.x += (Math.random() - 0.5) * 30;
+      window.virtualCursor.y += (Math.random() - 0.5) * 30;
+      
+      window.virtualCursor.x = Math.max(10, Math.min(window.innerWidth - 10, window.virtualCursor.x));
+      window.virtualCursor.y = Math.max(10, Math.min(window.innerHeight - 10, window.virtualCursor.y));
+      
+      document.dispatchEvent(new MouseEvent('mousemove', {
+        view: window, bubbles: true, cancelable: true,
+        clientX: window.virtualCursor.x, clientY: window.virtualCursor.y
+      }));
+    }
+    setTimeout(jitter, 200 + Math.random() * 400);
+  };
+  setTimeout(jitter, 1000);
+}
+// --- END GHOST CURSOR ---
+
 // Function to check if searchText exists in text
 function textIncludes(text, searchText) {
   return text.trim().toLowerCase().includes(searchText.trim().toLowerCase());
@@ -313,9 +402,9 @@ function scrollToElement(element) {
 async function simulateTyping(element, text) {
   if (!element) return;
 
-  // Focus the element first — Angular may not process events on unfocused elements
-  element.focus();
-  await delay(50);
+  // Focus the element realistically using humanClick
+  await humanClick(element);
+  await delay(20);
 
   // Use the native HTMLInputElement setter to bypass Angular's property interception.
   // Angular overrides the 'value' property on form inputs; using the native setter
@@ -380,7 +469,7 @@ async function fillLoginCaptcha(loginModal) {
     await delay(50);
     if (autoSubmitCaptcha) {
       const signInButton = loginModal.querySelector('button[type="submit"]');
-      await signInButton.click();
+      await humanClick(signInButton);
     }
   } else {
     // Prompt user with the extracted text (allowing edits)
@@ -389,7 +478,7 @@ async function fillLoginCaptcha(loginModal) {
         await simulateTyping(captchaInput, userInput);
         await delay(50);
         const signInButton = loginModal.querySelector('button[type="submit"]');
-        await signInButton.click();
+        await humanClick(signInButton);
     }
   }
 }
@@ -398,7 +487,7 @@ async function fillLoginCaptcha(loginModal) {
 async function login() {
   let loginButton = document.querySelector(LOGIN_BUTTON);
   if(loginButton){
-    await loginButton.click();
+    await humanClick(loginButton);
   }
   
   // Wait for the login component and specific input field to be present
@@ -441,7 +530,7 @@ async function login() {
       Logger.info('No login captcha detected after 2s. Proceeding directly to sign in.');
       const signInButton = loginModal.querySelector('button[type="submit"]');
       if (signInButton) {
-        await signInButton.click();
+        await humanClick(signInButton);
       }
     }
   }
@@ -465,7 +554,7 @@ async function autoComplete(element, value) {
 
   var firstItem = document.querySelector(STATION_CODE_LIST);
   if (firstItem) {
-    await firstItem.click();
+    await humanClick(firstItem);
   }
 }
 async function typeDate(element, mydate) {
@@ -500,7 +589,7 @@ async function typeDate(element, mydate) {
 }
 async function selectQuota(element,value) {
 
-   await element.click();
+   await humanClick(element);
 
    // Simulate an onChange event to trigger the autocomplete options
    var inputEvent = new Event('onChange', {
@@ -510,7 +599,7 @@ async function selectQuota(element,value) {
 
    element.dispatchEvent(inputEvent);
 
-   delay(500);
+   await delay(500);
 
   // Get all list items within the autocomplete dropdown
   var listItems = document.querySelectorAll(JOURNEY_QUOTA_LIST);
@@ -523,7 +612,7 @@ async function selectQuota(element,value) {
     // Check if the text content contains the name substring (case-insensitive)
     if (itemText.toLowerCase().includes(value.toLowerCase())) {
       // Select the list item by simulating a click
-      item.click();
+      await humanClick(item);
       break;
     }
   }
@@ -582,7 +671,7 @@ async function modifySearchTrain(){
   await typeDate(jDate,dateString);
   await selectQuota(quota,quotaType);
   const searchButton = journeyInput.querySelector('button[type="submit"]');
-  await searchButton.click();
+  await humanClick(searchButton);
 }
 async function callSearchTrainComponent(){
   let journeyComponent = document.querySelector(JOURNEY_INPUT_COMPONENT);
@@ -595,7 +684,7 @@ async function callSearchTrainComponent(){
   }
 }
 async function findRootTrain() {
-  delay(500);
+  await delay(500);
   const trainHeadingElements = document.querySelectorAll(FIND_TRAIN_NUMBER);
 
   if (!trainHeadingElements || !trainHeadingElements.length) {
@@ -631,7 +720,7 @@ async function scrollToFoundTrainAndSelectClass() {
     Logger.warn('No available classes found.');
     return;
   }
-  delay(500);
+  await delay(500);
   let selectedClass = null;
   for (let availableClass of availableClasses) {
     const classNameElement = availableClass.querySelector('strong');
@@ -648,8 +737,8 @@ async function scrollToFoundTrainAndSelectClass() {
     return;
   }
   
-  delay(200);
-  await selectedClass.click();
+  await delay(200);
+  await humanClick(selectedClass);
 
   Logger.info(
     'Selected train number:',
@@ -663,9 +752,9 @@ async function refreshTrain() {
   try {
     const rootElement = document.querySelectorAll(TRAIN_COMPONENT)[trainFoundAtPosition];
     const selectedTab = rootElement.querySelector(SELECTED_CLASS_TAB);
-    delay(100);
+    await delay(100);
     if (selectedTab) {
-      await selectedTab.click();
+      await humanClick(selectedTab);
     } else {
       Logger.warn('Selected accommodation tab not found.');
     }
@@ -695,13 +784,13 @@ async function selectAvailableTicket() {
 
     // Check if the formatted date matches the desired date '25/04'
     if (day === tday && monthToNumber(month)===tmonth) {
-      await availableDateElement.click(); // Click on the available date
+      await humanClick(availableDateElement); // Click on the available date
       await delay(100); // Adjust the delay as needed
 
       // Check if the book ticket button is available
       const bookTicketButton = rootElement.querySelector(BOOK_NOW_BUTTON);
       if (bookTicketButton && !bookTicketButton.classList.contains(BUTTON_DISABLE_CLASS)) {
-        await bookTicketButton.click(); // Click on the book ticket button
+        await humanClick(bookTicketButton); // Click on the book ticket button
         return true; // Indicate that the ticket is selected
       }
     }
@@ -775,11 +864,11 @@ async function bookTicket() {
   Logger.info(endTime);
 }
 // Function to check for the presence of the popup and close it if it exists
-function closePopupToProceed() {
+async function closePopupToProceed() {
   let popup = document.querySelector(DIALOG_FROM);
   
   if (popup) {
-    document.querySelector(DIALOG_ACCEPT).click();
+    await humanClick(document.querySelector(DIALOG_ACCEPT));
     Logger.info('Popup closed.');
   } else {
     Logger.info('Popup not found.');
@@ -789,7 +878,7 @@ async function addNextRow() {
   const prenextSpan = document.querySelector(PASSENGER_NEXT_ROW);
 
   if (prenextSpan && prenextSpan.textContent.trim() === PASSENGER_NEXT_ROW_TEXT) {
-    await prenextSpan.closest('a').click();
+    await humanClick(prenextSpan.closest('a'));
   } else {
     Logger.warn('Span text does not match or element not found.');
   }
@@ -798,7 +887,7 @@ async function removeFirstRow(){
   // delete the first row
   const firstRow = document.querySelector(PASSENGER_REMOVE_ROW);
   if(firstRow){
-    await firstRow.click();
+    await humanClick(firstRow);
   }
 }
 function processInput() {
@@ -840,19 +929,19 @@ async function selectAutocompleteOption(index=0,name = passengerNames) {
     // Get all list items within the autocomplete dropdown
     var listItems = document.querySelectorAll(PASSENGER_NAME_LIST);
     // Loop through each list item
-    listItems.forEach(function(item) {
+    for (const item of listItems) {
         // Get the text content of the list item
         var itemText = item.textContent.trim();
         
         // Check if the text content contains the name substring
         if (textIncludes(itemText,name)) {
             // Select the list item by simulating a click
-            item.click();
+            await humanClick(item);
             Logger.info("Selected item:", itemText);
             // Exit the loop after selecting the item
-            return;
+            break;
         }
-    });
+    }
     // Wait for 500 milliseconds before checking again
     await delay(100);
   }
@@ -866,15 +955,15 @@ async function addMasterPassengerList() {
   }
   else{
     const firstRow = document.querySelector(PASSENGER_REMOVE_ROW);
-    await firstRow.click();
+    await humanClick(firstRow);
     for (let index = 0; index < copyPassengerNames.length; index++) {
       await addNextRow();
-      delay(200);
+      await delay(200);
       await selectAutocompleteOption(index, copyPassengerNames[index]);
     }
   }
 }
-function fillCustomPassengerDetails(passenger, row = null) {
+async function fillCustomPassengerDetails(passenger, row = null) {
   // If row is not provided, select the last added row
   if (!row) {
     row = document.querySelector(PASSENGER_COMPONENT);
@@ -888,35 +977,35 @@ function fillCustomPassengerDetails(passenger, row = null) {
   
   nameInput.value = passenger.name;
   nameInput.dispatchEvent(new Event('input'));
-  delay(100);
+  await delay(100);
 
   ageInput.value = passenger.age;
   ageInput.dispatchEvent(new Event('input'));
-  delay(100);
+  await delay(100);
 
   genderSelect.value = passenger.gender;
   genderSelect.dispatchEvent(new Event('change'));
-  delay(100);
+  await delay(100);
 
   preferenceSelect.value = passenger.preference;
   preferenceSelect.dispatchEvent(new Event('change'));
-  delay(100);
+  await delay(100);
 
   if(foodSelect && passenger && passenger.foodChoice){
     foodSelect.value = passenger.foodChoice;
     foodSelect.dispatchEvent(new Event('change'));
-    delay(100);
+    await delay(100);
   }
   
 }
 async function addCustomPassengerList() {
   // If there's only one passenger in the list and the row is already available, fill it directly
   if (passengerList.length === 1 && passengerList[0].isSelected) {
-    fillCustomPassengerDetails(passengerList[0]);
+    await fillCustomPassengerDetails(passengerList[0]);
   } else {
     // Remove the default row if there's more than one passenger
     await removeFirstRow();
-    delay(50);
+    await delay(50);
     // Iterate over each passenger in the passengerList array
     for (var i = 0; i < passengerList.length; i++) {
       if (!passengerList[i].isSelected) continue;
@@ -924,13 +1013,13 @@ async function addCustomPassengerList() {
       var passenger = passengerList[i];
       // Add a new row for each passenger
       await addNextRow();
-      delay(50);
+      await delay(50);
       var rows = document.querySelectorAll(PASSENGER_COMPONENT);
       var currentRow = rows[rows.length - 1];
 
-      fillCustomPassengerDetails(passenger, currentRow);
+      await fillCustomPassengerDetails(passenger, currentRow);
 
-      delay(100);
+      await delay(100);
     }
   }
 }
@@ -952,11 +1041,11 @@ async function selectPreferences(){
   var autoUpgradationInput = document.getElementById(PASSENGER_PREFERENCE_AUTOUPGRADATION);
   autoUpgradationInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
   if(autoUpgradationInput && autoUpgradation)
-     autoUpgradationInput.click();
+     await humanClick(autoUpgradationInput);
   
   var confirmberthsInput = document.getElementById(PASSENGER_PREFERENCE_CONFIRMBERTHS);
   if(confirmberthsInput && confirmberths)
-    confirmberthsInput.click();
+    await humanClick(confirmberthsInput);
 
   // Find all input elements of type radio
   var inputs = document.querySelectorAll(PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED);
@@ -971,7 +1060,7 @@ async function selectPreferences(){
       if (label && textIncludes(label.textContent, travelInsuranceOpted)) {
         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         // Trigger a click event on the input radio element
-        await input.click();
+        await humanClick(input);
         Logger.info('Clicked on radio button for:', travelInsuranceOpted);
         break; // Exit the loop after clicking the input radio
       }
@@ -980,8 +1069,8 @@ async function selectPreferences(){
   Logger.info('Auto Upgradation:', autoUpgradation, 'Confirm Berths:', confirmberths, 'Travel Insurance Opted:', travelInsuranceOpted);
 }
 async function selectPaymentType() {
-  // Find all input elements of type radio
-  var inputs = document.querySelectorAll(PAYMENT_TYPE);
+  // Find all input elements of type radio on the passenger page
+  var inputs = document.querySelectorAll(PASSENGER_PAYMENT_TYPE);
 
   if (inputs) {
     // Loop through each input element using for...of loop
@@ -993,7 +1082,7 @@ async function selectPaymentType() {
       if (label && textIncludes(label.textContent, paymentType)) {
         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         // Trigger a click event on the input radio element
-        await input.click();
+        await humanClick(input);
         Logger.info('Clicked on radio button for:', paymentType);
         break; // Exit the loop after clicking the input radio
       }
@@ -1014,7 +1103,8 @@ async function addPassengerInputAndContinue() {
   await selectPreferences();
   // Call the function to select the radio button
   await selectPaymentType();
-  await delay(50);
+  // MANDATORY HUMAN PAUSE
+  await delay(100);
 
   // Find the "Continue" button
   var continueButton = document.querySelector(PASSENGER_SUBMIT_BUTTON);
@@ -1022,7 +1112,7 @@ async function addPassengerInputAndContinue() {
   if (continueButton) {
     continueButton.focus();
     // Simulate a click on the button
-    await continueButton.click();
+    await humanClick(continueButton);
   } else {
     Logger.info('Continue button not found.');
   }
@@ -1101,7 +1191,7 @@ async function handleCaptchaAndContinue() {
 
       // Click the "Continue" button
       if (continueButton) {
-        await continueButton.click();
+        await humanClick(continueButton);
       }
     }
   } else {
@@ -1120,12 +1210,12 @@ async function handleCaptchaAndContinue() {
       await simulateTyping(captchaInput, captchaValue);
       await delay(50);
 
-      // Find the "Continue" button
-      var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
+    // Find the "Continue" button
+    var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
 
       // Click the "Continue" button
       if (continueButton) {
-        await continueButton.click();
+        await humanClick(continueButton);
       }
     }
   }
@@ -1142,7 +1232,7 @@ async function selectPaymentMethod() {
       // Check if the element's text content matches "BHIM/ UPI/ USSD"
       if (textIncludes(element.textContent, paymentMethod)) {
         // Click on the element
-        await element.click();
+        await humanClick(element);
         Logger.info('Clicked on :', paymentMethod);
         return; // Exit the loop after clicking the element
       }
@@ -1163,7 +1253,7 @@ async function selectPaymentProvider() {
       // Check if the element's text content contains "PAYTM"
       if (textIncludes(element.textContent, paymentProvider)) {
         // Simulate a click on the element
-        await element.click();
+        await humanClick(element);
         Logger.info('Selected text:', element.textContent);
         return; // Exit the loop after selecting the text
       }
@@ -1178,7 +1268,7 @@ async function clickPayButton() {
   // Check if the button exists and its text content contains "Pay"
   if (button && textIncludes(button.textContent, PAY_BUTTON_TEXT)) {
     // Simulate a click on the button
-    await button.click();
+    await humanClick(button);
     Logger.info('Clicked on button:', button.textContent);
   } else {
     Logger.info("No button found containing 'Pay'.");
@@ -1198,7 +1288,7 @@ async function clickEwalletConfirmButton() {
       }
     }
     if (confirmButton) {
-      await confirmButton.click();
+      await humanClick(confirmButton);
       Logger.info('Clicked on eWallet confirm button.');
     } else {
       Logger.info('eWallet confirm button not found.');
@@ -1234,7 +1324,7 @@ function waitForTargetTime(targetTimeString) {
         (currentHour === targetHour && currentMinute === targetMinute && currentSecond >= targetSecond)) {
       const searchButton = document.querySelector(JOURNEY_SEARCH_BUTTON);
       if (searchButton) {
-        searchButton.click();
+        humanClick(searchButton); // Async fire and forget inside setInterval
       } else {
         Logger.warn('Search button not found using selector:', JOURNEY_SEARCH_BUTTON);
       }
@@ -1327,7 +1417,7 @@ async function executeFunctions() {
     await bookTicket();
 
     if(autoProcessPopup){
-      closePopupToProceed();
+      await closePopupToProceed();
     }
 
     // Wait for passenger page to load
@@ -1343,7 +1433,7 @@ async function executeFunctions() {
     await handleCaptchaAndContinue();
 
     // Wait for the app-payment-options element to appear on the page after the transition
-    await waitForElementToAppear(PAYEMENT_COMPONENT);
+    await waitForElementToAppear(PAYMENT_COMPONENT);
 
     // Payment Selection <Page 4>
     await selectPaymentMethod();

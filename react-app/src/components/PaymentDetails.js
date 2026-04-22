@@ -22,13 +22,12 @@ function PaymentDetails() {
   // Payment method options based on payment type
   const paymentMethodOptions = {
     'BHIM/UPI': ['BHIM/ UPI/ USSD'],
-    'Wallets': ['IRCTC eWallet']
+    'Wallets': ['E-Wallet']
   };
 
-  // Payment provider options based on payment type and method
   const paymentProviderOptions = {
     'BHIM/ UPI/ USSD': ['PAYTM'],
-    'IRCTC eWallet': ['IRCTC eWallet']
+    'E-Wallet': ['IRCTC eWallet'],
   };
 
   const handlePaymentTypeChange = (e) => {

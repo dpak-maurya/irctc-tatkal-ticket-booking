@@ -91,6 +91,7 @@ const SELECTOR_CATEGORIES = {
         default: 'input[type="radio"][name="travelInsuranceOpted-0"]',
       },
       PASSENGER_SUBMIT_BUTTON: { label: 'Submit/Continue Button', default: 'app-passenger-input button.btnDefault.train_Search' },
+      PASSENGER_PAYMENT_TYPE: { label: 'Passenger Page Payment Radio', default: 'p-radiobutton[name="paymentType"] input' },
     },
   },
   REVIEW: {
@@ -108,18 +109,18 @@ const SELECTOR_CATEGORIES = {
   PAYMENT: {
     label: 'Payment Elements',
     selectors: {
-      PAYEMENT_COMPONENT: { label: 'Payment Options Component', default: 'app-payment-options' },
-      PAYMENT_TYPE: { label: 'Payment Type Radio', default: 'input[type="radio"][name="paymentType"]' },
-      PAYMENT_METHOD: { label: 'Payment Method Element', default: '.bank-type.ng-star-inserted' },
-      PAYMENT_PROVIDER: { label: 'Payment Provider Element', default: '.bank-text' },
-      PAY_BUTTON: { label: 'Pay Button', default: '.btn-primary.ng-star-inserted' },
+      PAYMENT_COMPONENT: { label: 'Payment Options Component', default: 'app-payment-options' },
+      PAYMENT_TYPE: { label: 'Payment Category (#pay-type)', default: '#pay-type .bank-type' },
+      PAYMENT_METHOD: { label: 'Payment Method Element', default: '#pay-type .bank-type' },
+      PAYMENT_PROVIDER: { label: 'Payment Bank/Provider (Precision)', default: '#bank-type .bank-text, #bank-type .pay_tax_text' },
+      PAY_BUTTON: { label: 'Pay Button', default: 'button.btn-primary.ng-star-inserted' },
       PAY_BUTTON_TEXT: { label: 'Pay Button Text', default: 'Pay & Book ' },
     },
   },
   EWALLET: {
     label: 'eWallet Elements',
     selectors: {
-      EWALLET_IRCTC_DEFAULT: { label: 'eWallet Default Text', default: 'IRCTC eWallet' },
+      EWALLET_IRCTC_DEFAULT: { label: 'eWallet Default Text', default: 'E-Wallet' },
       EWALLET_COMPONENT: { label: 'eWallet Component', default: 'app-ewallet-confirm' },
       EWALLET_BUTTON_LIST: { label: 'eWallet Button List', default: 'button.mob-bot-btn.search_btn' },
       EWALLET_CONFIRM_BUTTON_TEXT: { label: 'Confirm Button Text', default: 'CONFIRM' },
