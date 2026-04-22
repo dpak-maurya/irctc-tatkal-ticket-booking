@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "webpack --config webpack.content.js --mode production",
+    "build:full": "npm run build && npm --prefix ../react-app run build",
     "watch": "webpack --config webpack.content.js --mode development --watch",
     "clean": "rm -rf ../dist"
   },
