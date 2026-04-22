@@ -1213,9 +1213,10 @@ async function handleCaptchaAndContinue() {
     // Find the "Continue" button
     var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
 
-    // Click the "Continue" button
-    if (continueButton) {
-      await humanClick(continueButton);
+      // Click the "Continue" button
+      if (continueButton) {
+        await humanClick(continueButton);
+      }
     }
   }
 }
