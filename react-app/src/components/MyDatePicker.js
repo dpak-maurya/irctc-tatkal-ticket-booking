@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import PropTypes from 'prop-types';
 import dayjs from 'dayjs';
 import { useAppContext } from '../contexts/AppContext';
 
-export default function MyDatePicker() {
+export default function MyDatePicker({ onDateChange }) {
   const { formData, handleChange } = useAppContext();
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -19,10 +20,20 @@ export default function MyDatePicker() {
     if (newValue) {
       const formattedDate = newValue.format('YYYY-MM-DD');
       setSelectedDate(newValue);
+      if (onDateChange) {
+        onDateChange(formattedDate, newValue);
+        return;
+      }
+
       handleChange({ target: { name: 'dateString', type: 'date', value: formattedDate } });
     } else {
       // If the date is cleared, set selectedDate to null and update formData accordingly
       setSelectedDate(null);
+      if (onDateChange) {
+        onDateChange('', null);
+        return;
+      }
+
       handleChange({ target: { name: 'dateString', type: 'date', value: '' } });
     }
   };
@@ -42,3 +53,6 @@ export default function MyDatePicker() {
   );
 }
 
+MyDatePicker.propTypes = {
+  onDateChange: PropTypes.func,
+};

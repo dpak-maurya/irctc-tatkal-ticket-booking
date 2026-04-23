@@ -13,6 +13,7 @@ let trainNumber = '';
 let from = '';
 let to = '';
 let quotaType = '';
+let isOpeningDayBooking = false;
 let accommodationClass = '';
 let dateString = '';
 let refreshTime = 5000; // 5 seconds;
@@ -42,6 +43,7 @@ const defaultSettings = {
   from: '',
   to: '',
   quotaType: '',
+  isOpeningDayBooking: false,
   accommodationClass: '',
   dateString: '',
   refreshTime: 5000,
@@ -646,6 +648,11 @@ async function waitForAppLoginToDisappear() {
   });
 }
 // Function to fill Journey Details
+function shouldUseTimedSearch() {
+  return ['TATKAL', 'PREMIUM TATKAL'].includes(quotaType) ||
+    (quotaType === 'GENERAL' && isOpeningDayBooking);
+}
+
 async function searchTrain(){
   let journeyInput = document.querySelector(JOURNEY_INPUT_COMPONENT);
   let origin = journeyInput.querySelector(ORIGIN_STATION_CODE);
@@ -1298,8 +1305,26 @@ async function clickEwalletConfirmButton() {
   }
 }
 
+function hasReachedTargetTime(currentTimeString, targetTimeString) {
+  const [currentHour, currentMinute, currentSecond] = currentTimeString.split(':').map(Number);
+  const [targetHour, targetMinute, targetSecond] = targetTimeString.split(':').map(Number);
+
+  return currentHour > targetHour ||
+    (currentHour === targetHour && currentMinute > targetMinute) ||
+    (currentHour === targetHour && currentMinute === targetMinute && currentSecond >= targetSecond);
+}
 function waitForTargetTime(targetTimeString) {
-  // Define the interval function
+  const searchButton = document.querySelector(JOURNEY_SEARCH_BUTTON);
+
+  if (!searchButton) {
+    return;
+  }
+
+  if (!shouldUseTimedSearch()) {
+    humanClick(searchButton);
+    return;
+  }
+
   const intervalId = setInterval(() => {
     // Extract the current time element
     const currentTimeElement = document.querySelector(CURRENT_TIME);
@@ -1310,27 +1335,20 @@ function waitForTargetTime(targetTimeString) {
       return;
     }
 
-    // Extract the current time string from the element
     const currentDateTimeString = currentTimeElement.textContent.trim();
-    const [, currentTimeString] = currentDateTimeString.match(/\[(\d+:\d+:\d+)\]/);
+    const timeMatch = currentDateTimeString.match(/\[(\d+:\d+:\d+)\]/);
 
-    // Split the current time string and target time string on ":"
-    const [currentHour, currentMinute, currentSecond] = currentTimeString.split(':').map(Number);
-    const [targetHour, targetMinute, targetSecond] = targetTimeString.split(':').map(Number);
-
-    // Compare the current time with the target time
-    if (currentHour > targetHour || 
-        (currentHour === targetHour && currentMinute > targetMinute) || 
-        (currentHour === targetHour && currentMinute === targetMinute && currentSecond >= targetSecond)) {
-      const searchButton = document.querySelector(JOURNEY_SEARCH_BUTTON);
-      if (searchButton) {
-        humanClick(searchButton); // Async fire and forget inside setInterval
-      } else {
-        Logger.warn('Search button not found using selector:', JOURNEY_SEARCH_BUTTON);
-      }
-      clearInterval(intervalId); // Stop the interval once the action is triggered
+    if (!timeMatch) {
+      Logger.error('Current time format not recognized:', currentDateTimeString);
+      clearInterval(intervalId);
+      return;
     }
-  }, 1000); // Interval set to 1 second (1000 milliseconds)
+
+    if (hasReachedTargetTime(timeMatch[1], targetTimeString)) {
+      humanClick(searchButton);
+      clearInterval(intervalId);
+    }
+  }, 1000);
 }
 async function getSettings() {
   return new Promise((resolve) => {
@@ -1354,6 +1372,7 @@ async function getSettings() {
       from = items.from;
       to = items.to;
       quotaType = items.quotaType;
+      isOpeningDayBooking = items.isOpeningDayBooking;
       accommodationClass = items.accommodationClass;
       dateString = new Date(items.dateString).toLocaleDateString('en-GB');
       refreshTime = items.refreshTime;
