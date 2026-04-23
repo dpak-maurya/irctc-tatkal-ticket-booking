@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
+  Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -248,11 +249,9 @@ const PassengerList = () => {
         disableRowSelectionOnClick // Optional: Prevent row selection on click
         hideFooter
       />
-      {rows.length === 0 && (
-        <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
-          No passengers added.
-        </Box>
-      )}
+      <Typography variant="body2" sx={{ mt: 1.5, color: 'text.secondary' }}>
+        Tip: Select the checkbox for each passenger you want to book. Unselected passengers will not be filled.
+      </Typography>
     </Box>
   );
 };

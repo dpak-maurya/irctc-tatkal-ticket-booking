@@ -6,10 +6,41 @@ import CustomSwitch from './CustomSwitch';
 import { useAppContext } from '../contexts/AppContext';
 import BookingCountdown from './BookingCountDown';
 import DebugSettings from './DebugSettings';
+import { useModalContext } from '../contexts/ModalContext';
+import { validateBookingForm } from '../utils';
+import BookingPlanSummary from './BookingPlanSummary';
 
 const Header = () => {
   const { formData, toggleAutomation } = useAppContext();
+  const { openModal } = useModalContext();
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+
+  const handleAutomationToggle = () => {
+    if (!formData.automationStatus) {
+      const validationErrors = validateBookingForm(formData, { forAutomation: true });
+
+      if (validationErrors.length > 0) {
+        openModal(
+          'error',
+          'Cannot Start Automation',
+          validationErrors[0]
+        );
+        return;
+      }
+    }
+
+    if (formData.automationStatus) {
+      toggleAutomation();
+      return;
+    }
+
+    openModal(
+      'automation',
+      'Start Auto Booking?',
+      <BookingPlanSummary formData={formData} />,
+      toggleAutomation
+    );
+  };
 
   return (
     <Box
@@ -98,26 +129,11 @@ const Header = () => {
             spacing={3}
             flexWrap='wrap'
           >
-            {['TATKAL', 'PREMIUM TATKAL'].includes(formData.quotaType) && <BookingCountdown />}
-            {formData.quotaType === 'GENERAL' && (
-              <Button
-                id='book-button'
-                variant='outlined'
-                color='secondary'
-                onClick={() =>
-                  window.open(
-                    'https://www.irctc.co.in/nget/train-search',
-                    '_blank'
-                  )
-                }
-              >
-                Book Ticket on IRCTC
-              </Button>
-            )}
+            <BookingCountdown />
             
             <CustomSwitch
               checked={formData.automationStatus}
-              onChange={toggleAutomation}
+              onChange={handleAutomationToggle}
               name='automationStatus'
             />
           </Stack>
@@ -128,5 +144,3 @@ const Header = () => {
 };
 
 export default Header;
-
-
