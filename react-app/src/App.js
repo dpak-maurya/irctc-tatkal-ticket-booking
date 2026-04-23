@@ -10,7 +10,6 @@ import ContactDetails from './components/ContactDetails';
 import OtherPreferences from './components/OtherPreferences';
 import Header from './components/Header';
 import Footer from './components/Footer'; 
-import CaptchaReader from './components/CaptchaReader';
 import SelectorEditor from './components/SelectorEditor';
 import ScheduleBanner from './components/ScheduleBanner';
 
@@ -33,7 +32,6 @@ const App = () => {
         </Box>
         <Box flex={1}>
           <PaymentDetails />
-          <CaptchaReader />
         </Box>
       </Stack>
 
