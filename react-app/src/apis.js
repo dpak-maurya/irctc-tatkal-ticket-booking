@@ -15,7 +15,7 @@ export const getFormDataFromStorage = async () => {
             await saveFormDataToStorage(defaultSettings);
             resolve(defaultSettings); // Return default settings
           } else {
-            resolve(result[STORAGE_KEY]);
+            resolve({ ...defaultSettings, ...result[STORAGE_KEY] });
           }
         }
       });

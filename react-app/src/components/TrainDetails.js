@@ -1,20 +1,38 @@
-import React from 'react';
-import { TextField, Box, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import React, { useEffect } from 'react';
+import { TextField, Box, Typography, Select, MenuItem, FormControl, InputLabel, FormControlLabel, Switch } from '@mui/material';
+import dayjs from 'dayjs';
 import { sharedStyles } from '../styles';
 import MyDatePicker from './MyDatePicker';
 import { useAppContext } from '../contexts/AppContext';
 
-const getTargetTime = (quotaType, accommodationClass) => {
-  if (quotaType === 'GENERAL') return '07:59:53';
+const getTargetTime = (quotaType, accommodationClass, isOpeningDayBooking, currentTargetTime) => {
+  if (quotaType === 'GENERAL') {
+    return isOpeningDayBooking ? '07:59:53' : currentTargetTime;
+  }
   if (['SL', 'FC', '2S', 'VS'].includes(accommodationClass)) return '10:59:53';
   return '09:59:53';
 };
 
+const isTatkalQuota = (quotaType) => ['TATKAL', 'PREMIUM TATKAL'].includes(quotaType);
 const formatStationCode = (value) => value.toUpperCase().replace(/[^A-Z]/g, '');
 const formatTrainNumber = (value) => value.replace(/\D/g, '');
+const getTatkalScheduleDate = (journeyDate) => journeyDate.subtract(1, 'day').format('YYYY-MM-DD');
 
 function TrainDetails() {
   const { formData, setFormData, handleChange } = useAppContext();
+  const today = dayjs().startOf('day');
+  const journeyDate = formData.dateString ? dayjs(formData.dateString, 'YYYY-MM-DD') : null;
+  const daysUntilJourney = journeyDate ? journeyDate.diff(today, 'day') : null;
+  const canUseOpeningDayBooking = formData.quotaType === 'GENERAL' && daysUntilJourney >= 60;
+
+  useEffect(() => {
+    if (formData.quotaType === 'GENERAL' && !canUseOpeningDayBooking && formData.isOpeningDayBooking) {
+      setFormData((prevState) => ({
+        ...prevState,
+        isOpeningDayBooking: false,
+      }));
+    }
+  }, [canUseOpeningDayBooking, formData.isOpeningDayBooking, formData.quotaType, setFormData]);
 
   const handleStationCode = (event) => {
     const { name, value } = event.target;
@@ -26,16 +44,52 @@ function TrainDetails() {
     setFormData({ ...formData, [name]: formatTrainNumber(value) });
   };
 
+  const handleJourneyDateChange = (formattedDate, dateValue) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      dateString: formattedDate,
+      ...(isTatkalQuota(prevState.quotaType) && dateValue
+        ? { scheduleDate: getTatkalScheduleDate(dateValue) }
+        : {}),
+    }));
+  };
+
   const handleQuotaTypeChange = (event) => {
     const { value } = event.target;
-    const targetTime = getTargetTime(value, formData?.accommodationClass);
-    setFormData({ ...formData, quotaType: value, targetTime });
+    const targetTime = getTargetTime(
+      value,
+      formData?.accommodationClass,
+      formData?.isOpeningDayBooking,
+      formData?.targetTime
+    );
+    setFormData({
+      ...formData,
+      quotaType: value,
+      targetTime,
+      ...(isTatkalQuota(value) && journeyDate
+        ? { scheduleDate: getTatkalScheduleDate(journeyDate), isOpeningDayBooking: false }
+        : {}),
+    });
   };
 
   const handleAccommodationClassChange = (event) => {
     const { value } = event.target;
-    const targetTime = getTargetTime(formData?.quotaType, value);
+    const targetTime = getTargetTime(
+      formData?.quotaType,
+      value,
+      formData?.isOpeningDayBooking,
+      formData?.targetTime
+    );
     setFormData({ ...formData, accommodationClass: value, targetTime });
+  };
+
+  const handleOpeningDayToggle = (event) => {
+    const checked = event.target.checked;
+    setFormData((prevState) => ({
+      ...prevState,
+      isOpeningDayBooking: checked,
+      targetTime: checked ? '07:59:53' : prevState.targetTime,
+    }));
   };
 
   return (
@@ -48,7 +102,7 @@ function TrainDetails() {
       >
         Train Details
       </Typography>
-      <MyDatePicker formData={formData} handleChange={handleChange} />
+      <MyDatePicker onDateChange={handleJourneyDateChange} />
       <TextField
         fullWidth
         label='Train Number'
@@ -117,6 +171,28 @@ function TrainDetails() {
           <MenuItem value='PREMIUM TATKAL'>PREMIUM TATKAL</MenuItem>
         </Select>
       </FormControl>
+      {canUseOpeningDayBooking && (
+        <Box sx={{ mt: 1 }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={formData.isOpeningDayBooking}
+                onChange={handleOpeningDayToggle}
+                color="primary"
+              />
+            }
+            label="Opening Day Booking"
+          />
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+            Use this when you want General quota automation on the first day booking opens.
+          </Typography>
+        </Box>
+      )}
+      {formData.quotaType === 'GENERAL' && !canUseOpeningDayBooking && (
+        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+          Opening Day Booking is available for General journeys 60 days away or more.
+        </Typography>
+      )}
       <FormControl fullWidth margin='normal'>
         <InputLabel id='accommodationClass-label'>
           Accommodation Class

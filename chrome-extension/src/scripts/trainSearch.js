@@ -5,7 +5,11 @@ import {
 import { delay } from './utils';
 import logger from './logger';
 
-import { from, to, quotaType, dateString, targetTime as targetTimeString } from './storage';
+import { from, to, quotaType, isOpeningDayBooking, dateString, targetTime as targetTimeString } from './storage';
+
+const shouldUseTimedSearch = () =>
+  ['TATKAL', 'PREMIUM TATKAL'].includes(quotaType) ||
+  (quotaType === 'GENERAL' && isOpeningDayBooking);
 
 async function autoComplete(element, value) {
   // Focus on the autocomplete input to trigger the generation of options
@@ -128,10 +132,27 @@ async function callSearchTrainComponent(){
     await modifySearchTrain();
   }
 }
-function waitForTargetTime() {
-  // Define the interval function
+function hasReachedTargetTime(currentTimeString, targetTimeString) {
+  const [currentHour, currentMinute, currentSecond] = currentTimeString.split(':').map(Number);
+  const [targetHour, targetMinute, targetSecond] = targetTimeString.split(':').map(Number);
+
+  return currentHour > targetHour ||
+    (currentHour === targetHour && currentMinute > targetMinute) ||
+    (currentHour === targetHour && currentMinute === targetMinute && currentSecond >= targetSecond);
+}
+function waitForTargetTime(targetTime = targetTimeString) {
+  const searchButton = document.querySelector(JOURNEY_SELECTORS.JOURNEY_SEARCH_BUTTON);
+
+  if (!searchButton) {
+    return;
+  }
+
+  if (!shouldUseTimedSearch()) {
+    searchButton.click();
+    return;
+  }
+
   const intervalId = setInterval(() => {
-    // Extract the current time element
     const currentTimeElement = document.querySelector(JOURNEY_SELECTORS.CURRENT_TIME);
 
     if (!currentTimeElement) {
@@ -140,30 +161,24 @@ function waitForTargetTime() {
       return;
     }
 
-    // Extract the current time string from the element
     const currentDateTimeString = currentTimeElement.textContent.trim();
-    const [, currentTimeString] = currentDateTimeString.match(/\[(\d+:\d+:\d+)\]/);
+    const timeMatch = currentDateTimeString.match(/\[(\d+:\d+:\d+)\]/);
 
-    // Split the current time string and target time string on ":"
-    const [currentHour, currentMinute, currentSecond] = currentTimeString.split(':').map(Number);
-    const [targetHour, targetMinute, targetSecond] = targetTimeString.split(':').map(Number);
-
-    // Compare the current time with the target time
-    if (currentHour > targetHour || 
-        (currentHour === targetHour && currentMinute > targetMinute) || 
-        (currentHour === targetHour && currentMinute === targetMinute && currentSecond >= targetSecond)) {
-      const searchButton = document.querySelector(JOURNEY_SELECTORS.JOURNEY_SEARCH_BUTTON);
-      if (searchButton) {
-        searchButton.click();
-      } else {
-        logger.warn('Search button not found.');
-      }
-      clearInterval(intervalId); // Stop the interval once the action is triggered
+    if (!timeMatch) {
+      logger.error('Current time format not recognized:', currentDateTimeString);
+      clearInterval(intervalId);
+      return;
     }
-  }, 1000); // Interval set to 1 second (1000 milliseconds)
+
+    if (hasReachedTargetTime(timeMatch[1], targetTime)) {
+      searchButton.click();
+      clearInterval(intervalId);
+    }
+  }, 1000);
 }
 
 export {
   callSearchTrainComponent,
+  shouldUseTimedSearch,
   waitForTargetTime
 };

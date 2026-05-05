@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
+  Typography,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAppContext } from '../contexts/AppContext';
@@ -175,11 +176,9 @@ const PassengerNames = () => {
         disableRowSelectionOnClick
         hideFooter
       />
-      {rows.length === 0 && (
-        <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
-          No passengers added.
-        </Box>
-      )}
+      <Typography variant="body2" sx={{ mt: 1.5, color: 'text.secondary' }}>
+        Tip: Use the exact first name saved in your IRCTC Master List and select the checkbox. Unselected names will not be used.
+      </Typography>
     </Box>
   );
 };

@@ -5,9 +5,7 @@ import defaultSettings from '../defaultSettings';
 import { 
   getFormDataFromStorage, 
   saveFormDataToStorage, 
-  removeFormDataFromStorage, 
-  getAutomationStatus, 
-  setAutomationStatus 
+  removeFormDataFromStorage
 } from '../apis';
 
 const AppContext = createContext();
@@ -81,15 +79,15 @@ export const AppProvider = ({ children }) => {
 
   const toggleAutomation = async () => {
     try {
-      setFormData((prevState) => ({
-        ...prevState,
-        automationStatus: !prevState.automationStatus,
-      }));
-      const currentStatus = await getAutomationStatus();
-      const updatedStatus = !currentStatus;
+      const updatedData = {
+        ...formData,
+        automationStatus: !formData.automationStatus,
+      };
 
-      await setAutomationStatus(updatedStatus);
-
+      setFormData(updatedData);
+      setSavedData(updatedData);
+      setIsDirty(false);
+      await saveFormDataToStorage(updatedData);
     } catch (error) {
       console.error('Failed to toggle automation status:', error);
     }

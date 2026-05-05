@@ -10,15 +10,16 @@ import ContactDetails from './components/ContactDetails';
 import OtherPreferences from './components/OtherPreferences';
 import Header from './components/Header';
 import Footer from './components/Footer'; 
-import CaptchaReader from './components/CaptchaReader';
 import SelectorEditor from './components/SelectorEditor';
+import ScheduleBanner from './components/ScheduleBanner';
 
 
 const App = () => {
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   return (
-    <Container maxWidth="lg" sx={{ mt: 8, pb: 8, pt: 8, boxShadow:2 }}>
+    <Container maxWidth="lg" sx={{ mt: 7, pb: 8, pt: 2.5, boxShadow:2 }}>
       <Header />
+      <ScheduleBanner />
       
       {/* Updated layout for Login+Timer, Train, and Payment Details */}
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={3} mt={isSmallScreen ? 6 : 0}>
@@ -31,7 +32,6 @@ const App = () => {
         </Box>
         <Box flex={1}>
           <PaymentDetails />
-          {/* <CaptchaReader /> */}
         </Box>
       </Stack>
 

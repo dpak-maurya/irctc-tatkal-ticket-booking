@@ -1,13 +1,17 @@
+import { getTodayDateString } from './utils';
+
 const defaultSettings = {
     automationStatus: false,
     username: '',
     password: '',
+    scheduleDate: getTodayDateString(),
     targetTime: '09:59:53',
     refreshTime: 5000,
     trainNumber: '',
     from: '',
     to: '',
     quotaType: 'TATKAL',
+    isOpeningDayBooking: false,
     accommodationClass: '3A',
     dateString: '',
     paymentType: 'BHIM/UPI',
