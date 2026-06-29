@@ -44,6 +44,29 @@ const OtherPreferences = () => {
           }
           label="Book only if confirmed berths are allotted"
         />
+
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.autoSolveCaptcha}
+              onChange={handleChange}
+              name="autoSolveCaptcha"
+            />
+          }
+          label="Auto Solve Captcha"
+        />
+
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.autoSubmitCaptcha}
+              onChange={handleChange}
+              name="autoSubmitCaptcha"
+              disabled={!formData.autoSolveCaptcha}
+            />
+          }
+          label="Auto Submit Captcha"
+        />
       </FormGroup>
 
       <FormControl component="fieldset" sx={{ mt: 2 }}>
