@@ -7,6 +7,7 @@ import { bookTicket, closePopupToProceed } from "./bookTicket";
 import { addPassengerInputAndContinue } from "./passengerManagement";
 import { handleCaptchaAndContinue } from "./reviewCaptcha";
 import { selectPaymentMethod, selectPaymentProvider, clickPayButton, clickEwalletConfirmButton } from "./payment";
+import { dismissLanguagePopup } from "./popupHandler";
 import logger from "./logger";
 
 import { paymentMethod, autoPay, autoProcessPopup } from "./storage";
@@ -23,6 +24,9 @@ async function executeFunctions() {
 
     // Wait for home page to load
     await waitForElementToAppear(APP_HEADER);
+
+    // Dismiss any initial popups (like language selection)
+    await dismissLanguagePopup();
 
     // Login Page < Page 0 >
     await login();

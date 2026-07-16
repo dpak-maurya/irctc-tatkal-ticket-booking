@@ -1,15 +1,18 @@
 {
   "name": "tatkal-ticket-booking",
-  "version": "1.0.0",
+  "version": "6.2.1",
   "private": true,
   "workspaces": ["chrome-extension", "react-app"],
   "scripts": {
+    "prebuild": "npm run clean && npm run version:sync",
     "build:chrome": "cd chrome-extension && npm run build",
     "build:react": "cd react-app && npm run build",
     "build": "npm run build:chrome && npm run build:react",
-    "clean": "rimraf dist"
+    "clean": "node scripts/clean.js",
+    "version:sync": "node scripts/sync-version.js",
+    "version:bump:patch": "npm version patch --no-git-tag-version && npm run version:sync",
+    "version:bump:minor": "npm version minor --no-git-tag-version && npm run version:sync",
+    "version:bump:major": "npm version major --no-git-tag-version && npm run version:sync"
   },
-  "devDependencies": {
-    "rimraf": "^5.0.0"
-  }
+  "devDependencies": {}
 }

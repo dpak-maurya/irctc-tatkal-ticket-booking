@@ -49,6 +49,12 @@ export const POPUP_SELECTORS = {
     DIALOG_ACCEPT: '.ui-confirmdialog-acceptbutton',
 };
 
+// Generic Dialog and Language Selection
+export const LANGUAGE_SELECTORS = {
+    DIALOG_COMPONENT: 'p-dialog',
+    LANGUAGE_BUTTON: 'button[aria-label*="Please select your preferred language"]',
+};
+
 // Passenger Input Elements
 export const PASSENGER_SELECTORS = {
     PASSENGER_APP_COMPONENT: 'app-passenger-input',

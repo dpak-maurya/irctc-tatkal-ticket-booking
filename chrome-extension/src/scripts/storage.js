@@ -26,6 +26,7 @@ export let mobileNumber = '';
 export let autoUpgradation = false;
 export let confirmberths = false;
 export let travelInsuranceOpted = 'yes';
+export let preferredLanguage = 'English';
 
 const defaultSettings = {
   automationStatus: false,
@@ -51,7 +52,8 @@ const defaultSettings = {
   mobileNumber:'',
   autoUpgradation:false,
   confirmberths:false,
-  travelInsuranceOpted:'yes'
+  travelInsuranceOpted:'yes',
+  preferredLanguage: 'English'
 };
 
 async function getSettings() {
@@ -88,6 +90,7 @@ async function getSettings() {
     autoUpgradation = items.autoUpgradation;
     confirmberths = items.confirmberths;
     travelInsuranceOpted = items.travelInsuranceOpted;
+    preferredLanguage = items.preferredLanguage;
   } catch (error) {
     logger.error("Error retrieving settings:", error);
   }
