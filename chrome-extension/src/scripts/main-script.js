@@ -19,7 +19,7 @@ async function executeFunctions() {
     logger.info("Automation status:", currentAutomationStatus);
     if (!currentAutomationStatus) return;
 
-    getSettings(); // Read passenger info for ticket booking
+    await getSettings(); // Read passenger info for ticket booking
 
     // Wait for home page to load
     await waitForElementToAppear(APP_HEADER);

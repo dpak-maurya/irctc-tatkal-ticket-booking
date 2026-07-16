@@ -35,8 +35,8 @@ function MyTimePicker({isDisabled}) {
       <TimePicker
        label={
         <span>
-          Tatkal Start Timer
-          <Tooltip title="This timer auto-clicks the 'Search' button when it matches the IRCTC clock, moving you from 'Search Train' to 'Train List' automatically.">
+          Booking Start Time
+          <Tooltip title="This timer auto-clicks the 'Search' button when it matches the IRCTC clock, moving you from 'Search Train' to 'Train List' automatically. This is mainly applicable for Tatkal or General opening-day booking before the target time.">
             <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
           </Tooltip>
         </span>
@@ -47,7 +47,7 @@ function MyTimePicker({isDisabled}) {
         format="HH:mm:ss"
         ampm={false}
         timeSteps={{ hours: 1, minutes: 1, seconds: 1 }}
-        placeholder="Enter Tatkal Start Timer i.e. 09:59:53"
+        placeholder="Enter booking start time i.e. 09:59:53"
         sx={{ width: '100%', backgroundColor: 'white', borderRadius: 1 }}
         disabled={isDisabled}
       />
@@ -57,11 +57,7 @@ function MyTimePicker({isDisabled}) {
 
 // Add prop types validation
 MyTimePicker.propTypes = {
-  formData: PropTypes.shape({
-    targetTime: PropTypes.string, // Validate targetTime as a string
-  }).isRequired,
-  handleChange: PropTypes.func.isRequired, // Validate handleChange as a function
-  isDisabled: PropTypes.bool // Add this line
+  isDisabled: PropTypes.bool,
 };
 
 export default MyTimePicker;

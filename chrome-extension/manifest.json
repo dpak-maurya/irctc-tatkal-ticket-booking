@@ -13,7 +13,7 @@
         "js": ["content.js"]
     }
   ],
-  "permissions": ["storage"],
+  "permissions": ["storage", "tabs", "alarms", "notifications"],
   "host_permissions": ["https://www.irctc.co.in/*","https://api.ocr.space/*"],
   "action": {
     "default_icon": {

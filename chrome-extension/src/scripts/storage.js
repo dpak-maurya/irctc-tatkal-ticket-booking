@@ -13,6 +13,7 @@ export let trainNumber = '';
 export let from = '';
 export let to = '';
 export let quotaType = '';
+export let isOpeningDayBooking = false;
 export let accommodationClass = '';
 export let dateString = '';
 export let refreshTime = 5000; // 5 seconds;
@@ -38,6 +39,7 @@ const defaultSettings = {
   from: '',
   to: '',
   quotaType: '',
+  isOpeningDayBooking: false,
   accommodationClass: '',
   dateString: '',
   refreshTime: 5000,
@@ -73,6 +75,7 @@ async function getSettings() {
     from = items.from;
     to = items.to;
     quotaType = items.quotaType;
+    isOpeningDayBooking = items.isOpeningDayBooking;
     accommodationClass = items.accommodationClass;
     dateString = new Date(items.dateString).toLocaleDateString('en-GB');
     refreshTime = items.refreshTime;

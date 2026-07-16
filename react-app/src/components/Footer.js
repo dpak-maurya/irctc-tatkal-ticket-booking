@@ -4,11 +4,32 @@ import { Stack, Button, Box, Container, useMediaQuery } from '@mui/material';
 import ModalPopup from './ModalPopup';
 import { useModalContext } from '../contexts/ModalContext';
 import { useAppContext } from '../contexts/AppContext';
+import { validateBookingForm } from '../utils';
 
 const Footer = () => {
   const { isModalOpen, modalConfig, openModal, closeModal } = useModalContext();
-  const { isDirty, saveFormData, resetSettings } = useAppContext();
+  const { formData, isDirty, saveFormData, resetSettings } = useAppContext();
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+
+  const handleSaveClick = () => {
+    const validationErrors = validateBookingForm(formData);
+
+    if (validationErrors.length > 0) {
+      openModal(
+        'error',
+        'Cannot Save Booking Details',
+        validationErrors[0]
+      );
+      return;
+    }
+
+    openModal(
+      'success',
+      'Save Booking Details',
+      'Your booking details have been saved.',
+      saveFormData
+    );
+  };
 
   return (
     <Box
@@ -69,14 +90,7 @@ const Footer = () => {
               variant='contained'
               color='primary'
               size='large'
-              onClick={() =>
-                openModal(
-                  'success',
-                  'Save Booking Details',
-                  'Your booking details have been saved.',
-                  saveFormData
-                )
-              }
+              onClick={handleSaveClick}
               fullWidth={isSmallScreen}
             >
               Save Booking Details
