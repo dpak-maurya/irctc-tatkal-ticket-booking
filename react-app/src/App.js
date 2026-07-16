@@ -8,6 +8,7 @@ import TimerDetails from './components/TimerDetails';
 import PassengerDetails from './components/PassengerDetails';
 import ContactDetails from './components/ContactDetails';
 import OtherPreferences from './components/OtherPreferences';
+import PopupPreferences from './components/PopupPreferences';
 import Header from './components/Header';
 import Footer from './components/Footer'; 
 import SelectorEditor from './components/SelectorEditor';
@@ -43,8 +44,11 @@ const App = () => {
         <Box flex={1}>
           <ContactDetails />
         </Box>
-        <Box flex={2}>
+        <Box flex={1}>
           <OtherPreferences />
+        </Box>
+        <Box flex={1}>
+          <PopupPreferences />
         </Box>
       </Stack>
 
