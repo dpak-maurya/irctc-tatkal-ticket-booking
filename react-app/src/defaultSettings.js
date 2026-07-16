@@ -22,12 +22,14 @@ const defaultSettings = {
     autoUpgradation: false,
     confirmberths: false,
     travelInsuranceOpted: 'yes',
+    preferredLanguage: 'English',
     loginMinutesBefore: 2,
     passengerNames: [],
     masterData: false,
     passengerList: [],
     autoSolveCaptcha:false,
-    autoSubmitCaptcha:false
+    autoSubmitCaptcha:false,
+    autoProcessPopup:false
   };
 
 export default defaultSettings;

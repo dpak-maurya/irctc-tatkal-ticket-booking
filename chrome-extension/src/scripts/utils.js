@@ -38,3 +38,26 @@ export function waitForElementToAppear(selector) {
         observer.observe(document.body, { childList: true, subtree: true });
     });
 }
+
+export async function waitForElementToDisappear(element, timeoutMs = 5000) {
+    if (!element || !document.contains(element)) return Promise.resolve();
+    
+    return new Promise((resolve) => {
+      let timeoutId;
+      const observer = new MutationObserver(() => {
+        if (!document.contains(element)) {
+          observer.disconnect();
+          if (timeoutId) clearTimeout(timeoutId);
+          resolve();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      
+      if (timeoutMs > 0) {
+        timeoutId = setTimeout(() => {
+          observer.disconnect();
+          resolve();
+        }, timeoutMs);
+      }
+    });
+}

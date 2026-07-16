@@ -28,6 +28,7 @@ let confirmberths = false;
 let travelInsuranceOpted = 'yes';
 let autoSolveCaptcha = false;
 let autoSubmitCaptcha = false;
+let preferredLanguage = 'English';
 
 const STORAGE_KEY = 'tatkalTicketBookingFormData';
 
@@ -57,7 +58,8 @@ const defaultSettings = {
   confirmberths:false,
   travelInsuranceOpted:'yes',
   autoSolveCaptcha:false,
-  autoSubmitCaptcha:false
+  autoSubmitCaptcha:false,
+  preferredLanguage:'English'
 };
 
 
@@ -107,6 +109,8 @@ let LINK_INSERTED = '.link.ng-star-inserted';
 // POP UP
 let DIALOG_FROM = 'p-confirmdialog[key="tofrom"]';
 let DIALOG_ACCEPT = '.ui-confirmdialog-acceptbutton';
+let DIALOG_COMPONENT = 'p-dialog';
+let LANGUAGE_BUTTON = 'button[aria-label*="Please select your preferred language"]';
 
 // Pasenger Input
 let PASSENGER_APP_COMPONENT = 'app-passenger-input';
@@ -186,6 +190,8 @@ const SELECTOR_VAR_MAP = {
   LINK_INSERTED: (v) => { LINK_INSERTED = v; },
   DIALOG_FROM: (v) => { DIALOG_FROM = v; },
   DIALOG_ACCEPT: (v) => { DIALOG_ACCEPT = v; },
+  DIALOG_COMPONENT: (v) => { DIALOG_COMPONENT = v; },
+  LANGUAGE_BUTTON: (v) => { LANGUAGE_BUTTON = v; },
   PASSENGER_APP_COMPONENT: (v) => { PASSENGER_APP_COMPONENT = v; },
   PASSENGER_COMPONENT: (v) => { PASSENGER_COMPONENT = v; },
   PASSENGER_NEXT_ROW: (v) => { PASSENGER_NEXT_ROW = v; },
@@ -291,6 +297,32 @@ async function waitForElementToAppear(selector, timeoutMs = 0) {
     }, 500);
   });
 }
+
+async function waitForElementToDisappear(element, timeoutMs = 5000) {
+  if (!element || !document.contains(element)) return Promise.resolve();
+  
+  return new Promise((resolve) => {
+    let timeoutId;
+    const observer = new MutationObserver(() => {
+      if (!document.contains(element)) {
+        observer.disconnect();
+        if (timeoutId) clearTimeout(timeoutId);
+        Logger.info('Element disappeared');
+        resolve();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    if (timeoutMs > 0) {
+      timeoutId = setTimeout(() => {
+        observer.disconnect();
+        Logger.warn('Wait timed out for element to disappear');
+        resolve();
+      }, timeoutMs);
+    }
+  });
+}
+
 // Function to convert month abbreviation to number
 function monthToNumber(month) {
   const monthMap = {
@@ -1132,6 +1164,21 @@ async function addPassengerInputAndContinue() {
    );
    Logger.info(endTime);
 }
+function isCaptchaExpectedOnReviewPage() {
+  Logger.info(`Evaluating captcha expectation. quotaType: '${quotaType}', isOpeningDayBooking: ${isOpeningDayBooking}`);
+
+  if (['TATKAL', 'PREMIUM TATKAL'].includes(quotaType)) {
+    return true; // Tatkal always requires a captcha
+  }
+
+  if (isOpeningDayBooking) {
+    return true; // Opening day bookings (e.g., 8:00 AM general quota opening) always require a captcha
+  }
+
+  // Normal bookings might have a captcha, but we won't wait infinitely for it.
+  return false;
+}
+
 // async function handleCaptchaAndContinue() {
 //   await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
 //   // Find the captcha input element
@@ -1166,13 +1213,31 @@ async function addPassengerInputAndContinue() {
 //   }
 // }
 async function handleCaptchaAndContinue() {
-  await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
+  let captchaAppeared;
+
+  if (isCaptchaExpectedOnReviewPage()) {
+    // We ABSOLUTELY expect a captcha, so wait indefinitely (timeout = 0)
+    captchaAppeared = await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
+  } else {
+    // Normal booking: wait up to 3 seconds for the captcha image
+    captchaAppeared = await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE, 3000);
+  }
+  
+  if (!captchaAppeared) {
+    Logger.info("No captcha detected on review page. Proceeding directly to payment.");
+    const continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
+    if (continueButton) {
+      await humanClick(continueButton);
+    }
+    return;
+  }
+
   // Find the captcha input element and image
   var captchaInput = document.getElementById(REVIEW_CAPTCHA_INPUT);
   var captchaImage = document.querySelector(REVIEW_CAPTCHA_IMAGE);
 
   if (!captchaImage || !captchaInput) {
-    Logger.warn("Captcha image or input field not found!");
+    Logger.warn("Captcha image or input field not found despite appearance!");
     return;
   }
 
@@ -1387,6 +1452,7 @@ async function getSettings() {
       travelInsuranceOpted = items.travelInsuranceOpted;
       autoSolveCaptcha = items.autoSolveCaptcha;
       autoSubmitCaptcha = items.autoSubmitCaptcha;
+      preferredLanguage = items.preferredLanguage;
       resolve();
     });
   });
@@ -1406,6 +1472,24 @@ function getAutomationStatus() {
     });
   });
 }
+async function dismissLanguagePopup() {
+    // Wait up to 2.5 seconds for the language dialog to appear (it sometimes takes a moment to render)
+    const dialogAppeared = await waitForElementToAppear(DIALOG_COMPONENT, 2500);
+    if (!dialogAppeared) return;
+
+    const dialogs = document.querySelectorAll(DIALOG_COMPONENT);
+    for (let dialog of dialogs) {
+        const buttons = Array.from(dialog.querySelectorAll(LANGUAGE_BUTTON));
+        const targetButton = buttons.find(btn => btn.innerText.trim() === preferredLanguage);
+        if (targetButton) {
+            Logger.info("Dismissing language popup with: " + preferredLanguage);
+            await humanClick(targetButton);
+            await waitForElementToDisappear(dialog, 500); // Wait for it to be removed from DOM
+            return;
+        }
+    }
+}
+
 async function executeFunctions() {
   Logger.info("User script running!");
 
@@ -1422,6 +1506,9 @@ async function executeFunctions() {
 
     // wait for home page to load
     await waitForElementToAppear(APP_HEADER);
+
+    // Dismiss any initial popups (like language selection)
+    await dismissLanguagePopup();
 
     // login page < Page 0 > (a prompt will appear to fill captcha)
     await login();
