@@ -1,6 +1,6 @@
 {
   "name": "Tatkal Ticket Booking",
-  "version": "6.2.1",
+  "version": "6.3.0",
   "manifest_version": 3,
   "minimum_chrome_version": "120",
   "description": "Enhance your Tatkal booking speed with fast, automated clicks to secure confirmed tickets effortlessly.",
@@ -9,12 +9,24 @@
   },
   "content_scripts": [
     {
-        "matches": ["https://www.irctc.co.in/*"],
-        "js": ["content.js"]
+      "matches": [
+        "https://www.irctc.co.in/*"
+      ],
+      "js": [
+        "content.js"
+      ]
     }
   ],
-  "permissions": ["storage", "tabs", "alarms", "notifications"],
-  "host_permissions": ["https://www.irctc.co.in/*","https://api.ocr.space/*"],
+  "permissions": [
+    "storage",
+    "tabs",
+    "alarms",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://www.irctc.co.in/*",
+    "https://api.ocr.space/*"
+  ],
   "action": {
     "default_icon": {
       "16": "assets/icon-16.png",
@@ -22,7 +34,7 @@
       "48": "assets/icon-48.png",
       "64": "assets/icon-64.png",
       "128": "assets/icon-128.png"
-		}
+    }
   },
   "options_page": "options.html",
   "icons": {
@@ -31,5 +43,5 @@
     "48": "assets/icon-48.png",
     "64": "assets/icon-64.png",
     "128": "assets/icon-128.png"
-	}
+  }
 }
