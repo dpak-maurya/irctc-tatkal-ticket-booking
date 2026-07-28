@@ -7,6 +7,8 @@ let username = '';
 let password = '';
 let targetTime ='09:59:53'
 let passengerList = [];
+let infantList = [];
+let showInfant = false;
 let masterData = false;
 let passengerNames = '';
 let trainNumber = '';
@@ -38,6 +40,8 @@ const defaultSettings = {
   password: '',
   targetTime: '09:59:53',
   passengerList: [],
+  infantList: [],
+  showInfant: false,
   masterData: false,
   passengerNames: [],
   trainNumber: '',
@@ -117,6 +121,11 @@ let PASSENGER_APP_COMPONENT = 'app-passenger-input';
 let PASSENGER_COMPONENT = 'app-passenger';
 let PASSENGER_NEXT_ROW = 'app-passenger-input p-panel .prenext';
 let PASSENGER_NEXT_ROW_TEXT = '+ Add Passenger';
+let PASSENGER_INFANT_ADD_BTN_TEXT = '+ Add Infant Without Berth';
+let PASSENGER_INFANT_COMPONENT = 'app-infant';
+let PASSENGER_INFANT_NAME_INPUT = 'input[formcontrolname="name"]';
+let PASSENGER_INFANT_AGE_SELECT = 'select[formcontrolname="age"]';
+let PASSENGER_INFANT_GENDER_SELECT = 'select[formcontrolname="gender"]';
 let PASSENGER_REMOVE_ROW = 'app-passenger-input p-panel a.fa-remove';
 let PASSENGER_INPUT_COMPONENT = 'app-passenger-input';
 let PASSENGER_NAME_INPUT = 'p-autocomplete input';
@@ -196,6 +205,11 @@ const SELECTOR_VAR_MAP = {
   PASSENGER_COMPONENT: (v) => { PASSENGER_COMPONENT = v; },
   PASSENGER_NEXT_ROW: (v) => { PASSENGER_NEXT_ROW = v; },
   PASSENGER_NEXT_ROW_TEXT: (v) => { PASSENGER_NEXT_ROW_TEXT = v; },
+  PASSENGER_INFANT_ADD_BTN_TEXT: (v) => { PASSENGER_INFANT_ADD_BTN_TEXT = v; },
+  PASSENGER_INFANT_COMPONENT: (v) => { PASSENGER_INFANT_COMPONENT = v; },
+  PASSENGER_INFANT_NAME_INPUT: (v) => { PASSENGER_INFANT_NAME_INPUT = v; },
+  PASSENGER_INFANT_AGE_SELECT: (v) => { PASSENGER_INFANT_AGE_SELECT = v; },
+  PASSENGER_INFANT_GENDER_SELECT: (v) => { PASSENGER_INFANT_GENDER_SELECT = v; },
   PASSENGER_REMOVE_ROW: (v) => { PASSENGER_REMOVE_ROW = v; },
   PASSENGER_INPUT_COMPONENT: (v) => { PASSENGER_INPUT_COMPONENT = v; },
   PASSENGER_NAME_INPUT: (v) => { PASSENGER_NAME_INPUT = v; },
@@ -1037,29 +1051,97 @@ async function fillCustomPassengerDetails(passenger, row = null) {
   }
   
 }
-async function addCustomPassengerList() {
-  // If there's only one passenger in the list and the row is already available, fill it directly
-  if (passengerList.length === 1 && passengerList[0].isSelected) {
-    await fillCustomPassengerDetails(passengerList[0]);
+async function addNextInfantRow() {
+  const spans = document.querySelectorAll(PASSENGER_NEXT_ROW);
+  let infantSpan = null;
+  for (const span of spans) {
+    if (span.textContent.trim() === PASSENGER_INFANT_ADD_BTN_TEXT) {
+      infantSpan = span;
+      break;
+    }
+  }
+  if (infantSpan) {
+    const parentA = infantSpan.closest('a');
+    if (parentA) {
+      await humanClick(parentA);
+    }
   } else {
-    // Remove the default row if there's more than one passenger
+    Logger.warn('Add infant button not found.');
+  }
+}
+
+async function fillInfantDetails(infant, row) {
+  var nameInput = row.querySelector(PASSENGER_INFANT_NAME_INPUT);
+  var ageInput = row.querySelector(PASSENGER_INFANT_AGE_SELECT);
+  var genderSelect = row.querySelector(PASSENGER_INFANT_GENDER_SELECT);
+  
+  if (nameInput) {
+    nameInput.value = infant.name;
+    nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+    await delay(100);
+  }
+
+  if (ageInput) {
+    ageInput.value = infant.age;
+    ageInput.dispatchEvent(new Event('change', { bubbles: true }));
+    await delay(100);
+  }
+
+  if (genderSelect) {
+    genderSelect.value = infant.gender;
+    genderSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    await delay(100);
+  }
+}
+
+async function addCustomPassengerList() {
+  const normalPassengers = passengerList.filter(p => p.isSelected);
+  const infantPassengers = showInfant ? (infantList || []).filter(p => p.isSelected) : [];
+
+  Logger.info(`Starting addCustomPassengerList. Normal count: ${normalPassengers.length}, Infant count: ${infantPassengers.length}, showInfant: ${showInfant}`);
+
+  // If there's only one normal passenger in the list and no infants, fill it directly
+  if (normalPassengers.length === 1 && infantPassengers.length === 0) {
+    Logger.info('Only 1 normal passenger and 0 infants. Filling default row directly.');
+    await fillCustomPassengerDetails(normalPassengers[0]);
+  } else {
+    // Remove the default row if there's more than one normal passenger or we have infants
+    Logger.info('Removing default row because we need to add rows dynamically.');
     await removeFirstRow();
     await delay(50);
-    // Iterate over each passenger in the passengerList array
-    for (var i = 0; i < passengerList.length; i++) {
-      if (!passengerList[i].isSelected) continue;
-
-      var passenger = passengerList[i];
+    // Iterate over each normal passenger
+    for (var i = 0; i < normalPassengers.length; i++) {
+      var passenger = normalPassengers[i];
       // Add a new row for each passenger
       await addNextRow();
       await delay(50);
       var rows = document.querySelectorAll(PASSENGER_COMPONENT);
       var currentRow = rows[rows.length - 1];
 
+      Logger.info(`Filling normal passenger ${i + 1}/${normalPassengers.length}: ${passenger.name}`);
       await fillCustomPassengerDetails(passenger, currentRow);
 
       await delay(100);
     }
+  }
+
+  // Iterate over infant passengers
+  Logger.info(`Starting infant passenger loop. Count: ${infantPassengers.length}`);
+  for (var j = 0; j < infantPassengers.length; j++) {
+    var infant = infantPassengers[j];
+    Logger.info(`Adding row for infant ${j + 1}/${infantPassengers.length}: ${infant.name}`);
+    await addNextInfantRow();
+    await delay(50);
+    var infantRows = document.querySelectorAll(PASSENGER_INFANT_COMPONENT);
+    var currentInfantRow = infantRows[infantRows.length - 1];
+
+    if (currentInfantRow) {
+      Logger.info(`Filling infant passenger ${j + 1}: ${infant.name}`);
+      await fillInfantDetails(infant, currentInfantRow);
+    } else {
+      Logger.error(`Could not find infant row component for infant ${j + 1}`);
+    }
+    await delay(100);
   }
 }
 async function addMobileNumber() {
@@ -1431,6 +1513,8 @@ async function getSettings() {
       password = items.password;
       targetTime = items.targetTime;
       passengerList = items.passengerList;
+      infantList = items.infantList || [];
+      showInfant = items.showInfant || false;
       masterData = items.masterData;
       passengerNames = items.passengerNames;
       trainNumber = items.trainNumber;

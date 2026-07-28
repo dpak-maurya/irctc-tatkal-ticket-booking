@@ -126,6 +126,9 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
   const selectedPassengerList = (formData?.passengerList || []).filter(
     (passenger) => passenger?.isSelected
   );
+  const selectedInfantList = (formData?.infantList || []).filter(
+    (infant) => infant?.isSelected
+  );
   const selectedMasterPassengers = (formData?.passengerNames || []).filter(
     (passenger) => passenger?.isSelected
   );
@@ -202,7 +205,7 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
     }
   } else {
     if (selectedPassengerList.length === 0) {
-      errors.push('Select at least one passenger in Passenger List.');
+      errors.push('At least one normal passenger is required. Infant-only bookings without berth are not allowed.');
     }
 
     const invalidPassenger = selectedPassengerList.find((passenger) => {
@@ -219,7 +222,22 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
     });
 
     if (invalidPassenger) {
-      errors.push('Selected passengers must have name, valid age, gender, and berth preference.');
+      errors.push('Selected passengers must have name, valid age (1-125), gender, and berth preference.');
+    }
+
+    const invalidInfant = selectedInfantList.find((infant) => {
+      const name = String(infant?.name || '').trim();
+      const age = infant?.age;
+      return (
+        !name ||
+        age === undefined ||
+        age === '' ||
+        !infant?.gender
+      );
+    });
+
+    if (invalidInfant) {
+      errors.push('Selected infants must have name, valid age, and gender.');
     }
   }
 

@@ -7,6 +7,8 @@ export let username = '';
 export let password = '';
 export let targetTime ='09:59:53';
 export let passengerList = [];
+export let infantList = [];
+export let showInfant = false;
 export let masterData = false;
 export let passengerNames = '';
 export let trainNumber = '';
@@ -34,6 +36,8 @@ const defaultSettings = {
   password: '',
   targetTime: '09:59:53',
   passengerList: [],
+  infantList: [],
+  showInfant: false,
   masterData: false,
   passengerNames: [],
   trainNumber: '',
@@ -71,6 +75,8 @@ async function getSettings() {
     password = items.password;
     targetTime = items.targetTime;
     passengerList = items.passengerList;
+    infantList = items.infantList || [];
+    showInfant = items.showInfant || false;
     masterData = items.masterData;
     passengerNames = items.passengerNames;
     trainNumber = items.trainNumber;

@@ -138,6 +138,14 @@ function BookingPlanSummary({ formData }) {
                   <TableCell>{passenger.preference}</TableCell>
                 </TableRow>
               ))}
+              {formData.showInfant && formData.infantList && formData.infantList.filter(p => p.isSelected).map((infant) => (
+                <TableRow key={infant.id} sx={{ backgroundColor: 'rgba(0, 0, 0, 0.04)' }}>
+                  <TableCell>{infant.name} (Infant)</TableCell>
+                  <TableCell>{infant.age}</TableCell>
+                  <TableCell>{infant.gender}</TableCell>
+                  <TableCell>No Berth</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>

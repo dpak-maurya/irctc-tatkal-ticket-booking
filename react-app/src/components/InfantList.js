@@ -1,41 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Typography,
-} from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Button, Typography } from '@mui/material';
+import { DataGrid, GridToolbarContainer, GridRowModes, GridActionsCellItem } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
-import { DataGrid, GridToolbarContainer, GridActionsCellItem, GridRowModes } from '@mui/x-data-grid';
 import PropTypes from 'prop-types';
 import { useAppContext } from '../contexts/AppContext';
 
-const genderOptions = [
+const infantAgeOptions = [
+  { value: 0, label: 'Below one year' },
+  { value: 1, label: 'One year' },
+  { value: 2, label: 'Two years' },
+  { value: 3, label: 'Three years' },
+  { value: 4, label: 'Four years' }
+];
+
+const infantGenderOptions = [
   { value: 'M', label: 'Male' },
-  { value: 'F', label: 'Female' },
-  { value: 'T', label: 'Transgender' },
-];
-
-const preferenceOptions = [
-  { value: 'No Preference', label: 'No Preference' },
-  { value: 'LB', label: 'Lower' },
-  { value: 'MB', label: 'Middle' },
-  { value: 'UB', label: 'Upper' },
-  { value: 'SL', label: 'Side Lower' },
-  { value: 'SU', label: 'Side Upper' },
-];
-
-const foodOptions = [
-  { value: '', label: '-' },
-  { value: 'V', label: 'Veg' },
-  { value: 'N', label: 'Non Veg' },
-  { value: 'J', label: 'Jain Meal' },
-  { value: 'F', label: 'Veg (Diabetic)' },
-  { value: 'G', label: 'Non Veg (Diabetic)' },
-  { value: 'D', label: 'No Food' },
+  { value: 'F', label: 'Female' }
 ];
 
 function EditToolbar(props) {
@@ -45,7 +29,7 @@ function EditToolbar(props) {
     const id = Date.now(); // Generate a new ID
     setRows((oldRows) => [
       ...oldRows,
-      { id, name: '', age: '', gender: '', preference: '', foodChoice: '', isNew: true },
+      { id, name: '', age: '', gender: '', isNew: true },
     ]);
     setRowModesModel((oldModel) => ({
       ...oldModel,
@@ -62,13 +46,13 @@ function EditToolbar(props) {
   return (
     <GridToolbarContainer>
       <Button color="primary" startIcon={<AddIcon />} onClick={handleClick}>
-        Add Passenger
+        Add Infant Without Berth
       </Button>
     </GridToolbarContainer>
   );
 }
 
-const PassengerList = () => {
+const InfantList = () => {
   const { formData, handleChange } = useAppContext();
   const [rows, setRows] = useState([]);
   const [rowModesModel, setRowModesModel] = useState({});
@@ -76,18 +60,16 @@ const PassengerList = () => {
 
   // Initialize rows and selection model from formData on mount
   useEffect(() => {
-    setRows(formData.passengerList);
-    const initiallySelectedIds = formData.passengerList
-      .filter((passenger) => passenger.isSelected)
-      .map((passenger) => passenger.id);
+    setRows(formData.infantList || []);
+    const initiallySelectedIds = (formData.infantList || [])
+      .filter((infant) => infant.isSelected)
+      .map((infant) => infant.id);
     setRowSelection(initiallySelectedIds);
+  }, [formData.infantList]);
 
-    console.log(formData.passengerList);
-  }, [formData.passengerList]);
-
-  // Sync passenger list with formData
-  const syncPassengerList = (updatedRows) => {
-    handleChange({ target: { name: 'passengerList', value: updatedRows } });
+  // Sync infant list with formData
+  const syncInfantList = (updatedRows) => {
+    handleChange({ target: { name: 'infantList', value: updatedRows } });
   };
 
   const handleRowEditStop = (params, event) => {
@@ -107,8 +89,8 @@ const PassengerList = () => {
   const handleDeleteClick = (id) => () => {
     const filterRows = rows.filter((row) => row.id !== id);
     setRows(filterRows);
-    setRowSelection(rowSelection.filter((selectedId) => selectedId !== id)); // Remove deleted id from selection
-    syncPassengerList(filterRows);
+    setRowSelection(rowSelection.filter((selectedId) => selectedId !== id));
+    syncInfantList(filterRows);
   };
 
   const handleCancelClick = (id) => () => {
@@ -131,15 +113,15 @@ const PassengerList = () => {
     };
   
     // Validate age
-    const isAgeValid = newRow.age >= 1 && newRow.age <= 125 && newRow.age !== '' && !isNaN(newRow.age);
+    const isAgeValid = updatedRow.age !== '' && updatedRow.age >= 0 && updatedRow.age <= 4;
     
     if (!isAgeValid) {
-      return { ...newRow, error: true }; // Keeps the error indicator
+      return { ...updatedRow, error: true }; // Keeps the error indicator
     }
   
     const updatedRows = rows.map((row) => (row.id === newRow.id ? updatedRow : row));
     setRows(updatedRows);
-    syncPassengerList(updatedRows);
+    syncInfantList(updatedRows);
     
     return updatedRow;
   };
@@ -148,18 +130,13 @@ const PassengerList = () => {
     setRowModesModel(newRowModesModel);
   };
 
-  // Handle selection change and update isSelected field
   const handleRowSelectionChange = (newSelection) => {
-    console.log(newSelection);
     setRowSelection(newSelection);
-
     const updatedRows = rows.map((row) => ({
       ...row,
       isSelected: newSelection.includes(row.id),
     }));
-
-    // setRows(updatedRows);
-    syncPassengerList(updatedRows);
+    syncInfantList(updatedRows);
   };
 
   const columns = [
@@ -172,8 +149,9 @@ const PassengerList = () => {
     {
       field: 'age',
       headerName: 'Age',
-      type: 'number',
-      width: 80,
+      type: 'singleSelect',
+      valueOptions: infantAgeOptions,
+      width: 150,
       editable: true,
     },
     {
@@ -182,23 +160,7 @@ const PassengerList = () => {
       width: 120,
       editable: true,
       type: 'singleSelect',
-      valueOptions: genderOptions,
-    },
-    {
-      field: 'preference',
-      headerName: 'Preference',
-      width: 180,
-      editable: true,
-      type: 'singleSelect',
-      valueOptions: preferenceOptions,
-    },
-    {
-      field: 'foodChoice',
-      headerName: 'Food Choice',
-      width: 180,
-      editable: true,
-      type: 'singleSelect',
-      valueOptions: foodOptions,
+      valueOptions: infantGenderOptions,
     },
     {
       field: 'actions',
@@ -210,14 +172,39 @@ const PassengerList = () => {
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
         if (isInEditMode) {
           return [
-            <GridActionsCellItem key="save" icon={<SaveIcon />} label="Save" sx={{ color: 'primary.main' }} onClick={handleSaveClick(id)} />,
-            <GridActionsCellItem key="cancel" icon={<CancelIcon />} label="Cancel" onClick={handleCancelClick(id)} color="inherit" />,
+            <GridActionsCellItem
+              icon={<SaveIcon />}
+              label="Save"
+              sx={{ color: 'primary.main' }}
+              onClick={handleSaveClick(id)}
+              key="save"
+            />,
+            <GridActionsCellItem
+              icon={<CancelIcon />}
+              label="Cancel"
+              className="textPrimary"
+              onClick={handleCancelClick(id)}
+              color="inherit"
+              key="cancel"
+            />,
           ];
         }
 
         return [
-          <GridActionsCellItem key="edit" icon={<EditIcon />} label="Edit" onClick={handleEditClick(id)} color="primary" />,
-          <GridActionsCellItem key="delete" icon={<DeleteIcon />} label="Delete" onClick={handleDeleteClick(id)} color="error" />,
+          <GridActionsCellItem
+            key="edit"
+            icon={<EditIcon />}
+            label="Edit"
+            onClick={handleEditClick(id)}
+            color="primary"
+          />,
+          <GridActionsCellItem
+            key="delete"
+            icon={<DeleteIcon />}
+            label="Delete"
+            onClick={handleDeleteClick(id)}
+            color="error"
+          />,
         ];
       },
     },
@@ -233,28 +220,27 @@ const PassengerList = () => {
         onRowModesModelChange={handleRowModesModelChange}
         onRowEditStop={handleRowEditStop}
         processRowUpdate={processRowUpdate}
-        checkboxSelection // Enable checkbox selection
+        checkboxSelection 
         rowSelectionModel={rowSelection}
         onRowSelectionModelChange={handleRowSelectionChange}
-        experimentalFeatures={{ newEditingApi: true }} // Enables new editing features including error highlighting
+        experimentalFeatures={{ newEditingApi: true }} 
         slots={{
           toolbar: EditToolbar,
         }}
         slotProps={{
           toolbar: { setRows, setRowModesModel },
         }}
-        // pagination  // Disable pagination
-        disableColumnFilter // Disable filtering
-        disableColumnSelector // Disable column management
-        disableDensitySelector // Disable density selector
-        disableRowSelectionOnClick // Optional: Prevent row selection on click
+        disableColumnFilter 
+        disableColumnSelector 
+        disableDensitySelector 
+        disableRowSelectionOnClick 
         hideFooter
       />
       <Typography variant="body2" sx={{ mt: 1.5, color: 'text.secondary' }}>
-        Tip: Select the checkbox for each passenger you want to book. Unselected passengers will not be filled.
+        Tip: Select the checkbox for each infant you want to book. Unselected infants will not be filled.
       </Typography>
     </Box>
   );
 };
 
-export default PassengerList;
+export default InfantList;
