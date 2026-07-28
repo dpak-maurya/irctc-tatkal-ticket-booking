@@ -27,6 +27,8 @@ const defaultSettings = {
     passengerNames: [],
     masterData: false,
     passengerList: [],
+    infantList: [],
+    showInfant: false,
     autoSolveCaptcha:false,
     autoSubmitCaptcha:false,
     autoProcessPopup:false

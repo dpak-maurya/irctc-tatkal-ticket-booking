@@ -2,7 +2,7 @@ import { PASSENGER_SELECTORS, PAYMENT_SELECTORS } from './domSelectors';
 import { delay, textIncludes } from './utils';
 import logger from './logger';
 
-import { passengerList, masterData, passengerNames, confirmberths, mobileNumber, autoUpgradation, travelInsuranceOpted, paymentType } from './storage';
+import { passengerList, infantList, masterData, passengerNames, confirmberths, mobileNumber, autoUpgradation, travelInsuranceOpted, paymentType } from './storage';
 
 
 let copyPassengerNames = '';
@@ -130,29 +130,94 @@ function fillCustomPassengerDetails(passenger, row = null) {
     delay(100);
   }
 }
-async function addCustomPassengerList() {
-  // If there's only one passenger in the list and the row is already available, fill it directly
-  if (passengerList.length === 1 && passengerList[0].isSelected) {
-    fillCustomPassengerDetails(passengerList[0]);
+async function addNextInfantRow() {
+  const spans = document.querySelectorAll(PASSENGER_SELECTORS.PASSENGER_NEXT_ROW);
+  let infantSpan = null;
+  for (const span of spans) {
+    if (span.textContent.trim() === PASSENGER_SELECTORS.PASSENGER_INFANT_ADD_BTN_TEXT) {
+      infantSpan = span;
+      break;
+    }
+  }
+  if (infantSpan) {
+    await infantSpan.closest('a').click();
   } else {
-    // Remove the default row if there's more than one passenger
-    await removeFirstRow();
-    delay(50);
-    // Iterate over each passenger in the passengerList array
-    for (var i = 0; i < passengerList.length; i++) {
-      if (!passengerList[i].isSelected) continue;
+    logger.warn('Add infant button not found.');
+  }
+}
 
-      var passenger = passengerList[i];
+async function fillInfantDetails(infant, row) {
+  var nameInput = row.querySelector(PASSENGER_SELECTORS.PASSENGER_INFANT_NAME_INPUT);
+  var ageInput = row.querySelector(PASSENGER_SELECTORS.PASSENGER_INFANT_AGE_SELECT);
+  var genderSelect = row.querySelector(PASSENGER_SELECTORS.PASSENGER_INFANT_GENDER_SELECT);
+  
+  if (nameInput) {
+    nameInput.value = infant.name;
+    nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+    await delay(100);
+  }
+
+  if (ageInput) {
+    ageInput.value = infant.age;
+    ageInput.dispatchEvent(new Event('change', { bubbles: true }));
+    await delay(100);
+  }
+
+  if (genderSelect) {
+    genderSelect.value = infant.gender;
+    genderSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    await delay(100);
+  }
+}
+
+async function addCustomPassengerList() {
+  const normalPassengers = passengerList.filter(p => p.isSelected);
+  const infantPassengers = showInfant ? (infantList || []).filter(p => p.isSelected) : [];
+
+  logger.info(`Starting addCustomPassengerList. Normal count: ${normalPassengers.length}, Infant count: ${infantPassengers.length}, showInfant: ${showInfant}`);
+
+  // If there's only one normal passenger in the list and no infants, fill it directly
+  if (normalPassengers.length === 1 && infantPassengers.length === 0) {
+    logger.info('Only 1 normal passenger and 0 infants. Filling default row directly.');
+    fillCustomPassengerDetails(normalPassengers[0]);
+  } else {
+    // Remove the default row if there's more than one normal passenger or we have infants
+    logger.info('Removing default row because we need to add rows dynamically.');
+    await removeFirstRow();
+    await delay(50);
+    // Iterate over each normal passenger
+    for (var i = 0; i < normalPassengers.length; i++) {
+      var passenger = normalPassengers[i];
       // Add a new row for each passenger
       await addNextRow();
-      delay(50);
+      await delay(50);
       var rows = document.querySelectorAll(PASSENGER_SELECTORS.PASSENGER_COMPONENT);
       var currentRow = rows[rows.length - 1];
 
+      logger.info(`Filling normal passenger ${i + 1}/${normalPassengers.length}: ${passenger.name}`);
       fillCustomPassengerDetails(passenger, currentRow);
 
-      delay(100);
+      await delay(100);
     }
+  }
+
+  // Iterate over infant passengers
+  logger.info(`Starting infant passenger loop. Count: ${infantPassengers.length}`);
+  for (var j = 0; j < infantPassengers.length; j++) {
+    var infant = infantPassengers[j];
+    logger.info(`Adding row for infant ${j + 1}/${infantPassengers.length}: ${infant.name}`);
+    await addNextInfantRow();
+    await delay(50);
+    var infantRows = document.querySelectorAll(PASSENGER_SELECTORS.PASSENGER_INFANT_COMPONENT);
+    var currentInfantRow = infantRows[infantRows.length - 1];
+
+    if (currentInfantRow) {
+      logger.info(`Filling infant passenger ${j + 1}: ${infant.name}`);
+      await fillInfantDetails(infant, currentInfantRow);
+    } else {
+      logger.error(`Could not find infant row component for infant ${j + 1}`);
+    }
+    await delay(100);
   }
 }
 async function addMobileNumber() {

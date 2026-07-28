@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Tabs, Tab, Box, Checkbox, Typography, FormControlLabel, Stack, Tooltip } from '@mui/material';
+import { AppBar, Tabs, Tab, Box, Checkbox, Typography, FormControlLabel, Stack, Tooltip, Switch } from '@mui/material';
 import PassengerNames from './PassengerNames';
 import PassengerList from './PassengerList';
+import InfantList from './InfantList';
 import { sharedStyles } from '../styles';
 import { useAppContext } from '../contexts/AppContext';
 
@@ -88,6 +89,39 @@ const PassengerDetails = () => {
           )}
           {value === 1 && (
             <PassengerNames formData={formData} handleChange={handleChange} />
+          )}
+
+          <Box mt={3} display="flex" alignItems="center">
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.showInfant || false}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    handleChange({ target: { name: 'showInfant', value: checked } });
+                    if (!checked && formData.infantList) {
+                      const updatedInfantList = formData.infantList.map(infant => ({
+                        ...infant,
+                        isSelected: false
+                      }));
+                      handleChange({ target: { name: 'infantList', value: updatedInfantList } });
+                    }
+                  }}
+                  color="primary"
+                />
+              }
+              label={
+                <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                  Have Infant Without Berth?
+                </Typography>
+              }
+            />
+          </Box>
+          
+          {formData.showInfant && (
+            <Box mt={1}>
+              <InfantList />
+            </Box>
           )}
         </Box>
       </Box>
