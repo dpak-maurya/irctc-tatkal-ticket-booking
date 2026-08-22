@@ -84,8 +84,8 @@ const PassengerList = () => {
 
   // Initialize rows and selection model from formData on mount
   useEffect(() => {
-    setRows(formData.passengerList);
-    const initiallySelectedIds = formData.passengerList
+    setRows(formData.passengerList || []);
+    const initiallySelectedIds = (formData.passengerList || [])
       .filter((passenger) => passenger.isSelected)
       .map((passenger) => passenger.id);
     setRowSelection(initiallySelectedIds);
@@ -199,6 +199,42 @@ const PassengerList = () => {
       editable: true,
       type: 'singleSelect',
       valueOptions: sittingClasses.includes(formData.accommodationClass) ? sittingPreferenceOptions : preferenceOptions,
+      renderCell: (params) => {
+        const value = params.value;
+        const isSitting = sittingClasses.includes(formData.accommodationClass);
+        const validPreferences = isSitting ? ['No Preference', 'WS'] : ['No Preference', 'LB', 'MB', 'UB', 'SL', 'SU'];
+        
+        const isInvalid = value && !validPreferences.includes(value);
+
+        // Find label if available
+        const allOpts = [...preferenceOptions, ...sittingPreferenceOptions];
+        const matched = allOpts.find((opt) => opt.value === value);
+        const displayLabel = matched ? matched.label : (value || '');
+
+        if (isInvalid) {
+          return (
+            <Box
+              component="span"
+              sx={{
+                color: 'error.main',
+                fontWeight: 600,
+                backgroundColor: '#ffebee',
+                px: 1,
+                py: 0.25,
+                borderRadius: 1,
+                border: '1px solid #ef5350',
+                display: 'inline-block',
+                fontSize: '0.8125rem',
+                lineHeight: 1.3,
+              }}
+            >
+              {displayLabel || value} (Invalid)
+            </Box>
+          );
+        }
+
+        return displayLabel;
+      },
     },
     {
       field: 'foodChoice',

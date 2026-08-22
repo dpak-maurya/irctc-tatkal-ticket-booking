@@ -225,6 +225,28 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
       errors.push('Selected passengers must have name, valid age (1-125), gender, and berth preference.');
     }
 
+    const sittingClasses = ['EC', 'CC', '2S', 'EV', 'VC', 'VS'];
+    const sittingPreferences = ['No Preference', 'WS'];
+    const sleepingPreferences = ['No Preference', 'LB', 'MB', 'UB', 'SL', 'SU'];
+    const isSitting = sittingClasses.includes(formData?.accommodationClass);
+    const validPreferences = isSitting ? sittingPreferences : sleepingPreferences;
+
+    const invalidPreferencePassenger = selectedPassengerList.find(
+      (passenger) => passenger?.preference && !validPreferences.includes(passenger.preference)
+    );
+
+    if (invalidPreferencePassenger) {
+      if (isSitting) {
+        errors.push(
+          `Passenger "${invalidPreferencePassenger.name || 'Selected'}" has berth preference "${invalidPreferencePassenger.preference}" which is invalid for sitting class ${formData.accommodationClass}. Please select "No Preference" or "Window Side (WS)".`
+        );
+      } else {
+        errors.push(
+          `Passenger "${invalidPreferencePassenger.name || 'Selected'}" has seat preference "${invalidPreferencePassenger.preference}" which is invalid for sleeping class ${formData.accommodationClass}. Please select a valid berth preference.`
+        );
+      }
+    }
+
     const invalidInfant = selectedInfantList.find((infant) => {
       const name = String(infant?.name || '').trim();
       const age = infant?.age;
