@@ -28,6 +28,14 @@ const preferenceOptions = [
   { value: 'SU', label: 'Side Upper' },
 ];
 
+// IRCTC shows berth-choice options for sleeping classes and only "Window Side" for sitting classes
+const sittingClasses = ['EC', 'CC', '2S', 'EV', 'VC', 'VS'];
+
+const sittingPreferenceOptions = [
+  { value: 'No Preference', label: 'No Preference' },
+  { value: 'WS', label: 'Window Side' },
+];
+
 const foodOptions = [
   { value: '', label: '-' },
   { value: 'V', label: 'Veg' },
@@ -190,7 +198,7 @@ const PassengerList = () => {
       width: 180,
       editable: true,
       type: 'singleSelect',
-      valueOptions: preferenceOptions,
+      valueOptions: sittingClasses.includes(formData.accommodationClass) ? sittingPreferenceOptions : preferenceOptions,
     },
     {
       field: 'foodChoice',
