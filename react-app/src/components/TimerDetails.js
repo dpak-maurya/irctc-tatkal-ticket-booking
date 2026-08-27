@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, Box, Typography, Tooltip, Stack, Button } from '@mui/material';
+import { TextField, Box, Typography, Tooltip, Stack, Button, Checkbox, FormControlLabel, FormGroup } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
@@ -225,6 +225,56 @@ function TimerDetails() {
           }
         }}
         disabled={isDisabled}
+      />
+
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.main', mt: 2, mb: 0.5 }}>
+        High Load Handling
+      </Typography>
+
+      <FormGroup>
+        <Tooltip
+          title="During Tatkal rush IRCTC often answers a click with 'We are experiencing high load' instead of moving to the next page. Enable this to detect that message, close it and retry the same step automatically."
+          placement="top"
+          arrow
+        >
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={formData.retryOnHighLoad !== false}
+                onChange={handleChange}
+                name="retryOnHighLoad"
+                disabled={isDisabled}
+              />
+            }
+            label="Retry on high load / server errors"
+          />
+        </Tooltip>
+      </FormGroup>
+
+      <TextField
+        fullWidth
+        label={
+          <span>
+            Max Retry Attempts
+            <Tooltip title="How many times a step is retried when IRCTC keeps returning a high load or temporary server error before the automation stops and asks you to continue manually">
+              <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
+            </Tooltip>
+          </span>
+          }
+        id="maxRetryAttempts"
+        name="maxRetryAttempts"
+        value={formData.maxRetryAttempts}
+        onChange={handleChange}
+        margin="normal"
+        type="number"
+        variant="outlined"
+        placeholder="Enter number of retry attempts"
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
+        }}
+        disabled={isDisabled || formData.retryOnHighLoad === false}
       />
     </Box>)
   );

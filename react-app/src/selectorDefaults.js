@@ -126,6 +126,19 @@ const SELECTOR_CATEGORIES = {
       EWALLET_CONFIRM_BUTTON_TEXT: { label: 'Confirm Button Text', default: 'CONFIRM' },
     },
   },
+  ERROR: {
+    label: 'Error Handling Elements',
+    selectors: {
+      ERROR_MESSAGE: {
+        label: 'Error Message Containers (high load / server errors)',
+        default: 'p-toast .ui-toast-summary, p-toast .ui-toast-detail, .ui-growl-message, .ui-messages-error, p-dialog .ui-dialog-content, p-confirmdialog .ui-confirmdialog-message, .error_txt, .errorMsg, .error-msg, .text-danger, [role="alert"]',
+      },
+      ERROR_DISMISS: {
+        label: 'Error Dismiss / Close Button',
+        default: '.ui-toast-close-icon, .ui-toast-icon-close, .ui-growl-icon-close, .ui-confirmdialog-acceptbutton, .ui-dialog-titlebar-close',
+      },
+    },
+  },
 };
 
 export const CUSTOM_SELECTORS_STORAGE_KEY = 'customDomSelectors';
