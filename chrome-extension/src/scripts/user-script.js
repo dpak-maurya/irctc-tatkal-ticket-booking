@@ -34,6 +34,11 @@ let preferredLanguage = 'English';
 
 const STORAGE_KEY = 'tatkalTicketBookingFormData';
 
+// How long a page gets to render its captcha before it is treated as captcha-less.
+const CAPTCHA_WAIT_TIME = 3000;
+// The payment page mounts its tiles a moment after the component itself.
+const PAYMENT_OPTIONS_WAIT_TIME = 10000;
+
 const defaultSettings = {
   automationStatus: false,
   username: '',
@@ -337,6 +342,39 @@ async function waitForElementToDisappear(element, timeoutMs = 5000) {
   });
 }
 
+// IRCTC keeps some fields in the DOM without ever painting them. An element
+// that is not rendered has to count as absent, otherwise the automation waits
+// for a field the user can never fill (issue #94).
+function isElementVisible(element) {
+  if (!element) return false;
+  return element.offsetParent !== null || element.getClientRects().length > 0;
+}
+
+// Poll `check` until it returns something truthy, else give up and return null.
+// Used for stages IRCTC may simply not render any more, where "absent" is a
+// valid answer instead of a reason to block the booking.
+async function waitForCondition(check, timeoutMs, pollMs = 200) {
+  const startTime = Date.now();
+
+  for (;;) {
+    const result = check();
+    if (result) return result;
+    if (Date.now() - startTime >= timeoutMs) return null;
+    await delay(pollMs);
+  }
+}
+
+// A captcha can only be solved when the image AND a visible input are present.
+// IRCTC has dropped the captcha from the login and review pages for most flows,
+// so this resolves to null rather than waiting forever (issue #94).
+async function waitForUsableCaptcha(getImage, getInput, timeoutMs = CAPTCHA_WAIT_TIME) {
+  return waitForCondition(() => {
+    const image = getImage();
+    const input = getInput();
+    return image && isElementVisible(input) ? { image, input } : null;
+  }, timeoutMs);
+}
+
 // Function to convert month abbreviation to number
 function monthToNumber(month) {
   const monthMap = {
@@ -489,19 +527,17 @@ async function simulateTyping(element, text) {
 //   }
 // }
 
-async function fillLoginCaptcha(loginModal) {
-  // Wait for the captcha image to appear
-  await waitForElementToAppear(LOGIN_CAPTCHA_IMAGE);
+async function clickLoginSubmit(loginModal) {
+  const signInButton = loginModal.querySelector('button[type="submit"]');
 
-  // Find the captcha image and input field
-  var captchaImage = document.querySelector(LOGIN_CAPTCHA_IMAGE);
-  var captchaInput = document.querySelector(LOGIN_CAPTCHA_INPUT);
-
-  if (!captchaImage || !captchaInput) {
-      Logger.warn("Captcha image or input field not found!");
-      return;
+  if (signInButton) {
+    await humanClick(signInButton);
+  } else {
+    Logger.warn('Sign in button not found on the login form.');
   }
+}
 
+async function fillLoginCaptcha(loginModal, { image: captchaImage, input: captchaInput }) {
   // Scroll the captcha input field into view smoothly
   await scrollToElement(captchaInput);
 
@@ -516,8 +552,7 @@ async function fillLoginCaptcha(loginModal) {
     await simulateTyping(captchaInput, captchaText);
     await delay(50);
     if (autoSubmitCaptcha) {
-      const signInButton = loginModal.querySelector('button[type="submit"]');
-      await humanClick(signInButton);
+      await clickLoginSubmit(loginModal);
     }
   } else {
     // Prompt user with the extracted text (allowing edits)
@@ -525,8 +560,7 @@ async function fillLoginCaptcha(loginModal) {
     if (userInput) {
         await simulateTyping(captchaInput, userInput);
         await delay(50);
-        const signInButton = loginModal.querySelector('button[type="submit"]');
-        await humanClick(signInButton);
+        await clickLoginSubmit(loginModal);
     }
   }
 }
@@ -568,18 +602,18 @@ async function login() {
   await simulateTyping(passwordInput, password);
 
   if(username && password){
-    // NOW wait for captcha after credentials are typed with a 2-second timeout
-    // In off-peak hours, IRCTC sometimes doesn't show a captcha
-    const captchaAppeared = await waitForElementToAppear(LOGIN_CAPTCHA_IMAGE, 2000);
-    
-    if (captchaAppeared) {
-      await fillLoginCaptcha(loginModal);
+    // IRCTC no longer serves a captcha on every login. Wait briefly for a
+    // usable one and sign in directly when the form does not have it (#94).
+    const captcha = await waitForUsableCaptcha(
+      () => document.querySelector(LOGIN_CAPTCHA_IMAGE),
+      () => loginModal.querySelector(LOGIN_CAPTCHA_INPUT)
+    );
+
+    if (captcha) {
+      await fillLoginCaptcha(loginModal, captcha);
     } else {
-      Logger.info('No login captcha detected after 2s. Proceeding directly to sign in.');
-      const signInButton = loginModal.querySelector('button[type="submit"]');
-      if (signInButton) {
-        await humanClick(signInButton);
-      }
+      Logger.info('No captcha on the login form. Signing in directly.');
+      await clickLoginSubmit(loginModal);
     }
   }
 }
@@ -1246,20 +1280,6 @@ async function addPassengerInputAndContinue() {
    );
    Logger.info(endTime);
 }
-function isCaptchaExpectedOnReviewPage() {
-  Logger.info(`Evaluating captcha expectation. quotaType: '${quotaType}', isOpeningDayBooking: ${isOpeningDayBooking}`);
-
-  if (['TATKAL', 'PREMIUM TATKAL'].includes(quotaType)) {
-    return true; // Tatkal always requires a captcha
-  }
-
-  if (isOpeningDayBooking) {
-    return true; // Opening day bookings (e.g., 8:00 AM general quota opening) always require a captcha
-  }
-
-  // Normal bookings might have a captcha, but we won't wait infinitely for it.
-  return false;
-}
 
 // async function handleCaptchaAndContinue() {
 //   await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
@@ -1294,38 +1314,37 @@ function isCaptchaExpectedOnReviewPage() {
 //     await continueButton.click();
 //   }
 // }
-async function handleCaptchaAndContinue() {
-  let captchaAppeared;
+async function clickReviewContinue() {
+  const continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
 
-  if (isCaptchaExpectedOnReviewPage()) {
-    // We ABSOLUTELY expect a captcha, so wait indefinitely (timeout = 0)
-    captchaAppeared = await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
+  if (continueButton) {
+    await humanClick(continueButton);
   } else {
-    // Normal booking: wait up to 3 seconds for the captcha image
-    captchaAppeared = await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE, 3000);
+    Logger.warn('Continue button not found on the review page.');
   }
-  
-  if (!captchaAppeared) {
-    Logger.info("No captcha detected on review page. Proceeding directly to payment.");
-    const continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
-    if (continueButton) {
-      await humanClick(continueButton);
-    }
+}
+
+async function handleCaptchaAndContinue() {
+  // IRCTC dropped the captcha from the review page for most flows. This used to
+  // wait for it indefinitely on Tatkal, so the run stopped one click short of
+  // the payment page (issue #94). A missing captcha is now a normal outcome.
+  const captcha = await waitForUsableCaptcha(
+    () => document.querySelector(REVIEW_CAPTCHA_IMAGE),
+    () => document.getElementById(REVIEW_CAPTCHA_INPUT)
+  );
+
+  if (!captcha) {
+    Logger.info('No captcha on the review page. Continuing to payment.');
+    await clickReviewContinue();
     return;
   }
 
-  // Find the captcha input element and image
-  var captchaInput = document.getElementById(REVIEW_CAPTCHA_INPUT);
-  var captchaImage = document.querySelector(REVIEW_CAPTCHA_IMAGE);
-
-  if (!captchaImage || !captchaInput) {
-    Logger.warn("Captcha image or input field not found despite appearance!");
-    return;
-  }
+  const captchaImage = captcha.image;
+  const captchaInput = captcha.input;
 
   // Scroll the captcha input field into view smoothly
   await scrollToElement(captchaInput);
-  
+
   await delay(100);
 
   // Check if autoSolveCaptcha is enabled
@@ -1340,13 +1359,7 @@ async function handleCaptchaAndContinue() {
 
     // Check if autoSubmitCaptcha is enabled
     if (autoSubmitCaptcha) {
-      // Find the "Continue" button
-      var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
-
-      // Click the "Continue" button
-      if (continueButton) {
-        await humanClick(continueButton);
-      }
+      await clickReviewContinue();
     }
   } else {
     // Prompt the user to enter the captcha value
@@ -1363,18 +1376,15 @@ async function handleCaptchaAndContinue() {
     if (captchaValue) {
       await simulateTyping(captchaInput, captchaValue);
       await delay(50);
-
-    // Find the "Continue" button
-    var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
-
-      // Click the "Continue" button
-      if (continueButton) {
-        await humanClick(continueButton);
-      }
+      await clickReviewContinue();
     }
   }
 }
 async function selectPaymentMethod() {
+  // The tiles mount a moment after app-payment-options itself, so querying
+  // straight away used to run against an empty list and select nothing (#94).
+  await waitForElementToAppear(PAYMENT_METHOD, PAYMENT_OPTIONS_WAIT_TIME);
+
   // Find all elements with the class "bank-type" and "ng-star-inserted"
   var elements = document.querySelectorAll(PAYMENT_METHOD);
 
@@ -1396,6 +1406,9 @@ async function selectPaymentMethod() {
   }
 }
 async function selectPaymentProvider() {
+  // The provider list only renders after a payment method has been picked.
+  await waitForElementToAppear(PAYMENT_PROVIDER, PAYMENT_OPTIONS_WAIT_TIME);
+
   // Find all elements with the class "bank-text"
   var elements = document.querySelectorAll(PAYMENT_PROVIDER);
 
