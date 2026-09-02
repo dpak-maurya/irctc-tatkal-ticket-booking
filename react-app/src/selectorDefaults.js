@@ -135,7 +135,11 @@ const SELECTOR_CATEGORIES = {
       },
       ERROR_DISMISS: {
         label: 'Error Dismiss / Close Button',
-        default: '.ui-toast-close-icon, .ui-toast-icon-close, .ui-growl-icon-close, .ui-confirmdialog-acceptbutton, .ui-dialog-titlebar-close',
+        default: '.ui-toast-close-icon, .ui-toast-icon-close, .ui-growl-icon-close, .ui-messages-close, .ui-messages-icon-close, .ui-confirmdialog-acceptbutton, .ui-dialog-titlebar-close, .fa-close, .fa-remove',
+      },
+      LOADER: {
+        label: 'Loading Overlay ("Please Wait...")',
+        default: '#loaderP, .loader, .loadding, .spinner, .spinner-border, ngx-spinner, .ngx-spinner-overlay, .loader-container',
       },
     },
   },
