@@ -131,11 +131,15 @@ const SELECTOR_CATEGORIES = {
     selectors: {
       ERROR_MESSAGE: {
         label: 'Error Message Containers (high load / server errors)',
-        default: 'p-toast .ui-toast-summary, p-toast .ui-toast-detail, .ui-growl-message, .ui-messages-error, p-dialog .ui-dialog-content, p-confirmdialog .ui-confirmdialog-message, .error_txt, .errorMsg, .error-msg, .text-danger, [role="alert"]',
+        default: '.ui-toast-message-text-content, .ui-toast-detail, .ui-toast-summary, .ui-growl-item-container, .toast-message, [role="alert"]',
       },
       ERROR_DISMISS: {
-        label: 'Error Dismiss / Close Button',
-        default: '.ui-toast-close-icon, .ui-toast-icon-close, .ui-growl-icon-close, .ui-messages-close, .ui-messages-icon-close, .ui-confirmdialog-acceptbutton, .ui-dialog-titlebar-close, .fa-close, .fa-remove',
+        label: 'Error Toast Close Icon',
+        default: '.ui-toast-close-icon, .toast-close-button, .ui-growl-icon-close',
+      },
+      ERROR_TOAST_LINK: {
+        label: 'Retry Link Inside Error Toast',
+        default: '#divMain > div > app-train-list > p-toast > div > p-toastitem > div > div > a, body > app-root > app-home > div.header-fix > app-header > p-toast > div > p-toastitem > div > div > a',
       },
       LOADER: {
         label: 'Loading Overlay ("Please Wait...")',

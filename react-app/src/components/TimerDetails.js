@@ -233,7 +233,7 @@ function TimerDetails() {
 
       <FormGroup>
         <Tooltip
-          title="During Tatkal rush IRCTC often answers a click with 'We are experiencing high load' instead of moving to the next page. Enable this to detect that message, close it and retry the same step automatically."
+          title="During Tatkal rush IRCTC often answers a click with 'We are experiencing high load' instead of moving to the next page. Enable this to detect that message, use the retry link on the toast (or close it) and re-run the same step automatically."
           placement="top"
           arrow
         >

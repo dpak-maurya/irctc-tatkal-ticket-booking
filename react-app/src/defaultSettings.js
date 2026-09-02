@@ -33,7 +33,7 @@ const defaultSettings = {
     autoSubmitCaptcha:false,
     autoProcessPopup:false,
     retryOnHighLoad: true,
-    maxRetryAttempts: 5
+    maxRetryAttempts: 12
   };
 
 export default defaultSettings;

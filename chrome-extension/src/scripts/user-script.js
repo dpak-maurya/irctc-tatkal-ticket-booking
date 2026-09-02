@@ -3,8 +3,10 @@ import extractTextFromImage from './ocr-reader';
 import {
   ERROR_MESSAGE_DEFAULT,
   ERROR_DISMISS_DEFAULT,
+  ERROR_TOAST_LINK_DEFAULT,
   LOADER_DEFAULT,
   advanceOrRetry,
+  clickErrorToastLink,
   dismissIrctcError,
   findIrctcError,
   waitForLoaderToClear,
@@ -41,7 +43,7 @@ let autoSolveCaptcha = false;
 let autoSubmitCaptcha = false;
 let preferredLanguage = 'English';
 let retryOnHighLoad = true;
-let maxRetryAttempts = 5;
+let maxRetryAttempts = 12;
 
 const STORAGE_KEY = 'tatkalTicketBookingFormData';
 
@@ -76,7 +78,7 @@ const defaultSettings = {
   autoSubmitCaptcha:false,
   preferredLanguage:'English',
   retryOnHighLoad: true,
-  maxRetryAttempts: 5
+  maxRetryAttempts: 12
 };
 
 
@@ -180,12 +182,13 @@ let EWALLET_CONFIRM_BUTTON_TEXT = 'CONFIRM';
 // IRCTC error toast / dialog (high load, service unavailable, session expiry)
 let ERROR_MESSAGE = ERROR_MESSAGE_DEFAULT;
 let ERROR_DISMISS = ERROR_DISMISS_DEFAULT;
+let ERROR_TOAST_LINK = ERROR_TOAST_LINK_DEFAULT;
 let LOADER = LOADER_DEFAULT;
 
 // A high-load refresh is retried on this delay instead of the full refreshTime:
 // under load the seat can be gone within a second, so paying a 5s interval for
 // a request IRCTC never even processed just loses the seat.
-const HIGH_LOAD_RETRY_DELAY = 800;
+const HIGH_LOAD_RETRY_DELAY = 1000;
 
 // --- Selector Override System ---
 // Loads user-customized selectors from chrome.storage and applies them
@@ -266,6 +269,7 @@ const SELECTOR_VAR_MAP = {
   EWALLET_CONFIRM_BUTTON_TEXT: (v) => { EWALLET_CONFIRM_BUTTON_TEXT = v; },
   ERROR_MESSAGE: (v) => { ERROR_MESSAGE = v; },
   ERROR_DISMISS: (v) => { ERROR_DISMISS = v; },
+  ERROR_TOAST_LINK: (v) => { ERROR_TOAST_LINK = v; },
   LOADER: (v) => { LOADER = v; },
 };
 
@@ -914,7 +918,13 @@ async function bookTicket() {
         const stallError = findIrctcError(ERROR_MESSAGE);
         if (stallError) {
           Logger.warn('Availability refresh blocked by IRCTC:', stallError.message);
-          await dismissIrctcError({ error: stallError, dismissSelector: ERROR_DISMISS, click: humanClick });
+          // IRCTC's own toast carries a link that re-runs the enquiry; use it
+          // when it is there, otherwise just close the toast so the next poll
+          // does not read the same stale message.
+          const usedLink = await clickErrorToastLink({ linkSelector: ERROR_TOAST_LINK, click: humanClick });
+          if (!usedLink) {
+            await dismissIrctcError({ dismissSelector: ERROR_DISMISS, click: humanClick });
+          }
           // Don't click into IRCTC's own loading overlay.
           await waitForLoaderToClear({ selector: LOADER });
           await refreshTrain();
@@ -1649,6 +1659,7 @@ async function advance(name, target, retryAction) {
     retryAction,
     errorSelector: ERROR_MESSAGE,
     dismissSelector: ERROR_DISMISS,
+    linkSelector: ERROR_TOAST_LINK,
     loaderSelector: LOADER,
     attempts: maxRetryAttempts,
     click: humanClick,
