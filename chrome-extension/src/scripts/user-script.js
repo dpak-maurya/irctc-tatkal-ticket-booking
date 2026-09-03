@@ -9,7 +9,7 @@ import {
   clickErrorToastLink,
   dismissIrctcError,
   findIrctcError,
-  waitForLoaderToClear,
+  waitForQuiet,
 } from './highLoadRetry';
 
 
@@ -185,9 +185,8 @@ let ERROR_DISMISS = ERROR_DISMISS_DEFAULT;
 let ERROR_TOAST_LINK = ERROR_TOAST_LINK_DEFAULT;
 let LOADER = LOADER_DEFAULT;
 
-// A high-load refresh is retried on this delay instead of the full refreshTime:
-// under load the seat can be gone within a second, so paying a 5s interval for
-// a request IRCTC never even processed just loses the seat.
+// Retry delay for a refused availability refresh - shorter than refreshTime,
+// because IRCTC never processed the enquiry.
 const HIGH_LOAD_RETRY_DELAY = 1000;
 
 // --- Selector Override System ---
@@ -812,10 +811,8 @@ async function refreshTrain() {
       await humanClick(selectedTab);
       return;
     }
-    // Under high load IRCTC replaces the whole class-tab strip with its error
-    // message, so there is no tab left to click and this used to just log and
-    // give up - the availability loop then span without ever refreshing again.
-    // Re-selecting the class rebuilds the row and re-fires the enquiry.
+    // Under load IRCTC replaces the class-tab strip with its error message, so
+    // there is no tab left to click. Re-selecting the class rebuilds the row.
     Logger.warn('Selected accommodation tab not found. Re-selecting the class.');
     await scrollToFoundTrainAndSelectClass();
   } catch (error) {
@@ -890,6 +887,9 @@ async function bookTicket() {
 
   await delay(1000);
 
+  // Enquiries refused in a row, so the wait between them can step up.
+  let stallStreak = 0;
+
   while (!isAvlEnquiryCompleted) {
     // Check if any new mutations occurred since the last refresh
     if (mutationCompletionCounter > 0) {
@@ -911,30 +911,30 @@ async function bookTicket() {
             // Optionally, you can choose to break the loop or handle the error differently
         }
     } else {
-        // No fresh availability data arrived since the last click. Under load
-        // IRCTC answers the enquiry with a "high load" message and inserts
-        // nothing, so the loop used to spin here forever without ever clicking
-        // again (issue #86). Clear the message and re-trigger the enquiry.
+        // No fresh availability data since the last click. Under load IRCTC
+        // answers the enquiry with a "high load" message and inserts nothing, so
+        // the loop used to spin here forever (issue #86).
         const stallError = findIrctcError(ERROR_MESSAGE);
         if (stallError) {
-          Logger.warn('Availability refresh blocked by IRCTC:', stallError.message);
-          // IRCTC's own toast carries a link that re-runs the enquiry; use it
-          // when it is there, otherwise just close the toast so the next poll
-          // does not read the same stale message.
+          stallStreak += 1;
+          Logger.warn(`Availability refresh blocked by IRCTC (${stallStreak} in a row):`, stallError.message);
+          // IRCTC's toast carries a link that re-runs the enquiry; use it when
+          // present, otherwise close the toast so the next poll reads fresh state.
           const usedLink = await clickErrorToastLink({ linkSelector: ERROR_TOAST_LINK, click: humanClick });
           if (!usedLink) {
             await dismissIrctcError({ dismissSelector: ERROR_DISMISS, click: humanClick });
           }
-          // Don't click into IRCTC's own loading overlay.
-          await waitForLoaderToClear({ selector: LOADER });
+          // Back-to-back clicks into a busy page turn one rejection into a burst.
+          await waitForQuiet({ errorSelector: ERROR_MESSAGE, loaderSelector: LOADER, settleMs: 750, timeoutMs: 8000 });
           await refreshTrain();
-          // Retry on a short delay rather than the full refreshTime: IRCTC never
-          // processed this enquiry, and at Tatkal open a 5s pause loses the seat.
-          await delay(HIGH_LOAD_RETRY_DELAY);
+          // Shorter than refreshTime because the enquiry never ran, but stepped up
+          // while IRCTC keeps refusing.
+          await delay(Math.min(HIGH_LOAD_RETRY_DELAY * stallStreak, 4000));
           continue;
         }
         await refreshTrain();
     }
+    stallStreak = 0;
     await delay(refreshTime); // Adjust the delay as needed
 }
 
@@ -1298,6 +1298,72 @@ function isCaptchaExpectedOnReviewPage() {
   return false;
 }
 
+// How many passenger rows the form should hold for the configured booking.
+function expectedPassengerRowCount() {
+  const list = masterData
+    ? (passengerNames || []).filter((p) => p.isSelected)
+    : (passengerList || []).filter((p) => p.isSelected);
+  return list.length || 1;
+}
+
+// IRCTC leaves the form as it was when it rejects the submit, so this is normally
+// true and the right recovery is to submit the same form again.
+function passengerFormLooksFilled() {
+  const rows = document.querySelectorAll(PASSENGER_COMPONENT);
+  if (rows.length !== expectedPassengerRowCount()) return false;
+
+  for (const row of rows) {
+    const nameInput = row.querySelector(PASSENGER_NAME_INPUT);
+    const ageInput = row.querySelector(PASSENGER_AGE_INPUT);
+    if (!nameInput || !nameInput.value.trim()) return false;
+    if (!ageInput || !ageInput.value.trim()) return false;
+  }
+  return true;
+}
+
+// Back to the single default row addCustomPassengerList() expects.
+async function resetPassengerRowsToOne() {
+  for (let guard = 0; guard < 12; guard += 1) {
+    if (document.querySelectorAll(PASSENGER_COMPONENT).length <= 1) return;
+    const removeLinks = document.querySelectorAll(PASSENGER_REMOVE_ROW);
+    if (!removeLinks.length) return;
+    await humanClick(removeLinks[removeLinks.length - 1]);
+    await delay(100);
+  }
+}
+
+/**
+ * Retry the passenger page without duplicating anybody.
+ *
+ * Re-running addPassengerInputAndContinue() blind is only safe for one passenger:
+ * addCustomPassengerList() removes the default row then adds one row per
+ * passenger, so a second run on a form holding N rows leaves 2N-1, and every
+ * further retry doubles again. Re-submit the form as it stands when intact; only
+ * re-fill (from a cleaned form) when IRCTC really did reset it.
+ */
+async function retryPassengerSubmit() {
+  if (!document.querySelector(PASSENGER_APP_COMPONENT)) {
+    Logger.warn('Passenger page is no longer on screen - nothing to re-submit.');
+    return;
+  }
+
+  if (passengerFormLooksFilled()) {
+    Logger.info('Passenger form survived the error - re-submitting it unchanged.');
+    const continueButton = document.querySelector(PASSENGER_SUBMIT_BUTTON);
+    if (!continueButton) {
+      Logger.error('Continue button not found on the passenger page.');
+      return;
+    }
+    continueButton.focus();
+    await humanClick(continueButton);
+    return;
+  }
+
+  Logger.warn('Passenger form was reset by IRCTC - clearing leftover rows and filling it again.');
+  await resetPassengerRowsToOne();
+  await addPassengerInputAndContinue();
+}
+
 // async function handleCaptchaAndContinue() {
 //   await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
 //   // Find the captcha input element
@@ -1497,9 +1563,8 @@ function hasReachedTargetTime(currentTimeString, targetTimeString) {
     (currentHour === targetHour && currentMinute > targetMinute) ||
     (currentHour === targetHour && currentMinute === targetMinute && currentSecond >= targetSecond);
 }
-// Resolves once the Search button has actually been clicked, so the caller can
-// start watching for the train list (or an IRCTC error) only from that moment -
-// waiting earlier would let a retry fire the search before the Tatkal window.
+// Resolves once Search has actually been clicked, so a retry cannot fire the
+// search before the Tatkal window opens.
 function waitForTargetTime(targetTimeString) {
   return new Promise((resolve) => {
     const searchButton = document.querySelector(JOURNEY_SEARCH_BUTTON);
@@ -1636,14 +1701,10 @@ async function dismissLanguagePopup() {
     }
 }
 
-/**
- * Wait for a page transition, retrying `retryAction` while IRCTC keeps
- * answering with a transient error (high load, service unavailable, ...).
- * Returns false when the run cannot continue, so the caller can stop instead
- * of waiting on a page that will never render.
- */
+// Wait for a page transition, retrying `retryAction` while IRCTC keeps answering
+// with a transient error. Returns false when the run cannot continue.
 async function advance(name, target, retryAction) {
-  // Feature switched off: keep the previous behaviour and wait indefinitely.
+  // Feature off: previous behaviour, wait indefinitely.
   if (!retryOnHighLoad) {
     if (target.appear) {
       await waitForElementToAppear(target.appear);
@@ -1720,8 +1781,10 @@ async function executeFunctions() {
     // Passenger Input and Payment Type < Page 2 >
     await addPassengerInputAndContinue();
 
-    // Wait for the ticket review and Captcha page load
-    if (!(await advance('passenger details', { appear: REVIEW_COMPONENT }, addPassengerInputAndContinue))) return;
+    // Wait for the ticket review and Captcha page load. The retry re-submits the
+    // existing form instead of re-running the fill, so a rejected Continue cannot
+    // duplicate passenger rows.
+    if (!(await advance('passenger details', { appear: REVIEW_COMPONENT }, retryPassengerSubmit))) return;
 
     // Review and Captcha <Page 3>   (a prompt will appear to fill captcha)
     await handleCaptchaAndContinue();

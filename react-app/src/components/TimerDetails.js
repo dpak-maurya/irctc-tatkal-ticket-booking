@@ -256,7 +256,7 @@ function TimerDetails() {
         label={
           <span>
             Max Retry Attempts
-            <Tooltip title="How many times a step is retried when IRCTC keeps returning a high load or temporary server error before the automation stops and asks you to continue manually">
+            <Tooltip title="How many times a step is retried when IRCTC keeps returning a high load or temporary server error. Each retry waits longer than the last (2s, 4s, 8s, then 10s) so IRCTC gets an idle gap instead of another click, and retrying stops after 2.5 minutes even if attempts are left.">
               <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
             </Tooltip>
           </span>

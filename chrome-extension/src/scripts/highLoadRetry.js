@@ -1,17 +1,16 @@
 /**
- * Detection and retry helpers for IRCTC server-side errors.
+ * Detection and retry helpers for IRCTC server-side errors (issue #86).
  *
- * During Tatkal peak, IRCTC frequently answers a click with an error toast
- * ("We are experiencing High Load - Please retry") instead of navigating to the
- * next page. The DOM the automation is waiting for never appears, so an
- * unbounded waitForElementToAppear() sits there forever and the booking run
- * dies quietly with no retry - reported in issue #86.
+ * During Tatkal peak IRCTC answers a click with an error toast instead of
+ * navigating, so the DOM the automation waits for never appears and an unbounded
+ * waitForElementToAppear() hangs the run.
  *
- * Every selector, pattern list and delay below is taken from a build that has
- * been run through live Tatkal windows, so nothing here is inferred from
- * PrimeNG documentation: the toast text nodes, the close icons, the "click
- * here" retry link inside the toast and the loader list are the elements IRCTC
- * actually renders.
+ * Three things a live Tatkal run showed, all handled below:
+ *  1. Every rejection carries a fresh reference id, so raw text comparison reads
+ *     each poll as a brand new error.
+ *  2. The toast can appear while IRCTC's request is still in flight, so retrying
+ *     on the toast alone double-submits the step.
+ *  3. Each click opens a new server transaction - fast retries only add load.
  */
 
 import Logger from './logger';
@@ -20,9 +19,8 @@ const WHITESPACE = /\s+/g;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// The nodes that actually carry IRCTC's error text. PrimeNG toast internals
-// plus the generic [role="alert"] it stamps on them. Comma-joined so it stays
-// overridable from the Selector Editor when IRCTC changes its markup.
+// The nodes that carry IRCTC's error text: PrimeNG toast internals plus the
+// [role="alert"] it stamps on them.
 export const ERROR_MESSAGE_DEFAULT = [
   '.ui-toast-message-text-content',
   '.ui-toast-detail',
@@ -32,26 +30,22 @@ export const ERROR_MESSAGE_DEFAULT = [
   '[role="alert"]',
 ].join(', ');
 
-// Close icons only. Deliberately NOT a general "any close button" list: a
-// dialog accept button or a .fa-remove would match unrelated controls - in this
-// extension a.fa-remove is the passenger remove-row button.
+// Close icons only - a.fa-remove is the passenger remove-row button here, so a
+// general "any close button" list would delete a passenger.
 export const ERROR_DISMISS_DEFAULT = [
   '.ui-toast-close-icon',
   '.toast-close-button',
   '.ui-growl-icon-close',
 ].join(', ');
 
-// Under load the high-load toast carries its own retry link, and clicking that
-// link is what makes IRCTC re-run the enquiry - closing the toast alone leaves
-// the train row without its class tabs. Both paths are the ones IRCTC renders:
-// one toast inside the train list, one in the page header.
+// The high-load toast carries its own retry link, and clicking it is what makes
+// IRCTC re-run the enquiry. One toast sits in the train list, one in the header.
 export const ERROR_TOAST_LINK_DEFAULT = [
   '#divMain > div > app-train-list > p-toast > div > p-toastitem > div > div > a',
   'body > app-root > app-home > div.header-fix > app-header > p-toast > div > p-toastitem > div > div > a',
 ].join(', ');
 
-// IRCTC blocks the page with a "Please Wait..." overlay while a request is in
-// flight. Re-clicking a stage button then is either swallowed or double-fires.
+// IRCTC blocks the page with a "Please Wait..." overlay while a request runs.
 export const LOADER_DEFAULT = [
   '#loaderP',
   '.loader',
@@ -63,8 +57,7 @@ export const LOADER_DEFAULT = [
   '.loader-container',
 ].join(', ');
 
-// Server-side hiccups. The page did not move on, but clicking again shortly
-// after usually works - this is the whole point of the retry loop.
+// Server-side hiccups: clicking again shortly after usually works.
 const TRANSIENT_PATTERNS = [
   /we are experiencing high load/i,
   /high load/i,
@@ -79,29 +72,44 @@ const TRANSIENT_PATTERNS = [
 
 // Failures a re-click cannot fix. Checked before the transient list, because
 // "session expired, please try again" also matches /please try again/.
-// The user has to step in, so the run stops instead of burning Tatkal seconds.
 const TERMINAL_PATTERNS = [
   /user\s*id|password|user name|username/i,
   /session (has )?expired|logged out/i,
   /maximum|limit exceeded/i,
 ];
 
-// Also not retryable, but not this module's business either: the captcha stage
-// re-solves on its own, the availability loop already handles a train with no
-// seats, and the quota/booking-window messages are covered by the booking-time
-// gate. Reporting any of them here would abort a run that is working fine, so
-// they are matched first and treated as "nothing to see".
+// Not retryable and not this module's business: the captcha stage re-solves, the
+// availability loop handles a sold-out train, and the booking-time gate covers
+// quota windows. Matched first so none of them abort a healthy run.
 const NOT_OUR_ERROR_PATTERNS = [
   /captcha/i,
   /no (seats|berth)|not available|waitlist|regret/i,
   /booking (is )?not allowed|quota/i,
 ];
 
+// IRCTC stamps a reference id and the client IP into each rejection, and the id
+// changes on every attempt. Strip anything volatile so repeats of one failure
+// share an identity.
+const VOLATILE_TOKENS = [
+  /client\s*ip\s*:?\s*\S+/gi,
+  /\b[0-9a-f]+(?:\.[0-9a-f]+){2,}\b/gi,
+  /\b\d{5,}\b/g,
+];
+
+export function errorIdentity(rawText) {
+  let identity = String(rawText || '');
+  for (const token of VOLATILE_TOKENS) identity = identity.replace(token, ' ');
+  return identity
+    .replace(/[^a-z0-9 ]+/gi, ' ')
+    .replace(WHITESPACE, ' ')
+    .trim()
+    .toLowerCase();
+}
+
 /**
- * Classify a piece of on-screen text.
- * Returns null for anything unrecognised - an unknown message is far more
- * likely to be ordinary form validation than a server failure, and acting on
- * it would replay steps that IRCTC already accepted.
+ * Classify on-screen text. Returns null for anything unrecognised: an unknown
+ * message is more likely form validation than a server failure, and acting on it
+ * would replay a step IRCTC already accepted.
  */
 export function classifyIrctcError(rawText) {
   if (!rawText) return null;
@@ -111,10 +119,10 @@ export function classifyIrctcError(rawText) {
 
   if (NOT_OUR_ERROR_PATTERNS.some((pattern) => pattern.test(message))) return null;
   if (TERMINAL_PATTERNS.some((pattern) => pattern.test(message))) {
-    return { message, kind: 'terminal' };
+    return { message, identity: errorIdentity(message), kind: 'terminal' };
   }
   if (TRANSIENT_PATTERNS.some((pattern) => pattern.test(message))) {
-    return { message, kind: 'transient' };
+    return { message, identity: errorIdentity(message), kind: 'transient' };
   }
   return null;
 }
@@ -139,13 +147,8 @@ export function findIrctcError(errorSelector = ERROR_MESSAGE_DEFAULT) {
   return null;
 }
 
-/**
- * Click the retry link inside the high-load toast, if IRCTC rendered one.
- *
- * This is the recovery IRCTC itself offers on the train list page: the toast
- * says the enquiry could not be processed and provides the link that re-runs
- * it. Returns true when a link was clicked.
- */
+// Click the retry link inside the toast - the recovery IRCTC itself offers on the
+// train list page. Returns true when a link was clicked.
 export async function clickErrorToastLink({
   linkSelector = ERROR_TOAST_LINK_DEFAULT,
   click,
@@ -168,14 +171,8 @@ export async function clickErrorToastLink({
   return true;
 }
 
-/**
- * Close every visible toast/growl so the next attempt is not blocked by one.
- *
- * Clicking all of them rather than only the one that matched is intentional:
- * under load IRCTC stacks several toasts and a leftover one keeps satisfying
- * findIrctcError() on the following poll. Safe because the selector list holds
- * nothing but toast close icons.
- */
+// Close every visible toast, not only the one that matched: under load IRCTC
+// stacks them and a leftover keeps satisfying findIrctcError() on the next poll.
 export async function dismissIrctcError({
   dismissSelector = ERROR_DISMISS_DEFAULT,
   click,
@@ -219,8 +216,8 @@ export function isLoaderVisible(selector = LOADER_DEFAULT) {
     if (node.offsetParent !== null || node.getClientRects().length) return true;
   }
 
-  // Some IRCTC pages show the overlay as plain "Please Wait..." text with none
-  // of the classes above, so match that leaf node too.
+  // Some pages show the overlay as plain "Please Wait..." text with none of the
+  // classes above.
   for (const node of document.querySelectorAll('div, span, p, h4')) {
     if (node.children.length) continue;
     if (!/^please\s*wait\.{0,3}$/i.test((node.textContent || '').trim())) continue;
@@ -229,8 +226,8 @@ export function isLoaderVisible(selector = LOADER_DEFAULT) {
   return false;
 }
 
-// Never click while a request is still in flight. Returns false if the overlay
-// outlives the wait, so the caller can decide to go ahead anyway.
+// Never click while a request is in flight. Returns false if the overlay outlives
+// the wait, so the caller can decide to go ahead anyway.
 export async function waitForLoaderToClear({
   selector = LOADER_DEFAULT,
   timeoutMs = 20000,
@@ -246,12 +243,18 @@ export async function waitForLoaderToClear({
 }
 
 /**
- * Retry delay: first retry fast because the server usually clears instantly,
- * then 4-6s of jitter so we do not hammer IRCTC in lockstep with everyone else.
+ * Retry delay: 2.0-3.5s, 4.0-5.5s, 8.0-9.5s, then 10.0-11.5s.
+ *
+ * Exponential with a floor, because fast retries measurably do not work - each
+ * click opens a new server transaction rather than re-driving the failed one.
+ * The jitter keeps us off the same schedule as every other script in the window.
  */
+export const BACKOFF_FLOOR_MS = 2000;
+export const BACKOFF_CAP_MS = 10000;
+
 export function backoffDelay(attempt) {
-  if (attempt <= 1) return 1000;
-  return Math.floor(Math.random() * 2001) + 4000;
+  const step = Math.min(BACKOFF_CAP_MS, BACKOFF_FLOOR_MS * 2 ** Math.max(0, attempt - 1));
+  return step + Math.floor(Math.random() * 1500);
 }
 
 function hasAdvanced({ appear, disappear }) {
@@ -262,9 +265,7 @@ function hasAdvanced({ appear, disappear }) {
 
 /**
  * Poll until the flow reaches the next page, IRCTC reports an error, or the
- * attempt window runs out.
- *
- * `target` is either { appear: selector } or { disappear: selector }.
+ * attempt window runs out. `target` is { appear: selector } or { disappear: selector }.
  */
 export async function waitForOutcome({
   target,
@@ -288,40 +289,41 @@ export async function waitForOutcome({
 }
 
 /**
- * Wait until the error that was just retried is off the screen.
- *
- * Without this the retry loop re-reads the same still-painted message on the
- * next poll and counts it as a fresh failure, so the entire attempt budget can
- * be spent in a couple of seconds against one error.
- * Returns false if the message outlives the wait; the caller carries on either
- * way, because a stuck message must not deadlock the run.
+ * Wait until the page is genuinely idle: no loader, no error toast, both true
+ * continuously for `settleMs`. Returns false if it never goes quiet - a stuck
+ * toast must not deadlock the run.
  */
-export async function waitForErrorToClear({
+export async function waitForQuiet({
   errorSelector = ERROR_MESSAGE_DEFAULT,
-  previous,
-  timeoutMs = 10000,
-  pollMs = 300,
+  loaderSelector = LOADER_DEFAULT,
+  settleMs = 1500,
+  timeoutMs = 15000,
+  pollMs = 250,
 } = {}) {
   const startTime = Date.now();
+  let quietSince = null;
 
   for (;;) {
-    const current = findIrctcError(errorSelector);
-    if (!current || (previous && current.message !== previous)) return true;
+    if (isLoaderVisible(loaderSelector) || findIrctcError(errorSelector)) {
+      quietSince = null;
+    } else {
+      if (quietSince === null) quietSince = Date.now();
+      if (Date.now() - quietSince >= settleMs) return true;
+    }
+
     if (Date.now() - startTime >= timeoutMs) return false;
     await sleep(pollMs);
   }
 }
 
 /**
- * Wait for a booking step to land, retrying it whenever IRCTC answers with a
+ * Wait for a booking step to land, retrying whenever IRCTC answers with a
  * transient error.
  *
- * A plain timeout is NOT retried: with no page change and no error message
- * IRCTC is merely slow, and replaying the step could double-submit something it
- * has already accepted (re-running the passenger page would duplicate rows).
- * In that case this keeps waiting, exactly as the old unbounded wait did.
- *
- * Resolves to { ok: true } or { ok: false, reason: 'terminal' | 'exhausted', error }.
+ * A plain timeout is NOT retried: with no page change and no error message IRCTC
+ * is merely slow, and replaying the step could double-submit something it already
+ * accepted. Resolves to { ok: true } or
+ * { ok: false, reason: 'terminal' | 'exhausted', error }.
  */
 export async function advanceOrRetry({
   name,
@@ -333,8 +335,11 @@ export async function advanceOrRetry({
   loaderSelector = LOADER_DEFAULT,
   attempts = 12,
   attemptTimeoutMs = 20000,
+  settleMs = 1500,
+  budgetMs = 150000,
   click,
 }) {
+  const runStart = Date.now();
   let attempt = 0;
 
   for (;;) {
@@ -357,22 +362,52 @@ export async function advanceOrRetry({
       return { ok: false, reason: 'terminal', error };
     }
 
+    // A toast painted while the overlay is still up does not mean the step
+    // finished - its request has not come back yet. Let it land before counting a
+    // failure, otherwise the retry fires on top of an in-flight submit.
+    if (isLoaderVisible(loaderSelector)) {
+      Logger.info(`[${name}] error shown while a request is still in flight - letting it finish first.`);
+      await waitForLoaderToClear({ selector: loaderSelector });
+      if (hasAdvanced(target)) {
+        Logger.info(`[${name}] page moved on once the request landed - no retry needed.`);
+        return { ok: true };
+      }
+      // The message may have been superseded; re-read instead of trusting it.
+      if (!findIrctcError(errorSelector)) continue;
+    }
+
     attempt += 1;
+    const elapsedMs = Date.now() - runStart;
+
     if (attempt > attempts) {
       Logger.error(`[${name}] giving up after ${attempts} retry(s). Last error:`, error.message);
       return { ok: false, reason: 'exhausted', error };
     }
 
-    Logger.warn(`[${name}] IRCTC is under load (retry ${attempt}/${attempts}):`, error.message);
+    // A wall-clock stop as well as a count: with exponential backoff the last
+    // attempts are slow, and a seat held through minutes of rejections is gone.
+    if (elapsedMs >= budgetMs) {
+      Logger.error(`[${name}] giving up after ${Math.round(elapsedMs / 1000)}s of retrying. Last error:`, error.message);
+      return { ok: false, reason: 'exhausted', error };
+    }
+
+    const wait = backoffDelay(attempt);
+    Logger.warn(
+      `[${name}] IRCTC is under load (retry ${attempt}/${attempts}, ${Math.round(elapsedMs / 1000)}s in, next in ${Math.round(wait / 1000)}s):`,
+      error.message,
+    );
 
     // Prefer IRCTC's own retry link when the toast offers one.
     const usedLink = await clickErrorToastLink({ linkSelector, click });
     if (!usedLink) await dismissIrctcError({ dismissSelector, click });
 
-    await sleep(backoffDelay(attempt));
+    await sleep(wait);
 
-    // Clicking while IRCTC's overlay is up is either swallowed or double-fires.
-    await waitForLoaderToClear({ selector: loaderSelector });
+    // Do not re-fire into a page that is still working or still showing the
+    // rejection - that is what turned one bad click into a burst of them.
+    if (!(await waitForQuiet({ errorSelector, loaderSelector, settleMs }))) {
+      Logger.warn(`[${name}] page never settled; retrying anyway.`);
+    }
 
     // The page may have moved on while we were backing off.
     if (hasAdvanced(target)) {
@@ -381,10 +416,5 @@ export async function advanceOrRetry({
     }
 
     if (retryAction) await retryAction();
-
-    // Hold here until the message clears, otherwise the next waitForOutcome()
-    // sees the SAME error still painted and burns another attempt instantly -
-    // the whole retry budget can be spent in a couple of seconds that way.
-    await waitForErrorToClear({ errorSelector, previous: error.message });
   }
 }
