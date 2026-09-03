@@ -342,17 +342,15 @@ async function waitForElementToDisappear(element, timeoutMs = 5000) {
   });
 }
 
-// IRCTC keeps some fields in the DOM without ever painting them. An element
-// that is not rendered has to count as absent, otherwise the automation waits
-// for a field the user can never fill (issue #94).
+// IRCTC keeps some fields in the DOM without painting them; unrendered counts as
+// absent (issue #94).
 function isElementVisible(element) {
   if (!element) return false;
   return element.offsetParent !== null || element.getClientRects().length > 0;
 }
 
-// Poll `check` until it returns something truthy, else give up and return null.
-// Used for stages IRCTC may simply not render any more, where "absent" is a
-// valid answer instead of a reason to block the booking.
+// Poll `check` until truthy, else give up and return null - for stages where
+// "absent" is a valid answer.
 async function waitForCondition(check, timeoutMs, pollMs = 200) {
   const startTime = Date.now();
 
@@ -364,9 +362,8 @@ async function waitForCondition(check, timeoutMs, pollMs = 200) {
   }
 }
 
-// A captcha can only be solved when the image AND a visible input are present.
-// IRCTC has dropped the captcha from the login and review pages for most flows,
-// so this resolves to null rather than waiting forever (issue #94).
+// Needs both image and a visible input. Resolves to null instead of waiting
+// forever, since IRCTC often serves no captcha now (issue #94).
 async function waitForUsableCaptcha(getImage, getInput, timeoutMs = CAPTCHA_WAIT_TIME) {
   return waitForCondition(() => {
     const image = getImage();
@@ -1325,9 +1322,8 @@ async function clickReviewContinue() {
 }
 
 async function handleCaptchaAndContinue() {
-  // IRCTC dropped the captcha from the review page for most flows. This used to
-  // wait for it indefinitely on Tatkal, so the run stopped one click short of
-  // the payment page (issue #94). A missing captcha is now a normal outcome.
+  // A missing review captcha is normal now; waiting for it used to stall the run
+  // one click short of payment (issue #94).
   const captcha = await waitForUsableCaptcha(
     () => document.querySelector(REVIEW_CAPTCHA_IMAGE),
     () => document.getElementById(REVIEW_CAPTCHA_INPUT)
