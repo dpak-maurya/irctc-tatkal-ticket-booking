@@ -126,6 +126,27 @@ const SELECTOR_CATEGORIES = {
       EWALLET_CONFIRM_BUTTON_TEXT: { label: 'Confirm Button Text', default: 'CONFIRM' },
     },
   },
+  ERROR: {
+    label: 'Error Handling Elements',
+    selectors: {
+      ERROR_MESSAGE: {
+        label: 'Error Message Containers (high load / server errors)',
+        default: '.ui-toast-message-text-content, .ui-toast-detail, .ui-toast-summary, .ui-growl-item-container, .toast-message, [role="alert"]',
+      },
+      ERROR_DISMISS: {
+        label: 'Error Toast Close Icon',
+        default: '.ui-toast-close-icon, .toast-close-button, .ui-growl-icon-close',
+      },
+      ERROR_TOAST_LINK: {
+        label: 'Retry Link Inside Error Toast',
+        default: '#divMain > div > app-train-list > p-toast > div > p-toastitem > div > div > a, body > app-root > app-home > div.header-fix > app-header > p-toast > div > p-toastitem > div > div > a',
+      },
+      LOADER: {
+        label: 'Loading Overlay ("Please Wait...")',
+        default: '#loaderP, .loader, .loadding, .spinner, .spinner-border, ngx-spinner, .ngx-spinner-overlay, .loader-container',
+      },
+    },
+  },
 };
 
 export const CUSTOM_SELECTORS_STORAGE_KEY = 'customDomSelectors';
