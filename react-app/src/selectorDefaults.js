@@ -92,6 +92,8 @@ const SELECTOR_CATEGORIES = {
       },
       PASSENGER_SUBMIT_BUTTON: { label: 'Submit/Continue Button', default: 'app-passenger-input button.btnDefault.train_Search' },
       PASSENGER_PAYMENT_TYPE: { label: 'Passenger Page Payment Radio', default: 'p-radiobutton[name="paymentType"] input' },
+      PASSENGER_BOARDING_DROPDOWN: { label: 'Boarding Station Dropdown', default: 'p-dropdown[formcontrolname="boardingStation"]' },
+      PASSENGER_BOARDING_PANEL: { label: 'Boarding Station Open List', default: '.ui-dropdown-panel, .p-dropdown-panel' },
       PASSENGER_BOARDING_OPTION: { label: 'Boarding Point Label ("STATION | Dep ...")', default: 'strong' },
     },
   },
