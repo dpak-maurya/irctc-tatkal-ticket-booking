@@ -33,6 +33,7 @@ This Chrome extension is a personal project developed for educational purposes t
 
 - Fast and efficient Tatkal ticket booking process
 - Seamless clicks and navigation on the IRCTC website
+- Station and train lookup with search-as-you-type, plus an optional boarding station
 - Customizable settings for personalized usage
 - Reliable performance and secure ticket booking
 

@@ -67,6 +67,8 @@ function BookingPlanSummary({ formData }) {
         />
       )}
 
+      <SummaryRow label="Boarding station" value={formData.boardingStation} />
+
       <Divider sx={{ my: 1 }} />
 
       {wakeUpTimePassed ? (
