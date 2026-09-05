@@ -14,6 +14,8 @@ let passengerNames = '';
 let trainNumber = '';
 let from = '';
 let to = '';
+// "STATION NAME - CODE", empty means board at the origin station.
+let boardingStation = '';
 let quotaType = '';
 let isOpeningDayBooking = false;
 let accommodationClass = '';
@@ -39,6 +41,10 @@ const CAPTCHA_WAIT_TIME = 3000;
 // The payment page mounts its tiles a moment after the component itself.
 const PAYMENT_OPTIONS_WAIT_TIME = 10000;
 
+// Boarding list: bounded at 10 x 250ms, because this runs inside the Tatkal window.
+const BOARDING_STATION_ATTEMPTS = 10;
+const BOARDING_STATION_POLL_TIME = 250;
+
 const defaultSettings = {
   automationStatus: false,
   username: '',
@@ -52,6 +58,7 @@ const defaultSettings = {
   trainNumber: '',
   from: '',
   to: '',
+  boardingStation: '',
   quotaType: '',
   isOpeningDayBooking: false,
   accommodationClass: '',
@@ -145,6 +152,9 @@ let PASSENGER_PREFERENCE_CONFIRMBERTHS = 'confirmberths';
 let PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = 'input[type="radio"][name="travelInsuranceOpted-0"]';
 let PASSENGER_SUBMIT_BUTTON = 'app-passenger-input button.btnDefault.train_Search';
 let PASSENGER_PAYMENT_TYPE = 'p-radiobutton[name="paymentType"] input';
+// Boarding points render as <strong>STATION NAME | Dep 10:30</strong>. IRCTC gives
+// them no class of their own, so they are found by that text and not by a class.
+let PASSENGER_BOARDING_OPTION = 'strong';
 
 // Review Ticket and Fill Captcha
 let REVIEW_COMPONENT = 'app-review-booking';
@@ -229,6 +239,7 @@ const SELECTOR_VAR_MAP = {
   PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED: (v) => { PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = v; },
   PASSENGER_SUBMIT_BUTTON: (v) => { PASSENGER_SUBMIT_BUTTON = v; },
   PASSENGER_PAYMENT_TYPE: (v) => { PASSENGER_PAYMENT_TYPE = v; },
+  PASSENGER_BOARDING_OPTION: (v) => { PASSENGER_BOARDING_OPTION = v; },
   REVIEW_COMPONENT: (v) => { REVIEW_COMPONENT = v; },
   REVIEW_TRAIN_HEADER: (v) => { REVIEW_TRAIN_HEADER = v; },
   REVIEW_CAPTCHA_IMAGE: (v) => { REVIEW_CAPTCHA_IMAGE = v; },
@@ -1241,8 +1252,51 @@ async function selectPaymentType() {
     }
   }
 }
+// Boarding point picker. IRCTC preselects the origin station; changing it means
+// clicking the collapsed <strong>STATION NAME | Dep 10:30</strong> to open the list
+// and then the label of the wanted station. Saved as "STATION NAME - CODE" because
+// the list shows names, not codes, and either half is accepted here.
+async function fillBoardingStation() {
+  if (!boardingStation) return false;
+
+  const [rawName, rawCode] = String(boardingStation).split(/\s*-\s*/);
+  const wantName = String(rawName || '').trim().toUpperCase();
+  const wantCode = String(rawCode || '').trim().toUpperCase();
+  if (!wantName && !wantCode) return false;
+
+  const boardingLabels = () =>
+    Array.from(document.querySelectorAll(PASSENGER_BOARDING_OPTION)).filter(
+      (element) => isElementVisible(element) && textIncludes(element.innerText || element.textContent || '', ' | ')
+    );
+
+  for (let attempt = 0; attempt < BOARDING_STATION_ATTEMPTS; attempt += 1) {
+    const labels = boardingLabels();
+    const target = labels.find((element) => {
+      const text = (element.innerText || element.textContent || '').toUpperCase();
+      return (wantName && text.includes(wantName)) || (wantCode && text.includes(wantCode));
+    });
+
+    if (target) {
+      await humanClick(target);
+      Logger.info('Boarding station selected:', boardingStation);
+      return true;
+    }
+
+    // More than one label means the list is open, so the station is not offered for
+    // this train. Clicking anything now would pick the wrong boarding point.
+    if (labels.length > 1) break;
+
+    if (labels.length === 1) await humanClick(labels[0]);
+    await delay(BOARDING_STATION_POLL_TIME);
+  }
+
+  Logger.warn('Boarding station not available, keeping the default:', boardingStation);
+  return false;
+}
 async function addPassengerInputAndContinue() {
   const startTime = new Date(); // Record the start time
+  // Boarding point first: IRCTC reloads the fare block when it changes
+  await fillBoardingStation();
   // fill all passenger list
   if(masterData){
     await addMasterPassengerList();
@@ -1529,6 +1583,7 @@ async function getSettings() {
       trainNumber = items.trainNumber;
       from = items.from;
       to = items.to;
+      boardingStation = items.boardingStation || '';
       quotaType = items.quotaType;
       isOpeningDayBooking = items.isOpeningDayBooking;
       accommodationClass = items.accommodationClass;

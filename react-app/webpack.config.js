@@ -36,4 +36,8 @@ module.exports = {
     }),
   ],
   mode: "production", // Use 'development' for debugging
+  performance: {
+    // Station/train lists are fetched on demand, not part of the bundle
+    assetFilter: (assetFilename) => !assetFilename.startsWith("public/data/"),
+  },
 };
