@@ -94,7 +94,12 @@ function LookupField({
           variant='outlined'
           placeholder={placeholder}
           helperText={helperText}
-          sx={sharedStyles.input}
+          slotProps={{
+            input: {
+              ...params.InputProps,
+              sx: sharedStyles.input, // Apply shared input styles
+            },
+          }}
         />
       )}
     />
