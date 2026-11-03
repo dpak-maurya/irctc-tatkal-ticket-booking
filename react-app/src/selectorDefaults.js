@@ -25,12 +25,12 @@ const SELECTOR_CATEGORIES = {
     label: 'Journey Search Elements',
     selectors: {
       JOURNEY_INPUT_COMPONENT: { label: 'Journey Input Component', default: 'app-jp-input' },
-      ORIGIN_STATION_CODE: { label: 'Origin Station Input', default: '#origin input' },
-      DESTINATION_STATION_CODE: { label: 'Destination Station Input', default: '#destination input' },
+      ORIGIN_STATION_CODE: { label: 'Origin Station Input', default: 'input#origin, #origin input' },
+      DESTINATION_STATION_CODE: { label: 'Destination Station Input', default: 'input#destination, #destination input' },
       STATION_CODE_LIST: { label: 'Station Autocomplete List', default: '.ui-autocomplete-items li' },
       JOURNEY_QUOTA: { label: 'Journey Quota Dropdown', default: '#journeyQuota>div' },
       JOURNEY_QUOTA_LIST: { label: 'Quota Dropdown Items', default: '#journeyQuota p-dropdownitem span' },
-      JOURNEY_DATE: { label: 'Journey Date Input', default: '#jDate input' },
+      JOURNEY_DATE: { label: 'Journey Date Input', default: 'input#jDate, #jDate input' },
       CURRENT_TIME: { label: 'Current Time Display', default: 'app-header .h_head1>span strong' },
       JOURNEY_SEARCH_BUTTON: {
         label: 'Search Trains',
@@ -42,7 +42,7 @@ const SELECTOR_CATEGORIES = {
     label: 'Modify Search Elements',
     selectors: {
       MODIFY_SEARCH_COMPONENT: { label: 'Modify Search Component', default: 'app-modify-search' },
-      MODIFY_JOURNEY_DATE: { label: 'Modify Journey Date Input', default: '#journeyDate input' },
+      MODIFY_JOURNEY_DATE: { label: 'Modify Journey Date Input', default: 'input#journeyDate, #journeyDate input' },
     },
   },
   TRAIN_LIST: {

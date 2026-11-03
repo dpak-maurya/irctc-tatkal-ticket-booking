@@ -92,18 +92,18 @@ let LOGIN_CAPTCHA_INPUT = 'app-captcha #captcha';
 
 // Search Journey Element
 let JOURNEY_INPUT_COMPONENT = 'app-jp-input';
-let ORIGIN_STATION_CODE = '#origin input';
-let DESTINATION_STATION_CODE = '#destination input';
+let ORIGIN_STATION_CODE = 'input#origin, #origin input';
+let DESTINATION_STATION_CODE = 'input#destination, #destination input';
 let STATION_CODE_LIST = '.ui-autocomplete-items li';
 let JOURNEY_QUOTA = '#journeyQuota>div';
 let JOURNEY_QUOTA_LIST = '#journeyQuota p-dropdownitem span';
-let JOURNEY_DATE = '#jDate input';
+let JOURNEY_DATE = 'input#jDate, #jDate input';
 let CURRENT_TIME = 'app-header .h_head1>span strong';
 let JOURNEY_SEARCH_BUTTON = 'app-jp-input button[type="submit"].search_btn';
 
 // Modify Search Train Element 
 let MODIFY_SEARCH_COMPONENT = 'app-modify-search';
-let MODIFY_JOURNEY_DATE = '#journeyDate input';
+let MODIFY_JOURNEY_DATE = 'input#journeyDate, #journeyDate input';
 
 // TRAIN LIST 
 let TRAIN_LIST_COMPONENT = 'app-train-list';
