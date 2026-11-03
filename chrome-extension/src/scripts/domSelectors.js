@@ -15,12 +15,12 @@ export const LOGIN_SELECTORS = {
 // Search Journey Elements
 export const JOURNEY_SELECTORS = {
     JOURNEY_INPUT_COMPONENT: 'app-jp-input',
-    ORIGIN_STATION_CODE: '#origin input',
-    DESTINATION_STATION_CODE: '#destination input',
+    ORIGIN_STATION_CODE: 'input#origin, #origin input',
+    DESTINATION_STATION_CODE: 'input#destination, #destination input',
     STATION_CODE_LIST: '.ui-autocomplete-items li',
     JOURNEY_QUOTA: '#journeyQuota>div',
     JOURNEY_QUOTA_LIST: '#journeyQuota p-dropdownitem span',
-    JOURNEY_DATE: '#jDate input',
+    JOURNEY_DATE: 'input#jDate, #jDate input',
     CURRENT_TIME: 'app-header .h_head1>span strong',
     JOURNEY_SEARCH_BUTTON: 'app-jp-input button[type="submit"].search_btn',
 };
@@ -28,7 +28,7 @@ export const JOURNEY_SELECTORS = {
 // Modify Search Train Elements
 export const MODIFY_SEARCH_SELECTORS = {
     MODIFY_SEARCH_COMPONENT: 'app-modify-search',
-    MODIFY_JOURNEY_DATE: '#journeyDate input',
+    MODIFY_JOURNEY_DATE: 'input#journeyDate, #journeyDate input',
 };
 
 // Train List Elements
