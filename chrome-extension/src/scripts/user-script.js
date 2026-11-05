@@ -14,6 +14,9 @@ let passengerNames = '';
 let trainNumber = '';
 let from = '';
 let to = '';
+// "STATION NAME - CODE", empty means board at the origin station.
+let boardingStation = '';
+let boardingStationSet = false;
 let quotaType = '';
 let isOpeningDayBooking = false;
 let accommodationClass = '';
@@ -39,6 +42,12 @@ const CAPTCHA_WAIT_TIME = 3000;
 // The payment page mounts its tiles a moment after the component itself.
 const PAYMENT_OPTIONS_WAIT_TIME = 10000;
 
+// Boarding list: bounded at 24 x 250ms. The loop also stops as soon as the list
+// has rendered without the wanted station, so the full budget is rarely spent.
+const BOARDING_STATION_ATTEMPTS = 24;
+const BOARDING_STATION_POLL_TIME = 250;
+const BOARDING_STATION_REOPEN_EVERY = 6;
+
 const defaultSettings = {
   automationStatus: false,
   username: '',
@@ -52,6 +61,7 @@ const defaultSettings = {
   trainNumber: '',
   from: '',
   to: '',
+  boardingStation: '',
   quotaType: '',
   isOpeningDayBooking: false,
   accommodationClass: '',
@@ -145,6 +155,11 @@ let PASSENGER_PREFERENCE_CONFIRMBERTHS = 'confirmberths';
 let PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = 'input[type="radio"][name="travelInsuranceOpted-0"]';
 let PASSENGER_SUBMIT_BUTTON = 'app-passenger-input button.btnDefault.train_Search';
 let PASSENGER_PAYMENT_TYPE = 'p-radiobutton[name="paymentType"] input';
+// Boarding points render as <strong>STATION NAME | Dep 10:30</strong>, both in the
+// closed field and in the open list. IRCTC gives them no class of their own.
+let PASSENGER_BOARDING_DROPDOWN = 'p-dropdown[formcontrolname="boardingStation"]';
+let PASSENGER_BOARDING_PANEL = '.ui-dropdown-panel, .p-dropdown-panel';
+let PASSENGER_BOARDING_OPTION = 'strong';
 
 // Review Ticket and Fill Captcha
 let REVIEW_COMPONENT = 'app-review-booking';
@@ -229,6 +244,9 @@ const SELECTOR_VAR_MAP = {
   PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED: (v) => { PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = v; },
   PASSENGER_SUBMIT_BUTTON: (v) => { PASSENGER_SUBMIT_BUTTON = v; },
   PASSENGER_PAYMENT_TYPE: (v) => { PASSENGER_PAYMENT_TYPE = v; },
+  PASSENGER_BOARDING_DROPDOWN: (v) => { PASSENGER_BOARDING_DROPDOWN = v; },
+  PASSENGER_BOARDING_PANEL: (v) => { PASSENGER_BOARDING_PANEL = v; },
+  PASSENGER_BOARDING_OPTION: (v) => { PASSENGER_BOARDING_OPTION = v; },
   REVIEW_COMPONENT: (v) => { REVIEW_COMPONENT = v; },
   REVIEW_TRAIN_HEADER: (v) => { REVIEW_TRAIN_HEADER = v; },
   REVIEW_CAPTCHA_IMAGE: (v) => { REVIEW_CAPTCHA_IMAGE = v; },
@@ -1241,8 +1259,121 @@ async function selectPaymentType() {
     }
   }
 }
+// The boarding field is a PrimeNG dropdown. Prefer its form control, and fall back
+// to the only dropdown on the page whose label reads "STATION | Dep 10:30".
+function findBoardingDropdown() {
+  const byFormControl = document.querySelector(PASSENGER_BOARDING_DROPDOWN);
+  if (byFormControl) return byFormControl;
+
+  const scope = document.querySelector(PASSENGER_APP_COMPONENT) || document;
+  const dropdowns = Array.from(scope.querySelectorAll('p-dropdown')).filter(isElementVisible);
+  return dropdowns.find((dropdown) => textIncludes(dropdown.innerText || dropdown.textContent || '', '|')) || null;
+}
+
+function openBoardingPanels() {
+  return Array.from(document.querySelectorAll(PASSENGER_BOARDING_PANEL)).filter(isElementVisible);
+}
+
+// Options when the list is open, the selected label when it is closed. Only a label
+// that matches the wanted station is ever clicked, so a closed list is harmless.
+function boardingOptions(dropdown) {
+  const roots = openBoardingPanels();
+  if (!roots.length && dropdown) roots.push(dropdown);
+
+  const options = [];
+  roots.forEach((root) => {
+    Array.from(root.querySelectorAll(PASSENGER_BOARDING_OPTION)).forEach((option) => {
+      if (isElementVisible(option)) options.push(option);
+    });
+  });
+  return options;
+}
+
+function boardingLabel(dropdown) {
+  if (!dropdown) return null;
+  return dropdown.querySelector('.ui-dropdown-label, .p-dropdown-label');
+}
+
+async function openBoardingList(dropdown) {
+  const trigger = dropdown.querySelector('.ui-dropdown-trigger, .p-dropdown-trigger');
+  const opener = trigger || boardingLabel(dropdown) || dropdown;
+  opener.scrollIntoView({ block: 'center' });
+  await humanClick(opener);
+}
+
+// A panel left open swallows the clicks meant for the passenger rows below it.
+async function closeBoardingPanel(dropdown) {
+  if (!openBoardingPanels().length) return;
+
+  const trigger = dropdown && dropdown.querySelector('.ui-dropdown-trigger, .p-dropdown-trigger');
+  if (trigger) await humanClick(trigger);
+  if (openBoardingPanels().length) document.body.click();
+}
+// IRCTC preselects the origin station. Changing it means opening the dropdown and
+// clicking the wanted station's label. Saved as "STATION NAME - CODE" because the
+// list shows names, not codes, so either half is accepted here.
+async function fillBoardingStation() {
+  if (!boardingStation) return false;
+  if (boardingStationSet) {
+    Logger.info('Boarding station already set, skipping.');
+    return true;
+  }
+
+  const [rawName, rawCode] = String(boardingStation).split(/\s*-\s*/);
+  const wantName = String(rawName || '').trim().toUpperCase();
+  const wantCode = String(rawCode || '').trim().toUpperCase();
+  if (!wantName && !wantCode) return false;
+
+  const matches = (element) => {
+    const text = (element.innerText || element.textContent || '').toUpperCase();
+    return (wantName && text.includes(wantName)) || (wantCode && text.includes(wantCode));
+  };
+
+  let nextOpenAttempt = 0;
+
+  for (let attempt = 0; attempt < BOARDING_STATION_ATTEMPTS; attempt += 1) {
+    const dropdown = findBoardingDropdown();
+    const options = boardingOptions(dropdown);
+    const target = options.find(matches);
+
+    if (target) {
+      target.scrollIntoView({ block: 'center' });
+      await humanClick(target);
+      await delay(BOARDING_STATION_POLL_TIME);
+      await closeBoardingPanel(dropdown);
+
+      // Read the closed field back: a click PrimeNG did not commit leaves the old
+      // station, and submitting then books the wrong boarding point.
+      if (!dropdown || matches(dropdown)) {
+        boardingStationSet = true;
+        Logger.info('Boarding station selected:', boardingStation);
+        return true;
+      }
+      Logger.warn('Boarding station click did not commit, retrying.');
+      nextOpenAttempt = attempt + 1;
+      continue;
+    }
+
+    // The list is open and has rendered without the wanted station, so this train
+    // does not stop there. Keep the default instead of spending the whole budget.
+    if (openBoardingPanels().length && options.length > 1) break;
+
+    if (dropdown && !openBoardingPanels().length && attempt >= nextOpenAttempt) {
+      await openBoardingList(dropdown);
+      nextOpenAttempt = attempt + BOARDING_STATION_REOPEN_EVERY;
+    }
+    await delay(BOARDING_STATION_POLL_TIME);
+  }
+
+  await closeBoardingPanel(findBoardingDropdown());
+  Logger.warn('Boarding station not available, keeping the default:', boardingStation);
+  return false;
+}
 async function addPassengerInputAndContinue() {
   const startTime = new Date(); // Record the start time
+  boardingStationSet = false;
+  // Boarding point first: IRCTC reloads the fare block when it changes
+  await fillBoardingStation();
   // fill all passenger list
   if(masterData){
     await addMasterPassengerList();
@@ -1529,6 +1660,7 @@ async function getSettings() {
       trainNumber = items.trainNumber;
       from = items.from;
       to = items.to;
+      boardingStation = items.boardingStation || '';
       quotaType = items.quotaType;
       isOpeningDayBooking = items.isOpeningDayBooking;
       accommodationClass = items.accommodationClass;
