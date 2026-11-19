@@ -34,7 +34,6 @@ module.exports = {
         { from: "manifest.json", to: "." },  
         { from: "src/sw.js", to: "." }, 
         { from: "assets", to: "assets" },
-        { from:"how-to-use.html", to:"."},
         {from:"options.css", to:"."}
       ]
     })
