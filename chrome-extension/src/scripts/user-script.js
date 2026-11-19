@@ -1,5 +1,6 @@
 import Logger from './logger';
 import extractTextFromImage from './ocr-reader';
+import { startRun, resumeLatestRun, logStep, markTime, setResult, endRun, flushRun, currentStage } from './bookingLog';
 
 
 let automationStatus = false;
@@ -86,6 +87,7 @@ const defaultSettings = {
 
 var intervalId;
 let trainFoundAtPosition = -1;
+let bookNowClickedAt = 0;
 let isAvlEnquiryCompleted = false;
 let mutationCompletionCounter = 0;
 let copyPassengerNames = '';
@@ -127,6 +129,9 @@ let BOOK_NOW_BUTTON = 'button.btnDefault.train_Search';
 let BUTTON_DISABLE_CLASS = 'disable-book';
 let LINK_INSERTED = '.link.ng-star-inserted';
 let LOADING_OVERLAY = 'div.my-loading';
+let IRCTC_TOAST = 'p-toast .ui-toast-message';
+let BOOKING_CONFIRMATION = 'app-booking-confirmation';
+let BOOKING_FAILED = 'app-booking-failed';
 let AVAILABILITY_ERROR = 'p-toast .ui-toast-detail, app-train-avl-enq div.col-xs-12:not(:has(*))';
 
 // POP UP
@@ -220,6 +225,9 @@ const SELECTOR_VAR_MAP = {
   BUTTON_DISABLE_CLASS: (v) => { BUTTON_DISABLE_CLASS = v; },
   LINK_INSERTED: (v) => { LINK_INSERTED = v; },
   LOADING_OVERLAY: (v) => { LOADING_OVERLAY = v; },
+  IRCTC_TOAST: (v) => { IRCTC_TOAST = v; },
+  BOOKING_CONFIRMATION: (v) => { BOOKING_CONFIRMATION = v; },
+  BOOKING_FAILED: (v) => { BOOKING_FAILED = v; },
   AVAILABILITY_ERROR: (v) => { AVAILABILITY_ERROR = v; },
   DIALOG_FROM: (v) => { DIALOG_FROM = v; },
   DIALOG_ACCEPT: (v) => { DIALOG_ACCEPT = v; },
@@ -629,9 +637,11 @@ async function login() {
     );
 
     if (captcha) {
+      logStep('login', 'info', 'Login captcha shown.');
       await fillLoginCaptcha(loginModal, captcha);
     } else {
       Logger.info('No captcha on the login form. Signing in directly.');
+      logStep('login', 'info', 'Signing in (no captcha).');
       await clickLoginSubmit(loginModal);
     }
   }
@@ -795,6 +805,8 @@ async function findRootTrain() {
 
   if (!trainHeadingElements || !trainHeadingElements.length) {
     Logger.warn('No Available Trains');
+    logStep('trainList', 'error', 'The search returned no trains.');
+    endRun('stopped', 'The search returned no trains.');
     return null;
   }
 
@@ -811,6 +823,8 @@ async function findRootTrain() {
 
   if (!rootElement) {
     Logger.warn('No train found for train number:', trainNumber);
+    logStep('trainList', 'error', `Train ${trainNumber} is not in the search results. Check the date and station codes.`);
+    endRun('stopped', `Train ${trainNumber} is not in the search results.`);
     return null;
   }
   return rootElement;
@@ -824,6 +838,8 @@ async function scrollToFoundTrainAndSelectClass() {
   const availableClasses = rootElement.querySelectorAll(AVAILABLE_CLASS);
   if (!availableClasses || !availableClasses.length) {
     Logger.warn('No available classes found.');
+    logStep('trainList', 'error', 'No classes shown for the train.');
+    endRun('stopped', 'No classes shown for the train.');
     return;
   }
   await delay(500);
@@ -840,12 +856,18 @@ async function scrollToFoundTrainAndSelectClass() {
 
   if (!selectedClass) {
     Logger.warn('No matching accommodation class found:', accommodationClass);
+    logStep('trainList', 'error', `Class ${accommodationClass} is not offered on this train.`);
+    endRun('stopped', `Class ${accommodationClass} is not offered on this train.`);
     return;
   }
   
   await delay(200);
   await waitForOpening();
   await humanClick(selectedClass);
+  markTime('firstCheck');
+  logStep('trainList', 'info', shouldUseTimedSearch()
+    ? `First seat check sent ${Date.now() - getOpeningTimeMs()} ms after booking opened.`
+    : 'First seat check sent.');
 
   Logger.info(
     'Selected train number:',
@@ -877,6 +899,7 @@ function logAvailability(rootElement) {
     .map((cell) => Array.from(cell.children, (part) => part.textContent.trim()).join(' '));
   const age = rootElement.textContent.match(/Updated\s+(.+?)\s+ago/);
   Logger.info('Availability:', cells.join(' ; '), '| data age:', age ? age[1] : 'fresh');
+  logStep('trainList', 'info', `Seat check: ${cells.join(' ; ')} | data age: ${age ? age[1] : 'fresh'}`);
 }
 // Text of the error IRCTC shows when an availability request fails, if any.
 function findAvailabilityError(rootElement) {
@@ -920,6 +943,9 @@ async function selectAvailableTicket() {
       const bookTicketButton = rootElement.querySelector(BOOK_NOW_BUTTON);
       if (bookTicketButton && !bookTicketButton.classList.contains(BUTTON_DISABLE_CLASS)) {
         await humanClick(bookTicketButton); // Click on the book ticket button
+        bookNowClickedAt = Date.now();
+        markTime('bookNow');
+        logStep('bookNow', 'info', 'Book Now clicked.');
         return true; // Indicate that the ticket is selected
       }
     }
@@ -989,10 +1015,15 @@ async function bookTicket() {
         const availabilityError = findAvailabilityError(rootElement);
         if (availabilityError && !isWorthRetrying(availabilityError)) {
           Logger.error('IRCTC rejected the availability request:', availabilityError);
-          alert(`IRCTC says:\n\n${availabilityError}\n\nAuto refresh has stopped. Please continue manually.`);
+          logStep('trainList', 'error', `Stopped: IRCTC says "${availabilityError}"`);
+          endRun('stopped', availabilityError);
+          alert(/client ip/i.test(availabilityError)
+            ? `IRCTC's security check blocked this request:\n\n${availabilityError}\n\nThis usually clears in a minute or two. Wait, then click your class once to continue. Retrying immediately keeps you blocked.`
+            : `IRCTC says:\n\n${availabilityError}\n\nAuto refresh has stopped. Please continue manually.`);
           return;
         }
         Logger.warn('No availability received. Refreshing the class again.', availabilityError);
+        logStep('trainList', 'warn', 'No availability in the reply; checking again.');
         await refreshTrain();
     }
     await delay(getRefreshDelay());
@@ -1019,6 +1050,7 @@ async function closePopupToProceed() {
   if (acceptButton) {
     await humanClick(acceptButton);
     Logger.info('Popup closed.');
+    logStep('bookNow', 'info', 'Station confirmation accepted.');
   } else {
     Logger.info('Popup not found.');
   }
@@ -1252,6 +1284,7 @@ async function addMobileNumber() {
     Logger.info('Mobile number set:', pMobileNumber);
   } else {
     Logger.error('Invalid mobile number:', pMobileNumber);
+    logStep('passenger', 'warn', 'Mobile number missing or not 10 digits; IRCTC keeps the account number.');
   }
 }
 function allPassengersWantNoFood() {
@@ -1375,8 +1408,11 @@ async function addPassengerInputAndContinue() {
     continueButton.focus();
     // Simulate a click on the button
     await humanClick(continueButton);
+    markTime('passengerContinue');
+    logStep('passenger', 'info', 'Continue clicked. IRCTC holds it until its minimum time after Book Now.');
   } else {
     Logger.info('Continue button not found.');
+    logStep('passenger', 'error', 'Continue button not found on the passenger page.');
   }
    // Proceed with booking the ticket
    const endTime = new Date(); // Record the end time
@@ -1433,11 +1469,14 @@ async function clickReviewContinue() {
   // entered. Clicking it would only waste a request; leave it to the user.
   if (continueButton.disabled || continueButton.classList.contains(BUTTON_DISABLE_CLASS)) {
     Logger.warn('Review page is waiting for the Aadhaar OTP: generate it, enter it, then press Continue.');
+    logStep('review', 'warn', 'Waiting for Aadhaar OTP: generate it, enter it, then press Continue.');
     continueButton.scrollIntoView({ block: 'center' });
     return;
   }
 
   await humanClick(continueButton);
+  markTime('reviewContinue');
+  logStep('review', 'info', 'Continue clicked.');
 }
 
 async function handleCaptchaAndContinue() {
@@ -1454,6 +1493,7 @@ async function handleCaptchaAndContinue() {
     return;
   }
 
+  logStep('review', 'info', 'Review captcha shown.');
   const captchaImage = captcha.image;
   const captchaInput = captcha.input;
 
@@ -1513,12 +1553,14 @@ async function selectPaymentMethod() {
         // Click on the element
         await humanClick(element);
         Logger.info('Clicked on :', paymentMethod);
+        logStep('payment', 'info', `Payment method selected: ${paymentMethod}.`);
         return; // Exit the loop after clicking the element
       }
     }
   } else {
     Logger.info('No elements found with the specified classes.');
   }
+  logStep('payment', 'warn', `Payment method "${paymentMethod}" not found on the payment page.`);
 }
 async function selectPaymentProvider() {
   // The provider list only renders after a payment method has been picked.
@@ -1537,11 +1579,13 @@ async function selectPaymentProvider() {
         // Simulate a click on the element
         await humanClick(element);
         Logger.info('Selected text:', element.textContent);
+        logStep('payment', 'info', `Payment provider selected: ${paymentProvider}.`);
         return; // Exit the loop after selecting the text
       }
     }
   }
   Logger.info("No text found containing",paymentProvider);
+  logStep('payment', 'warn', `Payment provider "${paymentProvider}" not found on the payment page.`);
 }
 async function clickPayButton() {
   // Find the button with the class "btn-primary" and "ng-star-inserted"
@@ -1549,11 +1593,16 @@ async function clickPayButton() {
 
   // Check if the button exists and its text content contains "Pay"
   if (button && textIncludes(button.textContent, PAY_BUTTON_TEXT)) {
+    // The page leaves for the payment gateway, so save the history first.
+    markTime('payClicked');
+    logStep('payment', 'info', 'Pay & Book clicked.');
+    await flushRun();
     // Simulate a click on the button
     await humanClick(button);
     Logger.info('Clicked on button:', button.textContent);
   } else {
     Logger.info("No button found containing 'Pay'.");
+    logStep('payment', 'warn', 'Pay & Book button not found.');
   }
 }
 
@@ -1611,6 +1660,7 @@ async function waitForOpening() {
   if (wait <= 0) return;
 
   Logger.info('Waiting', (wait / 1000).toFixed(1), 's for booking to open before checking availability.');
+  logStep('trainList', 'info', `Waiting ${(wait / 1000).toFixed(1)} s on the train list for booking to open.`);
   await delay(wait);
 }
 function getRefreshDelay() {
@@ -1627,6 +1677,8 @@ function waitForTargetTime() {
 
   if (!shouldUseTimedSearch()) {
     humanClick(searchButton);
+    markTime('searchClicked');
+    logStep('search', 'info', 'Search clicked.');
     return;
   }
 
@@ -1638,6 +1690,8 @@ function waitForTargetTime() {
       clearInterval(intervalId);
       Logger.info('Search time reached (device clock, IST):', getIstTimeString());
       humanClick(searchButton);
+      markTime('searchClicked');
+      logStep('search', 'info', `Search clicked ${((getOpeningTimeMs() - Date.now()) / 1000).toFixed(1)} s before booking opens.`);
     }
   }, 100);
 }
@@ -1719,6 +1773,97 @@ async function dismissLanguagePopup() {
     }
 }
 
+// What this run was set up to do, for the booking history. No login, passenger
+// or contact details.
+function getRunPlan() {
+  const passengers = (masterData ? passengerNames : passengerList) || [];
+  return {
+    trainNumber,
+    from,
+    to,
+    journeyDate: dateString,
+    quota: quotaType,
+    accommodationClass,
+    openingAt: shouldUseTimedSearch() ? getOpeningTimeMs() : null,
+    searchSecondsBefore,
+    refreshTime,
+    passengers: passengers.filter((passenger) => passenger && passenger.isSelected).length,
+    infants: showInfant ? (infantList || []).filter((infant) => infant.isSelected).length : 0,
+    masterData,
+    paymentMethod,
+    paymentProvider,
+    autoPay,
+  };
+}
+
+// Every message IRCTC pops up during a run goes into the booking history, so a
+// stalled run shows why. Also records when IRCTC ends the session.
+function watchIrctcMessages() {
+  const lastSeen = new Map();
+  let sessionEnded = false;
+  let pending = false;
+
+  const check = () => {
+    pending = false;
+    for (const toast of document.querySelectorAll(IRCTC_TOAST)) {
+      const text = toast.textContent.trim().replace(/\s+/g, ' ');
+      if (!text || !isElementVisible(toast) || Date.now() - (lastSeen.get(text) || 0) < 10000) continue;
+      lastSeen.set(text, Date.now());
+      const level = /error/.test(toast.className) ? 'error' : /warn/.test(toast.className) ? 'warn' : 'info';
+      logStep(currentStage(), level, `IRCTC: ${text}`);
+    }
+    if (!sessionEnded && location.pathname.endsWith('/error')) {
+      sessionEnded = true;
+      logStep(currentStage(), 'error', 'IRCTC showed "Sorry!!! Please Try again!!" and ended the session.');
+      endRun('failed', 'IRCTC ended the session ("Sorry!!! Please Try again!!").');
+    }
+  };
+
+  new MutationObserver(() => {
+    if (pending) return;
+    pending = true;
+    setTimeout(check, 200);
+  }).observe(document.body, { childList: true, subtree: true });
+}
+
+// After payment the gateway sends the user back to IRCTC's booking-confirm page.
+// That is a fresh page load, so pick the run up again and record how it ended.
+async function recordBookingResult() {
+  if (!(await resumeLatestRun(60 * 60 * 1000))) return;
+  markTime('confirmation');
+  logStep('confirmation', 'info', 'Back on IRCTC after payment.');
+
+  const shown = await waitForCondition(() => {
+    if (document.querySelector(BOOKING_CONFIRMATION)) return 'booked';
+    if (document.querySelector(BOOKING_FAILED)) return 'failed';
+    if (location.pathname.includes('bkgPaymentOptions')) return 'bank';
+    return null;
+  }, 3 * 60 * 1000, 500);
+
+  if (shown === 'booked') {
+    await delay(1000); // let the passenger table render
+    const text = document.querySelector(BOOKING_CONFIRMATION).textContent;
+    const statuses = [...new Set(text.match(/\b(?:CNF|RAC|[A-Z]{0,4}WL)(?:\/[A-Z0-9]+)*/g) || [])];
+    const pnr = (text.match(/PNR[^0-9]{0,20}(\d{10})/) || [])[1] || '';
+    setResult({ pnr, statuses });
+    logStep('confirmation', 'info', `Ticket booked: ${statuses.join(', ') || 'status not shown'}.`);
+    const outcome = !statuses.length ? 'booked'
+      : statuses.some((status) => /WL/.test(status)) ? 'waitlisted'
+      : statuses.some((status) => /^RAC/.test(status)) ? 'rac'
+      : 'confirmed';
+    await endRun(outcome);
+  } else if (shown === 'failed') {
+    const message = document.querySelector(BOOKING_FAILED).textContent.trim().replace(/\s+/g, ' ');
+    logStep('confirmation', 'error', `IRCTC: ${message}`);
+    await endRun('failed-after-payment', message);
+  } else if (shown === 'bank') {
+    logStep('confirmation', 'error', 'Payment failed at the bank; IRCTC went back to payment options.');
+    await endRun('payment-failed', 'Payment failed at the bank.');
+  } else {
+    logStep('confirmation', 'warn', 'No booking result shown within 3 minutes.');
+    await endRun('unknown', 'No booking result shown.');
+  }
+}
 async function executeFunctions() {
   Logger.info("User script running!");
 
@@ -1733,6 +1878,15 @@ async function executeFunctions() {
     // read the passenger information for ticket booking
     await getSettings();
 
+    // Back from the payment gateway: record how the booking ended. Nothing to automate.
+    if (location.pathname.startsWith('/nget/booking-confirm')) {
+      await recordBookingResult();
+      return;
+    }
+
+    await startRun(getRunPlan());
+    watchIrctcMessages();
+
     // wait for home page to load
     await waitForElementToAppear(APP_HEADER);
 
@@ -1742,11 +1896,16 @@ async function executeFunctions() {
     // login page < Page 0 > (a prompt will appear to fill captcha)
     await login();
     await waitForAppLoginToDisappear();
+    markTime('loggedIn');
+    logStep('login', 'info', 'Logged in.');
     await callSearchTrainComponent();
+    logStep('search', 'info', 'Search form filled.');
     waitForTargetTime();
     
     // wait for train list page to load
     await waitForElementToAppear(TRAIN_LIST_COMPONENT);
+    markTime('trainList');
+    logStep('trainList', 'info', 'Train list loaded.');
 
     // select train and accommodation class < Page 1 >
     await bookTicket();
@@ -1757,18 +1916,28 @@ async function executeFunctions() {
 
     // Wait for passenger page to load
     await waitForElementToAppear(PASSENGER_APP_COMPONENT);
+    markTime('passengerPage');
+    logStep('passenger', 'info', 'Passenger page loaded.');
 
     // Passenger Input and Payment Type < Page 2 >
     await addPassengerInputAndContinue();
 
     // Wait for the ticket review and Captcha page load
     await waitForElementToAppear(REVIEW_COMPONENT);
+    markTime('reviewPage');
+    logStep('review', 'info', bookNowClickedAt
+      ? `Review page loaded ${((Date.now() - bookNowClickedAt) / 1000).toFixed(1)} s after Book Now.`
+      : 'Review page loaded.');
 
     // Review and Captcha <Page 3>   (a prompt will appear to fill captcha)
     await handleCaptchaAndContinue();
 
     // Wait for the app-payment-options element to appear on the page after the transition
     await waitForElementToAppear(PAYMENT_COMPONENT);
+    markTime('paymentPage');
+    logStep('payment', 'info', 'Payment page loaded.');
+    setResult({ outcome: 'reached-payment' });
+    await flushRun();
 
     // Payment Selection <Page 4>
     await selectPaymentMethod();
@@ -1785,7 +1954,8 @@ async function executeFunctions() {
     }
   } catch (error) {
     Logger.error("An error occurred during execution:", error);
-    // You can add additional error handling here if needed
+    logStep(currentStage(), 'error', `Script error: ${error && error.message ? error.message : error}`);
+    endRun('failed', error && error.message ? error.message : String(error));
   }
 }
 

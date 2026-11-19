@@ -68,6 +68,7 @@ const SELECTOR_CATEGORIES = {
     selectors: {
       DIALOG_FROM: { label: 'Confirm Dialog', default: 'p-confirmdialog[key="tofrom"]' },
       DIALOG_ACCEPT: { label: 'Dialog Accept Button', default: '.ui-confirmdialog-acceptbutton' },
+      IRCTC_TOAST: { label: 'IRCTC Message Pop-up (history only)', default: 'p-toast .ui-toast-message' },
     },
   },
   PASSENGER: {
@@ -120,6 +121,8 @@ const SELECTOR_CATEGORIES = {
       PAYMENT_PROVIDER: { label: 'Payment Bank/Provider (Precision)', default: '#bank-type .bank-text, #bank-type .pay_tax_text' },
       PAY_BUTTON: { label: 'Pay Button', default: 'button.btn-primary.ng-star-inserted' },
       PAY_BUTTON_TEXT: { label: 'Pay Button Text', default: 'Pay & Book ' },
+      BOOKING_CONFIRMATION: { label: 'Booking Confirmation (after payment)', default: 'app-booking-confirmation' },
+      BOOKING_FAILED: { label: 'Booking Failed Message (after payment)', default: 'app-booking-failed' },
     },
   },
   EWALLET: {

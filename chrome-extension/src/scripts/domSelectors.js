@@ -49,6 +49,7 @@ export const TRAIN_LIST_SELECTORS = {
 export const POPUP_SELECTORS = {
     DIALOG_FROM: 'p-confirmdialog[key="tofrom"]',
     DIALOG_ACCEPT: '.ui-confirmdialog-acceptbutton',
+    IRCTC_TOAST: 'p-toast .ui-toast-message',
 };
 
 // Generic Dialog and Language Selection
@@ -105,6 +106,8 @@ export const PAYMENT_SELECTORS = {
     PAYMENT_PROVIDER: '.bank-text',
     PAY_BUTTON: '.btn-primary.ng-star-inserted',
     PAY_BUTTON_TEXT: 'Pay & Book ',
+    BOOKING_CONFIRMATION: 'app-booking-confirmation',
+    BOOKING_FAILED: 'app-booking-failed',
 };
 
 // eWallet Elements

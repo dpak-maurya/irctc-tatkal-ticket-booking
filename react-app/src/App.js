@@ -13,6 +13,7 @@ import Header from './components/Header';
 import Footer from './components/Footer'; 
 import SelectorEditor from './components/SelectorEditor';
 import ScheduleBanner from './components/ScheduleBanner';
+import BookingHistory from './components/BookingHistory';
 
 
 const App = () => {
@@ -53,6 +54,8 @@ const App = () => {
       </Stack>
 
       <Box sx={{ mt: 4 }} />
+
+      <BookingHistory />
 
       <SelectorEditor />
 
