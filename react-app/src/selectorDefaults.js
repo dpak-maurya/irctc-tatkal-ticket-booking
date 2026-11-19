@@ -86,6 +86,9 @@ const SELECTOR_CATEGORIES = {
       PASSENGER_MOBILE_NUMBER: { label: 'Mobile Number Input (ID)', default: 'mobileNumber' },
       PASSENGER_PREFERENCE_AUTOUPGRADATION: { label: 'Auto Upgradation Checkbox (ID)', default: 'autoUpgradation' },
       PASSENGER_PREFERENCE_CONFIRMBERTHS: { label: 'Confirm Berths Checkbox (ID)', default: 'confirmberths' },
+      PASSENGER_PREFERENCE_NOFOOD: { label: 'No Food Checkbox', default: 'input[formcontrolname="noFood"]' },
+      PASSENGER_NO_FOOD_DIALOG: { label: 'No Food Confirmation Dialog', default: 'p-confirmdialog .ui-confirmdialog' },
+      PASSENGER_NO_FOOD_DIALOG_OK_TEXT: { label: 'No Food Confirmation OK Text', default: 'OK' },
       PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED: {
         label: 'Travel Insurance Radio',
         default: 'input[type="radio"][name="travelInsuranceOpted-0"]',

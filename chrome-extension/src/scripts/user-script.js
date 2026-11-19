@@ -27,6 +27,7 @@ let autoProcessPopup = false;
 let mobileNumber = '';
 let autoUpgradation = false;
 let confirmberths = false;
+let noFood = false;
 let travelInsuranceOpted = 'yes';
 let autoSolveCaptcha = false;
 let autoSubmitCaptcha = false;
@@ -38,6 +39,8 @@ const STORAGE_KEY = 'tatkalTicketBookingFormData';
 const CAPTCHA_WAIT_TIME = 3000;
 // The payment page mounts its tiles a moment after the component itself.
 const PAYMENT_OPTIONS_WAIT_TIME = 10000;
+// IRCTC opens its No Food confirmation straight after the checkbox is ticked.
+const NO_FOOD_DIALOG_WAIT_TIME = 2000;
 
 const defaultSettings = {
   automationStatus: false,
@@ -65,6 +68,7 @@ const defaultSettings = {
   mobileNumber:'',
   autoUpgradation:false,
   confirmberths:false,
+  noFood:false,
   travelInsuranceOpted:'yes',
   autoSolveCaptcha:false,
   autoSubmitCaptcha:false,
@@ -142,6 +146,9 @@ let PASSENGER_FOOD_CHOICE = 'select[formcontrolname="passengerFoodChoice"]';
 let PASSENGER_MOBILE_NUMBER = 'mobileNumber';
 let PASSENGER_PREFERENCE_AUTOUPGRADATION = 'autoUpgradation';
 let PASSENGER_PREFERENCE_CONFIRMBERTHS = 'confirmberths';
+let PASSENGER_PREFERENCE_NOFOOD = 'input[formcontrolname="noFood"]';
+let PASSENGER_NO_FOOD_DIALOG = 'p-confirmdialog .ui-confirmdialog';
+let PASSENGER_NO_FOOD_DIALOG_OK_TEXT = 'OK';
 let PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = 'input[type="radio"][name="travelInsuranceOpted-0"]';
 let PASSENGER_SUBMIT_BUTTON = 'app-passenger-input button.btnDefault.train_Search';
 let PASSENGER_PAYMENT_TYPE = 'p-radiobutton[name="paymentType"] input';
@@ -226,6 +233,9 @@ const SELECTOR_VAR_MAP = {
   PASSENGER_MOBILE_NUMBER: (v) => { PASSENGER_MOBILE_NUMBER = v; },
   PASSENGER_PREFERENCE_AUTOUPGRADATION: (v) => { PASSENGER_PREFERENCE_AUTOUPGRADATION = v; },
   PASSENGER_PREFERENCE_CONFIRMBERTHS: (v) => { PASSENGER_PREFERENCE_CONFIRMBERTHS = v; },
+  PASSENGER_PREFERENCE_NOFOOD: (v) => { PASSENGER_PREFERENCE_NOFOOD = v; },
+  PASSENGER_NO_FOOD_DIALOG: (v) => { PASSENGER_NO_FOOD_DIALOG = v; },
+  PASSENGER_NO_FOOD_DIALOG_OK_TEXT: (v) => { PASSENGER_NO_FOOD_DIALOG_OK_TEXT = v; },
   PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED: (v) => { PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED = v; },
   PASSENGER_SUBMIT_BUTTON: (v) => { PASSENGER_SUBMIT_BUTTON = v; },
   PASSENGER_PAYMENT_TYPE: (v) => { PASSENGER_PAYMENT_TYPE = v; },
@@ -1189,6 +1199,33 @@ async function addMobileNumber() {
     Logger.error('Invalid mobile number:', pMobileNumber);
   }
 }
+// Ticking "I don't want Food/Beverages" opens an IRCTC confirmation over the
+// passenger form. Press OK on that dialog only, then wait for it to close.
+async function confirmNoFoodDialog() {
+  const dialog = await waitForCondition(() => {
+    for (const element of document.querySelectorAll(PASSENGER_NO_FOOD_DIALOG)) {
+      if (isElementVisible(element) && textIncludes(element.textContent, 'Food')) return element;
+    }
+    return null;
+  }, NO_FOOD_DIALOG_WAIT_TIME, 100);
+
+  if (!dialog) {
+    Logger.info('No confirmation shown for No Food.');
+    return;
+  }
+
+  const okButton = Array.from(dialog.querySelectorAll('button'))
+    .find((button) => button.textContent.trim() === PASSENGER_NO_FOOD_DIALOG_OK_TEXT);
+
+  if (!okButton) {
+    Logger.warn('No Food confirmation is open but its OK button was not found.');
+    return;
+  }
+
+  await humanClick(okButton);
+  await waitForElementToDisappear(dialog, NO_FOOD_DIALOG_WAIT_TIME);
+  Logger.info('Confirmed the No Food dialog.');
+}
 async function selectPreferences(){
   var autoUpgradationInput = document.getElementById(PASSENGER_PREFERENCE_AUTOUPGRADATION);
   autoUpgradationInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1198,6 +1235,15 @@ async function selectPreferences(){
   var confirmberthsInput = document.getElementById(PASSENGER_PREFERENCE_CONFIRMBERTHS);
   if(confirmberthsInput && confirmberths)
     await humanClick(confirmberthsInput);
+
+  // Only some trains show "I don't want Food/Beverages". IRCTC leaves it
+  // unchecked, which books meals and adds the catering charge to the fare.
+  var noFoodInput = document.querySelector(PASSENGER_PREFERENCE_NOFOOD);
+  if(noFoodInput && noFoodInput.checked !== noFood){
+    await humanClick(noFoodInput);
+    if(noFood)
+      await confirmNoFoodDialog();
+  }
 
   // Find all input elements of type radio
   var inputs = document.querySelectorAll(PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED);
@@ -1218,7 +1264,7 @@ async function selectPreferences(){
       }
     }
   }
-  Logger.info('Auto Upgradation:', autoUpgradation, 'Confirm Berths:', confirmberths, 'Travel Insurance Opted:', travelInsuranceOpted);
+  Logger.info('Auto Upgradation:', autoUpgradation, 'Confirm Berths:', confirmberths, 'No Food:', noFoodInput ? noFoodInput.checked : 'not offered', 'Travel Insurance Opted:', travelInsuranceOpted);
 }
 async function selectPaymentType() {
   // Find all input elements of type radio on the passenger page
@@ -1542,6 +1588,7 @@ async function getSettings() {
       mobileNumber = items.mobileNumber;
       autoUpgradation = items.autoUpgradation;
       confirmberths = items.confirmberths;
+      noFood = items.noFood || false;
       travelInsuranceOpted = items.travelInsuranceOpted;
       autoSolveCaptcha = items.autoSolveCaptcha;
       autoSubmitCaptcha = items.autoSubmitCaptcha;

@@ -21,6 +21,7 @@ const defaultSettings = {
     mobileNumber: '',
     autoUpgradation: false,
     confirmberths: false,
+    noFood: false,
     travelInsuranceOpted: 'yes',
     preferredLanguage: 'English',
     loginMinutesBefore: 2,
