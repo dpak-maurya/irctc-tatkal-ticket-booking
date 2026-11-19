@@ -59,6 +59,8 @@ const SELECTOR_CATEGORIES = {
       BOOK_NOW_BUTTON: { label: 'Book Now Button', default: 'button.btnDefault.train_Search' },
       BUTTON_DISABLE_CLASS: { label: 'Button Disabled Class', default: 'disable-book' },
       LINK_INSERTED: { label: 'Link Inserted Element', default: '.link.ng-star-inserted' },
+      LOADING_OVERLAY: { label: 'IRCTC Loading Overlay', default: 'div.my-loading' },
+      AVAILABILITY_ERROR: { label: 'Availability Error Text', default: 'p-toast .ui-toast-detail, app-train-avl-enq div.col-xs-12:not(:has(*))' },
     },
   },
   POPUP: {

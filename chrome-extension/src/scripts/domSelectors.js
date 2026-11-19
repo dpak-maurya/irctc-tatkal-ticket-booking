@@ -41,6 +41,8 @@ export const TRAIN_LIST_SELECTORS = {
     BOOK_NOW_BUTTON: 'button.btnDefault.train_Search',
     BUTTON_DISABLE_CLASS: 'disable-book',
     LINK_INSERTED: '.link.ng-star-inserted',
+    LOADING_OVERLAY: 'div.my-loading',
+    AVAILABILITY_ERROR: 'p-toast .ui-toast-detail, app-train-avl-enq div.col-xs-12:not(:has(*))',
 };
 
 // Popup Elements
