@@ -15,8 +15,10 @@ function TimerDetails() {
   const isDisabled = false;
   const todayDate = dayjs(getTodayDateString(), 'YYYY-MM-DD');
   const journeyDate = formData.dateString ? dayjs(formData.dateString, 'YYYY-MM-DD') : null;
-  const generalPrimaryDate = journeyDate ? journeyDate.subtract(61, 'day') : null;
-  const generalFallbackDate = journeyDate ? journeyDate.subtract(60, 'day') : null;
+  // General booking opens 60 days before the journey (D-60). D-61 is for trains
+  // that leave their first station the day before you board.
+  const generalOpeningDate = journeyDate ? journeyDate.subtract(60, 'day') : null;
+  const generalEarlyDate = journeyDate ? journeyDate.subtract(61, 'day') : null;
   const showGeneralOpeningDayTools = formData.quotaType === 'GENERAL' && formData.isOpeningDayBooking;
 
   const handleScheduleDateChange = (newValue) => {
@@ -134,8 +136,8 @@ function TimerDetails() {
               <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
                 <Button
                   size="small"
-                  variant={formData.scheduleDate === generalPrimaryDate?.format('YYYY-MM-DD') ? 'contained' : 'outlined'}
-                  onClick={() => setSuggestedScheduleDate(generalPrimaryDate)}
+                  variant={formData.scheduleDate === generalOpeningDate?.format('YYYY-MM-DD') ? 'contained' : 'outlined'}
+                  onClick={() => setSuggestedScheduleDate(generalOpeningDate)}
                   sx={{
                     minWidth: 'auto',
                     px: 1,
@@ -144,12 +146,12 @@ function TimerDetails() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  D-61: {generalPrimaryDate.format('DD MMM')}
+                  D-60: {generalOpeningDate.format('DD MMM')}
                 </Button>
                 <Button
                   size="small"
-                  variant={formData.scheduleDate === generalFallbackDate?.format('YYYY-MM-DD') ? 'contained' : 'outlined'}
-                  onClick={() => setSuggestedScheduleDate(generalFallbackDate)}
+                  variant={formData.scheduleDate === generalEarlyDate?.format('YYYY-MM-DD') ? 'contained' : 'outlined'}
+                  onClick={() => setSuggestedScheduleDate(generalEarlyDate)}
                   sx={{
                     minWidth: 'auto',
                     px: 1,
@@ -158,7 +160,7 @@ function TimerDetails() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  D-60: {generalFallbackDate.format('DD MMM')}
+                  D-61: {generalEarlyDate.format('DD MMM')}
                 </Button>
               </Stack>
             ) : (
