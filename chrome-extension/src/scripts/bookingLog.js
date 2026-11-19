@@ -50,7 +50,8 @@ export function startRun(plan) {
   run = {
     id: `run-${Date.now()}`,
     startedAt: Date.now(),
-    version: chrome.runtime?.getManifest?.().version || '',
+    // Test builds stamp version_name with the branch and commit.
+    version: chrome.runtime?.getManifest?.().version_name || chrome.runtime?.getManifest?.().version || '',
     plan,
     stage: 'start',
     outcome: 'running',

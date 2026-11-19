@@ -7,6 +7,8 @@
 
 # Testing
 /coverage
+# Test builds (npm run build:test)
+/builds
 
 # Production
 /build

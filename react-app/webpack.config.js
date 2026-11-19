@@ -8,7 +8,8 @@ module.exports = {
     guide: "./src/guide.js", // How to Use guide
   },
   output: {
-    path: path.resolve(__dirname, "../dist"), // Unified output directory
+    // dist/ for releases; npm run build:test sets BUILD_OUT to a folder in builds/.
+    path: process.env.BUILD_OUT ? path.resolve(process.env.BUILD_OUT) : path.resolve(__dirname, "../dist"),
     filename: "[name].bundle.js", // Generates app.bundle.js
   },
   module: {

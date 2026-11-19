@@ -24,6 +24,7 @@ import { useModalContext } from '../contexts/ModalContext';
 import { validateBookingForm } from '../utils';
 import BookingPlanSummary from './BookingPlanSummary';
 import BookingHistoryDrawer, { useBookingRuns } from './BookingHistory';
+import BuildInfoChip from './BuildInfo';
 
 // Text button on wide screens, icon with a tooltip when space is short.
 function HeaderAction({ icon, label, onClick, iconOnly, small }) {
@@ -111,6 +112,7 @@ const Header = () => {
             >
               Tatkal Ticket Booking
             </Typography>
+            <BuildInfoChip />
           </Stack>
 
           {/* Help, history and debug */}

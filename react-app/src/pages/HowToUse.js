@@ -41,6 +41,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import EastRoundedIcon from '@mui/icons-material/EastRounded';
 import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
 import LogoIcon from '../components/LogoIcon';
+import BuildInfoChip from '../components/BuildInfo';
 import defaultSettings from '../defaultSettings';
 import { getTargetTime } from '../openingTimes';
 import { OUTCOMES } from '../bookingHistory';
@@ -151,6 +152,7 @@ function TopBar() {
           Tatkal Ticket Booking
           {!isPhone && <Box component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}> · Guide</Box>}
         </Typography>
+        <BuildInfoChip />
         <Box sx={{ flex: 1 }} />
         <Button size="small" href="options.html" startIcon={<SettingsRoundedIcon />} sx={{ whiteSpace: 'nowrap' }}>
           {isPhone ? 'Settings' : 'Open settings'}
