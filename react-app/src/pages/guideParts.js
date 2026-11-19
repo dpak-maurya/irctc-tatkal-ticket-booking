@@ -39,7 +39,7 @@ export const Code = ({ children }) => (
       fontWeight: 600,
       px: 0.7,
       py: 0.15,
-      borderRadius: 1,
+      borderRadius: '4px',
       backgroundColor: '#EEF1F7',
       color: '#3B4A6B',
       whiteSpace: 'nowrap',
@@ -61,7 +61,7 @@ export const Kbd = ({ children }) => (
       border: '1px solid',
       borderColor: 'divider',
       borderBottomWidth: 3,
-      borderRadius: 1,
+      borderRadius: '4px',
       backgroundColor: '#fff',
     }}
   >
@@ -221,7 +221,7 @@ export const Timeline = ({ steps }) => {
                 my: 0.6,
                 px: 1.75,
                 py: 1.1,
-                borderRadius: 2,
+                borderRadius: '8px',
                 backgroundColor: actor.bg,
                 border: `1px solid ${alpha(actor.color, 0.25)}`,
               }}
@@ -267,7 +267,7 @@ export const CheckRhythm = ({ fastMs, fastWindowMs, refreshMs }) => {
   ];
 
   return (
-    <Paper variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+    <Paper variant="outlined" sx={{ p: 2, borderRadius: '10px' }}>
       <Box
         component="svg"
         viewBox={`0 0 ${endX + 20} 90`}

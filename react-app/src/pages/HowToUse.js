@@ -261,7 +261,7 @@ function SimpleTable({ head, rows }) {
     return (
       <Stack gap={1} sx={{ my: 2 }}>
         {rows.map((row, index) => (
-          <Paper key={index} variant="outlined" sx={{ p: 1.5, borderRadius: 2 }}>
+          <Paper key={index} variant="outlined" sx={{ p: 1.5, borderRadius: '8px' }}>
             <Typography component="div" sx={{ fontWeight: 700, mb: 0.5 }}>{row[0]}</Typography>
             {row.slice(1).map((cell, cellIndex) => (
               <Typography key={cellIndex} component="div" variant="body2" sx={{ mt: 0.25 }}>
@@ -278,7 +278,7 @@ function SimpleTable({ head, rows }) {
   }
 
   return (
-    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 3, my: 2 }}>
+    <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '8px', my: 2 }}>
       <Table size="small">
         <TableHead>
           <TableRow sx={{ backgroundColor: '#EEF2FB' }}>
@@ -449,7 +449,7 @@ export default function HowToUse() {
                   flexShrink: 0,
                   width: { xs: 72, sm: 104 },
                   height: { xs: 72, sm: 104 },
-                  borderRadius: 4,
+                  borderRadius: '14px',
                   display: 'grid',
                   placeItems: 'center',
                   bgcolor: 'surface.main',
@@ -475,7 +475,7 @@ export default function HowToUse() {
             <Section id="quick-start" icon={<RocketLaunchRoundedIcon />} title="Quick start" subtitle="Five steps, about five minutes. Do this the day before your journey.">
               <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 1.5 }}>
                 {QUICK_START.map((step, index) => (
-                  <Paper key={step.title} variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+                  <Paper key={step.title} variant="outlined" sx={{ p: 2, borderRadius: '10px' }}>
                     <Avatar sx={{ width: 30, height: 30, fontSize: '0.95rem', fontWeight: 700, bgcolor: 'primary.main', mb: 1 }}>{index + 1}</Avatar>
                     <Typography sx={{ fontWeight: 700 }}>{step.title}</Typography>
                     <Typography variant="body2" color="text.secondary">{step.body}</Typography>
@@ -560,12 +560,12 @@ export default function HowToUse() {
                 morning the same way it handles Tatkal.
               </Typography>
 
-              <Paper variant="outlined" sx={{ my: 2.5, p: { xs: 2, sm: 2.5 }, borderRadius: 3 }}>
+              <Paper variant="outlined" sx={{ my: 2.5, p: { xs: 2, sm: 2.5 }, borderRadius: '10px' }}>
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                   Example
                 </Typography>
                 <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="stretch" gap={{ xs: 1, sm: 0 }} sx={{ mt: 1 }}>
-                  <Box sx={{ flex: 1, p: 1.5, borderRadius: 2, bgcolor: 'rgba(156, 39, 176, 0.08)', border: '1px solid rgba(156, 39, 176, 0.3)' }}>
+                  <Box sx={{ flex: 1, p: 1.5, borderRadius: '8px', bgcolor: 'rgba(156, 39, 176, 0.08)', border: '1px solid rgba(156, 39, 176, 0.3)' }}>
                     <Typography sx={{ fontWeight: 800, color: 'secondary.main' }}>16 Jun, {OPENS.openingDay.slice(0, 5)}</Typography>
                     <Typography variant="body2">Booking opens. Schedule Date goes here.</Typography>
                   </Box>
@@ -573,7 +573,7 @@ export default function HowToUse() {
                     <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary' }}>60 days</Typography>
                     <EastRoundedIcon color="action" sx={{ transform: { xs: 'rotate(90deg)', sm: 'none' } }} />
                   </Stack>
-                  <Box sx={{ flex: 1, p: 1.5, borderRadius: 2, bgcolor: 'surface.main' }}>
+                  <Box sx={{ flex: 1, p: 1.5, borderRadius: '8px', bgcolor: 'surface.main' }}>
                     <Typography sx={{ fontWeight: 800, color: '#12134F' }}>15 Aug</Typography>
                     <Typography variant="body2">Journey date.</Typography>
                   </Box>
@@ -633,7 +633,7 @@ export default function HowToUse() {
             </Section>
 
             <Section id="passengers" icon={<GroupsRoundedIcon />} title="Passengers" subtitle={<>Use <strong>one</strong> of the two ways below.</>}>
-              <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, my: 2 }}>
+              <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: '10px', my: 2 }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '1.08rem' }}>➕ New passengers</Typography>
                 <Box component="ol" sx={{ pl: 2.5 }}>
                   <li>Open the <strong>Passenger List</strong> tab and click <Ui>Add Passenger</Ui>.</li>
@@ -645,17 +645,17 @@ export default function HowToUse() {
                 </Callout>
               </Paper>
 
-              <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 3, my: 2 }}>
+              <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: '10px', my: 2 }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '1.08rem' }}>📇 Passenger Master Data</Typography>
                 <Typography sx={{ mt: 1 }}>Use names already saved in your IRCTC account. Open the <strong>Passenger Master Data</strong> tab,
                   click <Ui>Add Passenger</Ui>, and enter each first name (or the exact saved name).</Typography>
                 <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" gap={1.5} sx={{ my: 2 }}>
-                  <Paper variant="outlined" sx={{ p: 1.5, flex: 1, width: '100%', borderRadius: 2 }}>
+                  <Paper variant="outlined" sx={{ p: 1.5, flex: 1, width: '100%', borderRadius: '8px' }}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>In your IRCTC master data</Typography>
                     <Stack direction="row" gap={1} sx={{ mt: 0.5 }}><Code>Ajay Singh</Code><Code>Rahul Singh</Code></Stack>
                   </Paper>
                   <EastRoundedIcon color="action" sx={{ transform: { xs: 'rotate(90deg)', sm: 'none' } }} />
-                  <Paper variant="outlined" sx={{ p: 1.5, flex: 1, width: '100%', borderRadius: 2 }}>
+                  <Paper variant="outlined" sx={{ p: 1.5, flex: 1, width: '100%', borderRadius: '8px' }}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Add in the extension</Typography>
                     <Stack direction="row" gap={1} sx={{ mt: 0.5 }}><Code>Ajay</Code><Code>Rahul</Code></Stack>
                   </Paper>
@@ -682,7 +682,7 @@ export default function HowToUse() {
             <Section id="before" icon={<ChecklistRoundedIcon />} title="Before booking starts" subtitle="A quick checklist for the morning of booking.">
               <Stack gap={1}>
                 {CHECKLIST.map((item, index) => (
-                  <Paper key={index} variant="outlined" sx={{ p: 1.5, borderRadius: 2, display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
+                  <Paper key={index} variant="outlined" sx={{ p: 1.5, borderRadius: '8px', display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
                     <CheckCircleRoundedIcon color="success" sx={{ mt: '2px' }} />
                     <Typography>{item}</Typography>
                   </Paper>
@@ -741,7 +741,7 @@ export default function HowToUse() {
 
             <Section id="faq" icon={<HelpOutlineRoundedIcon />} title="Common questions">
               {FAQ.map((item) => (
-                <Accordion key={item.q} disableGutters variant="outlined" sx={{ borderRadius: 2, mb: 1, '&:before': { display: 'none' } }}>
+                <Accordion key={item.q} disableGutters variant="outlined" sx={{ borderRadius: '8px', mb: 1, '&:before': { display: 'none' } }}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography sx={{ fontWeight: 650 }}>{item.q}</Typography>
                   </AccordionSummary>
@@ -754,7 +754,7 @@ export default function HowToUse() {
 
             <Paper
               elevation={0}
-              sx={{ mt: 6, p: 3, borderRadius: 3, bgcolor: 'surface.main', color: '#12134F', display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}
+              sx={{ mt: 6, p: 3, borderRadius: '10px', bgcolor: 'surface.main', color: '#12134F', display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}
             >
               <Typography><strong>Stuck or found a bug?</strong> Open Booking History, then click <Ui>Report on GitHub</Ui>.</Typography>
               <Button variant="contained" href={ISSUES_URL} target="_blank" rel="noopener" startIcon={<GitHubIcon />} sx={{ borderRadius: 999 }}>
