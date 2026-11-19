@@ -128,8 +128,16 @@ export function buildShareLog(run, privateStrings = []) {
   return lines.filter((line, index) => line !== '' || index === 6).join('\n');
 }
 
+// GitHub rejects very long links, so a long log is cut here; the Report button
+// also copies the whole log for the user to paste in.
+const ISSUE_LOG_LIMIT = 3500;
+
 export function getIssueUrl(run, privateStrings) {
   const title = `Booking ${OUTCOMES[run.outcome]?.label || run.outcome} at ${STAGE_LABELS[run.stage] || run.stage}`;
-  const body = `Describe what you saw (optional):\n\n\n\`\`\`\n${buildShareLog(run, privateStrings).slice(0, 6000)}\n\`\`\``;
+  const log = buildShareLog(run, privateStrings);
+  const shown = log.length > ISSUE_LOG_LIMIT
+    ? `${log.slice(0, ISSUE_LOG_LIMIT)}\n... (cut short: the full log is in your clipboard, paste it below)`
+    : log;
+  const body = `Describe what you saw (optional):\n\n\n\`\`\`\n${shown}\n\`\`\``;
   return `https://github.com/dpak-maurya/irctc-tatkal-ticket-booking/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
 }

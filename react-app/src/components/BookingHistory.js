@@ -45,6 +45,12 @@ function RunDetails({ run, privateStrings }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Opens a new issue with the log filled in; the user reviews it and submits.
+  const reportOnGitHub = async () => {
+    await copyShareLog();
+    window.open(getIssueUrl(run, privateStrings), '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <Box>
       {run.reason && (
@@ -94,7 +100,7 @@ function RunDetails({ run, privateStrings }) {
         <Button size="small" variant="contained" onClick={copyShareLog}>
           {copied ? 'Copied' : 'Copy log to share'}
         </Button>
-        <Button size="small" variant="outlined" href={getIssueUrl(run, privateStrings)} target="_blank" rel="noopener noreferrer">
+        <Button size="small" variant="outlined" onClick={reportOnGitHub}>
           Report on GitHub
         </Button>
         <Typography variant="caption" color="text.secondary">
