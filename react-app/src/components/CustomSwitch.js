@@ -5,9 +5,10 @@ import PropTypes from 'prop-types';
 
 // Custom Styled Switch
 const SwitchContainer = styled(Box)(({ checked }) => ({
-  width: '80px',
-  height: '34px',
-  borderRadius: '34px',
+  width: '68px',
+  height: '30px',
+  borderRadius: '30px',
+  flexShrink: 0,
   display: 'flex',
   alignItems: 'center',
   justifyContent: checked ? 'flex-end' : 'flex-start',
@@ -19,8 +20,8 @@ const SwitchContainer = styled(Box)(({ checked }) => ({
 }));
 
 const SwitchButton = styled(Box)({
-  width: '30px',
-  height: '30px',
+  width: '24px',
+  height: '24px',
   borderRadius: '50%',
   backgroundColor: '#ffffff',
   boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
@@ -30,8 +31,9 @@ const SwitchButton = styled(Box)({
 const SwitchText = styled(Typography)(({ checked }) => ({
   position: 'absolute',
   fontWeight: 'bold',
-  left: checked ? '15px' : 'auto',
-  right: checked ? 'auto' : '15px',
+  fontSize: '0.8rem',
+  left: checked ? '12px' : 'auto',
+  right: checked ? 'auto' : '10px',
   color: checked ? '#ffffff' : '#555555',
   zIndex: 1,
   transition: 'left 0.5s ease, right 0.5s ease, color 0.5s ease',
@@ -46,8 +48,8 @@ const HiddenCheckbox = styled('input')({
 
 const CustomSwitch = ({ checked, onChange, name }) => {
   return (
-    <Box display="flex" alignItems="center">
-      <Typography variant="h6"  fontWeight="600" sx={{ mr: 1 }}>
+    <Box display="flex" alignItems="center" sx={{ flexShrink: 0 }}>
+      <Typography fontWeight="600" sx={{ mr: 1, whiteSpace: 'nowrap', fontSize: '0.95rem' }}>
         Auto Booking
       </Typography>
       <SwitchContainer checked={checked} onClick={() => onChange(!checked)}>

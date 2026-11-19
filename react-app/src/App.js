@@ -1,6 +1,6 @@
 // App.js
 import React from 'react';
-import { Container, Stack, Box, useMediaQuery } from '@mui/material';
+import { Container, Stack, Box } from '@mui/material';
 import LoginDetails from './components/LoginDetails';
 import TrainDetails from './components/TrainDetails';
 import PaymentDetails from './components/PaymentDetails';
@@ -13,18 +13,17 @@ import Header from './components/Header';
 import Footer from './components/Footer'; 
 import SelectorEditor from './components/SelectorEditor';
 import ScheduleBanner from './components/ScheduleBanner';
-import BookingHistory from './components/BookingHistory';
 
 
 const App = () => {
-  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   return (
-    <Container maxWidth="lg" sx={{ mt: 7, pb: 8, pt: 2.5, boxShadow:2 }}>
-      <Header />
+    <>
+    <Header />
+    <Container maxWidth="lg" sx={{ pb: 3, pt: 2.5, boxShadow:2 }}>
       <ScheduleBanner />
       
       {/* Updated layout for Login+Timer, Train, and Payment Details */}
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={3} mt={isSmallScreen ? 6 : 0}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mb={3}>
         <Box flex={1} >
           <LoginDetails />
           <TimerDetails />
@@ -55,12 +54,11 @@ const App = () => {
 
       <Box sx={{ mt: 4 }} />
 
-      <BookingHistory />
-
       <SelectorEditor />
 
-      <Footer />
     </Container>
+    <Footer />
+    </>
   );
 };
 

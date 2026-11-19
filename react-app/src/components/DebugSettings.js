@@ -1,11 +1,14 @@
 import React from 'react';
-import { 
-  FormControlLabel, 
+import PropTypes from 'prop-types';
+import {
+  FormControlLabel,
+  IconButton,
   Switch,
   Tooltip,
 } from '@mui/material';
+import BugReportOutlinedIcon from '@mui/icons-material/BugReportOutlined';
 
-function DebugSettings() {
+function DebugSettings({ label = 'Debug Mode', iconOnly = false }) {
   const [debugMode, setDebugMode] = React.useState(false);
 
   React.useEffect(() => {
@@ -30,6 +33,24 @@ function DebugSettings() {
     }
   };
 
+  // Small screens: a bug icon that is highlighted while debug logging is on.
+  if (iconOnly) {
+    return (
+      <Tooltip title={`Debug Mode: ${debugMode ? 'on' : 'off'}`} arrow>
+        <IconButton
+          size="small"
+          aria-label="Debug Mode"
+          aria-pressed={debugMode}
+          color={debugMode ? 'primary' : 'default'}
+          onClick={() => handleDebugModeChange({ target: { checked: !debugMode } })}
+          sx={{ backgroundColor: debugMode ? 'action.selected' : 'transparent' }}
+        >
+          <BugReportOutlinedIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    );
+  }
+
   return (
     <Tooltip title="Enable event logging to view script events in the IRCTC console." arrow>
       <FormControlLabel
@@ -42,9 +63,11 @@ function DebugSettings() {
             color="primary"
           />
         }
-        label="Debug Mode"
+        label={label}
         sx={{ 
           ml: 0,
+          mr: 0,
+          whiteSpace: 'nowrap',
           '& .MuiFormControlLabel-label': {
             fontSize: '0.875rem',
             color: 'text.secondary'
@@ -54,5 +77,10 @@ function DebugSettings() {
     </Tooltip>
   );
 }
+
+DebugSettings.propTypes = {
+  label: PropTypes.string,
+  iconOnly: PropTypes.bool,
+};
 
 export default DebugSettings; 
