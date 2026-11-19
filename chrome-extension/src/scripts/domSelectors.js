@@ -77,6 +77,9 @@ export const PASSENGER_SELECTORS = {
     PASSENGER_MOBILE_NUMBER: 'mobileNumber',
     PASSENGER_PREFERENCE_AUTOUPGRADATION: 'autoUpgradation',
     PASSENGER_PREFERENCE_CONFIRMBERTHS: 'confirmberths',
+    PASSENGER_PREFERENCE_NOFOOD: 'input[formcontrolname="noFood"]',
+    PASSENGER_NO_FOOD_DIALOG: 'p-confirmdialog .ui-confirmdialog',
+    PASSENGER_NO_FOOD_DIALOG_OK_TEXT: 'OK',
     PASSENGER_PREFERENCE_TRAVELINSURANCEOPTED: 'input[type="radio"][name="travelInsuranceOpted-0"]',
     PASSENGER_SUBMIT_BUTTON: 'app-passenger-input button.btnDefault.train_Search',
 };
