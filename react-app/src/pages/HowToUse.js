@@ -22,6 +22,7 @@ const HowToUse = () => {
               <ul>
                 <li>For <code>AC class</code>, the Tatkal start timer is set to <code>09:59:53</code>.</li>
                 <li>For <code>Sleeper class</code>, it&apos;s set to <code>10:59:53</code>.</li>
+                <li>The timer follows your computer&apos;s clock (IST), not the clock shown on the IRCTC page, which runs a few seconds fast. Keep your computer&apos;s time set automatically.</li>
               </ul>
             </li>
             <li><code>Refresh Time (ms)</code> is set to 5000ms (5 seconds).</li>

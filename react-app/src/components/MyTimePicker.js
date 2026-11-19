@@ -36,7 +36,7 @@ function MyTimePicker({isDisabled}) {
        label={
         <span>
           Booking Start Time
-          <Tooltip title="This timer auto-clicks the 'Search' button when it matches the IRCTC clock, moving you from 'Search Train' to 'Train List' automatically. This is mainly applicable for Tatkal or General opening-day booking before the target time.">
+          <Tooltip title="Auto-clicks 'Search' at this time by your computer's clock (IST), moving you from 'Search Train' to 'Train List'. The clock on the IRCTC page runs a few seconds fast, so don't go by it; keep your computer's 'Set time automatically' on. Mainly for Tatkal or General opening-day booking.">
             <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
           </Tooltip>
         </span>

@@ -31,7 +31,7 @@ const SELECTOR_CATEGORIES = {
       JOURNEY_QUOTA: { label: 'Journey Quota Dropdown', default: '#journeyQuota>div' },
       JOURNEY_QUOTA_LIST: { label: 'Quota Dropdown Items', default: '#journeyQuota p-dropdownitem span' },
       JOURNEY_DATE: { label: 'Journey Date Input', default: 'input#jDate, #jDate input' },
-      CURRENT_TIME: { label: 'Current Time Display', default: 'app-header .h_head1>span strong' },
+      CURRENT_TIME: { label: 'IRCTC Page Clock (logging only)', default: 'app-header .h_head1>span strong' },
       JOURNEY_SEARCH_BUTTON: {
         label: 'Search Trains',
         default: 'app-jp-input button[type="submit"].search_btn',
