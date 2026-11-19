@@ -27,7 +27,6 @@ let autoProcessPopup = false;
 let mobileNumber = '';
 let autoUpgradation = false;
 let confirmberths = false;
-let noFood = false;
 let travelInsuranceOpted = 'yes';
 let autoSolveCaptcha = false;
 let autoSubmitCaptcha = false;
@@ -68,7 +67,6 @@ const defaultSettings = {
   mobileNumber:'',
   autoUpgradation:false,
   confirmberths:false,
-  noFood:false,
   travelInsuranceOpted:'yes',
   autoSolveCaptcha:false,
   autoSubmitCaptcha:false,
@@ -1199,6 +1197,13 @@ async function addMobileNumber() {
     Logger.error('Invalid mobile number:', pMobileNumber);
   }
 }
+function allPassengersWantNoFood() {
+  // The IRCTC master list carries no food choice, so leave IRCTC's default.
+  if (masterData) return false;
+
+  const selected = passengerList.filter((passenger) => passenger.isSelected);
+  return selected.length > 0 && selected.every((passenger) => passenger.foodChoice === 'D');
+}
 // Ticking "I don't want Food/Beverages" opens an IRCTC confirmation over the
 // passenger form. Press OK on that dialog only, then wait for it to close.
 async function confirmNoFoodDialog() {
@@ -1236,9 +1241,11 @@ async function selectPreferences(){
   if(confirmberthsInput && confirmberths)
     await humanClick(confirmberthsInput);
 
-  // Only some trains show "I don't want Food/Beverages". IRCTC leaves it
-  // unchecked, which books meals and adds the catering charge to the fare.
+  // Some trains (e.g. Tejas) ask "I don't want Food/Beverages" once for the
+  // whole booking instead of a food choice per passenger. IRCTC leaves it
+  // unchecked, which adds catering, so tick it when every passenger is No Food.
   var noFoodInput = document.querySelector(PASSENGER_PREFERENCE_NOFOOD);
+  var noFood = allPassengersWantNoFood();
   if(noFoodInput && noFoodInput.checked !== noFood){
     await humanClick(noFoodInput);
     if(noFood)
@@ -1588,7 +1595,6 @@ async function getSettings() {
       mobileNumber = items.mobileNumber;
       autoUpgradation = items.autoUpgradation;
       confirmberths = items.confirmberths;
-      noFood = items.noFood || false;
       travelInsuranceOpted = items.travelInsuranceOpted;
       autoSolveCaptcha = items.autoSolveCaptcha;
       autoSubmitCaptcha = items.autoSubmitCaptcha;

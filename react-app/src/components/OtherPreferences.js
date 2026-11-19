@@ -44,17 +44,6 @@ const OtherPreferences = () => {
           }
           label="Book only if confirmed berths are allotted"
         />
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={!!formData.noFood}
-              onChange={handleChange}
-              name="noFood"
-            />
-          }
-          label="I don't want Food/Beverages (only on trains that show this option)"
-        />
       </FormGroup>
 
       <FormControl component="fieldset" sx={{ mt: 2 }}>
