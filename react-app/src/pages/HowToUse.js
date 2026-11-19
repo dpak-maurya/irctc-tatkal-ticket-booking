@@ -39,6 +39,7 @@ import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import EastRoundedIcon from '@mui/icons-material/EastRounded';
+import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
 import LogoIcon from '../components/LogoIcon';
 import defaultSettings from '../defaultSettings';
 import { getTargetTime } from '../openingTimes';
@@ -84,6 +85,7 @@ const SECTIONS = [
   { id: 'how-it-works', label: 'How a booking runs' },
   { id: 'details', label: 'Your details' },
   { id: 'timer', label: 'Timer settings' },
+  { id: 'opening-day', label: 'Opening Day Booking' },
   { id: 'auto-booking', label: 'Auto Booking switch' },
   { id: 'passengers', label: 'Passengers' },
   { id: 'before', label: 'Before booking starts' },
@@ -486,6 +488,9 @@ export default function HowToUse() {
             <Section id="how-it-works" icon={<TimelineRoundedIcon />} title="How a booking runs" subtitle={<>An AC Tatkal booking with the default settings. Booking opens at <Code>{OPENS.ac}</Code>.</>}>
               <ActorLegend />
               <Timeline steps={TIMELINE} />
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                <Link href="#opening-day">Opening Day Booking</Link> runs the same way, with booking opening at <Code>{OPENS.openingDay}</Code>.
+              </Typography>
             </Section>
 
             <Section id="details" icon={<EditNoteRoundedIcon />} title="Fill in your details" subtitle="Everything stays in your Chrome on this computer.">
@@ -496,7 +501,8 @@ export default function HowToUse() {
               <Box component="ul" sx={{ pl: 2.5 }}>
                 <li>Enter the train number, <strong>From</strong> and <strong>To</strong> station codes, journey date, quota and class.
                   The <Ui>Go to IRCTC Website</Ui> button helps you look them up.</li>
-                <li>Booking General tickets on the first day they open (60 days ahead)? Turn on <Code>Opening Day Booking</Code>.</li>
+                <li>Booking General tickets on the first day they open (60 days ahead)? Turn on <Code>Opening Day Booking</Code>.
+                  See <Link href="#opening-day">Opening Day Booking</Link>.</li>
               </Box>
               <Callout type="warning" title="Use the train's own station codes">
                 Train 22178 runs to <Code>CSMT</Code>, so search <Code>BSB</Code> → <Code>CSMT</Code>, not <Code>MMCT</Code>.
@@ -539,6 +545,78 @@ export default function HowToUse() {
               <Callout type="info" title="The timer follows your computer's clock">
                 Not the clock on the IRCTC page, which runs a few seconds fast. Keep <strong>Set time automatically</strong> turned
                 on in your computer&apos;s date and time settings.
+              </Callout>
+            </Section>
+
+            <Section
+              id="opening-day"
+              icon={<EventAvailableRoundedIcon />}
+              title="Opening Day Booking"
+              subtitle="For General quota tickets on the day booking opens, 60 days before the journey."
+            >
+              <Typography>
+                General tickets open <strong>60 days before the journey</strong>, at <Code>{OPENS.openingDay}</Code> IST. The
+                journey day itself isn&apos;t counted. Seats on busy trains can go within minutes, so the extension can handle that
+                morning the same way it handles Tatkal.
+              </Typography>
+
+              <Paper variant="outlined" sx={{ my: 2.5, p: { xs: 2, sm: 2.5 }, borderRadius: 3 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                  Example
+                </Typography>
+                <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="stretch" gap={{ xs: 1, sm: 0 }} sx={{ mt: 1 }}>
+                  <Box sx={{ flex: 1, p: 1.5, borderRadius: 2, bgcolor: 'rgba(156, 39, 176, 0.08)', border: '1px solid rgba(156, 39, 176, 0.3)' }}>
+                    <Typography sx={{ fontWeight: 800, color: 'secondary.main' }}>16 Jun, {OPENS.openingDay.slice(0, 5)}</Typography>
+                    <Typography variant="body2">Booking opens. Schedule Date goes here.</Typography>
+                  </Box>
+                  <Stack alignItems="center" justifyContent="center" sx={{ px: 2, py: { xs: 0.5, sm: 0 }, minWidth: 120 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary' }}>60 days</Typography>
+                    <EastRoundedIcon color="action" sx={{ transform: { xs: 'rotate(90deg)', sm: 'none' } }} />
+                  </Stack>
+                  <Box sx={{ flex: 1, p: 1.5, borderRadius: 2, bgcolor: 'surface.main' }}>
+                    <Typography sx={{ fontWeight: 800, color: '#12134F' }}>15 Aug</Typography>
+                    <Typography variant="body2">Journey date.</Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+
+              <SubHeading>Set it up</SubHeading>
+              <Box component="ol" sx={{ pl: 2.5 }}>
+                <li>Pick a journey date <strong>60 or more days away</strong> and set Quota Type to <Code>GENERAL</Code>.
+                  The <Ui>Opening Day Booking</Ui> switch appears under Quota Type.</li>
+                <li>Turn it on. <Code>Booking Opens At</Code> changes to <Code>{OPENS.openingDay}</Code> by itself.</li>
+                <li>In <strong>Schedule &amp; Timing</strong>, click a <strong>General opening dates</strong> button to set the Schedule Date:
+                  <Box component="ul" sx={{ pl: 2.5, mt: 0.5 }}>
+                    <li><Ui>D-60</Ui>: the usual choice. Booking opens 60 days before your journey date.</li>
+                    <li><Ui>D-61</Ui>: only if your train leaves its <strong>first station the day before</strong> you board.
+                      IRCTC counts the 60 days from that first station, so booking opens a day earlier for you.</li>
+                  </Box>
+                </li>
+                <li>Save, switch <Ui>Auto Booking</Ui> ON and keep Chrome open. On that morning the extension logs in at
+                  <Code>{shiftTime(OPENS.openingDay, -loginMinutesBefore * 60)}</Code>, searches at
+                  <Code>{shiftTime(OPENS.openingDay, -searchSecondsBefore)}</Code> and checks seats right after{' '}
+                  <Code>{OPENS.openingDay}</Code>.</li>
+              </Box>
+
+              <Callout type="warning" title="Aadhaar-verified accounts only, for the first 15 minutes">
+                Since 1 October 2025, in the first 15 minutes after General booking opens, only Aadhaar-verified IRCTC accounts
+                can book online. Verify your account well before the day.
+              </Callout>
+
+              <SubHeading>Opening Day vs Tatkal</SubHeading>
+              <SimpleTable
+                head={['', 'Opening Day (General)', 'Tatkal']}
+                rows={[
+                  ['Quota', <Code key="q">GENERAL</Code>, <Code key="q">TATKAL</Code>],
+                  ['Booking opens', `60 days before, ${OPENS.openingDay}`, `1 day before, ${OPENS.ac} (AC) or ${OPENS.nonAc} (non-AC)`],
+                  ['Schedule Date', <span key="d"><Ui>D-60</Ui> button (or <Ui>D-61</Ui>)</span>, 'Set for you: the day before the journey'],
+                  ['Switch to turn on', <Ui key="s">Opening Day Booking</Ui>, 'None'],
+                ]}
+              />
+
+              <Callout type="info" title="Don't see the switch?">
+                Your journey is less than 60 days away, so General booking is already open. You can book any time; there&apos;s no
+                opening rush to beat, so leave Opening Day Booking off.
               </Callout>
             </Section>
 
