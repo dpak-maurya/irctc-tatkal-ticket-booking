@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
-import { TextField, Box, Typography, Select, MenuItem, FormControl, InputLabel, FormControlLabel, Switch } from '@mui/material';
+import { Box, Typography, Select, MenuItem, FormControl, InputLabel, FormControlLabel, Switch } from '@mui/material';
 import dayjs from 'dayjs';
 import { sharedStyles } from '../styles';
 import MyDatePicker from './MyDatePicker';
+import LookupField from './LookupField';
+import { useReferenceData } from '../data/useReferenceData';
 import { useAppContext } from '../contexts/AppContext';
 
 const getTargetTime = (quotaType, accommodationClass, isOpeningDayBooking, currentTargetTime) => {
@@ -15,11 +17,14 @@ const getTargetTime = (quotaType, accommodationClass, isOpeningDayBooking, curre
 
 const isTatkalQuota = (quotaType) => ['TATKAL', 'PREMIUM TATKAL'].includes(quotaType);
 const formatStationCode = (value) => value.toUpperCase().replace(/[^A-Z]/g, '');
+const formatStationName = (value) => value.toUpperCase().replace(/[^A-Z0-9 ()./-]/g, '').replace(/\s+/g, ' ').trim();
 const formatTrainNumber = (value) => value.replace(/\D/g, '');
 const getTatkalScheduleDate = (journeyDate) => journeyDate.subtract(1, 'day').format('YYYY-MM-DD');
 
 function TrainDetails() {
-  const { formData, setFormData, handleChange } = useAppContext();
+  const { formData, setFormData } = useAppContext();
+  const stations = useReferenceData('stations');
+  const trains = useReferenceData('trains');
   const today = dayjs().startOf('day');
   const journeyDate = formData.dateString ? dayjs(formData.dateString, 'YYYY-MM-DD') : null;
   const daysUntilJourney = journeyDate ? journeyDate.diff(today, 'day') : null;
@@ -34,14 +39,8 @@ function TrainDetails() {
     }
   }, [canUseOpeningDayBooking, formData.isOpeningDayBooking, formData.quotaType, setFormData]);
 
-  const handleStationCode = (event) => {
-    const { name, value } = event.target;
-    setFormData({ ...formData, [name]: formatStationCode(value) });
-  };
-
-  const handleTrainNumber = (event) => {
-    const { name, value } = event.target;
-    setFormData({ ...formData, [name]: formatTrainNumber(value) });
+  const commitField = (field) => (value) => {
+    setFormData((prevState) => (prevState[field] === value ? prevState : { ...prevState, [field]: value }));
   };
 
   const handleJourneyDateChange = (formattedDate, dateValue) => {
@@ -103,56 +102,46 @@ function TrainDetails() {
         Train Details
       </Typography>
       <MyDatePicker onDateChange={handleJourneyDateChange} />
-      <TextField
-        fullWidth
+      <LookupField
         label='Train Number'
-        id='trainNumber'
         name='trainNumber'
         value={formData.trainNumber}
-        onChange={handleTrainNumber}
-        margin='normal'
+        options={trains}
+        normalize={formatTrainNumber}
+        onCommit={commitField('trainNumber')}
         required
-        variant='outlined'
-        placeholder='Enter train number i.e. 11061'
-        slotProps={{
-          input: {
-            sx: sharedStyles.input, // Apply shared input styles
-          },
-        }}
+        placeholder='Search by number or name i.e. 11061'
       />
-      <TextField
-        fullWidth
+      <LookupField
         label='From'
-        id='from'
         name='from'
         value={formData.from}
-        onChange={handleStationCode}
-        margin='normal'
+        options={stations}
+        normalize={formatStationCode}
+        onCommit={commitField('from')}
         required
-        variant='outlined'
-        placeholder='Enter origin station code i.e. LTT'
-        slotProps={{
-          input: {
-            sx: sharedStyles.input, // Apply shared input styles
-          },
-        }}
+        placeholder='Search by station name or code i.e. LTT'
       />
-      <TextField
-        fullWidth
+      <LookupField
         label='To'
-        id='to'
         name='to'
         value={formData.to}
-        onChange={handleStationCode}
-        margin='normal'
+        options={stations}
+        normalize={formatStationCode}
+        onCommit={commitField('to')}
         required
-        variant='outlined'
-        placeholder='Enter destination station code i.e. BSB'
-        slotProps={{
-          input: {
-            sx: sharedStyles.input, // Apply shared input styles
-          },
-        }}
+        placeholder='Search by station name or code i.e. BSB'
+      />
+      <LookupField
+        label='Boarding Station'
+        name='boardingStation'
+        value={formData.boardingStation}
+        options={stations}
+        store='label'
+        normalize={formatStationName}
+        onCommit={commitField('boardingStation')}
+        placeholder='Only required if other than the origin station'
+        helperText='Leave blank to board at the origin station.'
       />
       <FormControl fullWidth margin='normal'>
         <InputLabel id='quotaType-label'>Quota Type</InputLabel>

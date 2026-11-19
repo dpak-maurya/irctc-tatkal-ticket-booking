@@ -10,6 +10,7 @@ const defaultSettings = {
     trainNumber: '',
     from: '',
     to: '',
+    boardingStation: '',
     quotaType: 'TATKAL',
     isOpeningDayBooking: false,
     accommodationClass: '3A',
