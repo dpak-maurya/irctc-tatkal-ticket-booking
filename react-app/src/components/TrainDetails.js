@@ -7,10 +7,10 @@ import { useAppContext } from '../contexts/AppContext';
 
 const getTargetTime = (quotaType, accommodationClass, isOpeningDayBooking, currentTargetTime) => {
   if (quotaType === 'GENERAL') {
-    return isOpeningDayBooking ? '07:59:53' : currentTargetTime;
+    return isOpeningDayBooking ? '08:00:00' : currentTargetTime;
   }
-  if (['SL', 'FC', '2S', 'VS'].includes(accommodationClass)) return '10:59:53';
-  return '09:59:53';
+  if (['SL', 'FC', '2S', 'VS'].includes(accommodationClass)) return '11:00:00';
+  return '10:00:00';
 };
 
 const isTatkalQuota = (quotaType) => ['TATKAL', 'PREMIUM TATKAL'].includes(quotaType);
@@ -88,7 +88,7 @@ function TrainDetails() {
     setFormData((prevState) => ({
       ...prevState,
       isOpeningDayBooking: checked,
-      targetTime: checked ? '07:59:53' : prevState.targetTime,
+      targetTime: checked ? '08:00:00' : prevState.targetTime,
     }));
   };
 

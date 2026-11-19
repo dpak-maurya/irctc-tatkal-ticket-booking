@@ -35,8 +35,8 @@ function MyTimePicker({isDisabled}) {
       <TimePicker
        label={
         <span>
-          Booking Start Time
-          <Tooltip title="Auto-clicks 'Search' at this time by your computer's clock (IST), moving you from 'Search Train' to 'Train List'. The clock on the IRCTC page runs a few seconds fast, so don't go by it; keep your computer's 'Set time automatically' on. Mainly for Tatkal or General opening-day booking.">
+          Booking Opens At
+          <Tooltip title="When IRCTC opens booking (10:00:00 AC Tatkal, 11:00:00 non-AC, 08:00:00 opening-day General). The search runs a little earlier and the first seat check goes out right after this time, by your computer's clock (IST). Don't go by the clock on the IRCTC page; it runs a few seconds fast.">
             <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
           </Tooltip>
         </span>
@@ -47,7 +47,7 @@ function MyTimePicker({isDisabled}) {
         format="HH:mm:ss"
         ampm={false}
         timeSteps={{ hours: 1, minutes: 1, seconds: 1 }}
-        placeholder="Enter booking start time i.e. 09:59:53"
+        placeholder="Enter booking open time i.e. 10:00:00"
         sx={{ width: '100%', backgroundColor: 'white', borderRadius: 1 }}
         disabled={isDisabled}
       />

@@ -91,6 +91,7 @@ function BookingPlanSummary({ formData }) {
             value={wakeUpDateTime ? formatDateTimeInIST(wakeUpDateTime) : '-'}
           />
           <SummaryRow label="Login before" value={`${formData.loginMinutesBefore} min`} />
+          <SummaryRow label="Search before" value={`${formData.searchSecondsBefore ?? 30} s`} />
         </>
       )}
       <SummaryRow label="Refresh interval" value={`${formData.refreshTime} ms`} />

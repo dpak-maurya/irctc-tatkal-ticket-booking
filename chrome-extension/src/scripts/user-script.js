@@ -5,7 +5,8 @@ import extractTextFromImage from './ocr-reader';
 let automationStatus = false;
 let username = '';
 let password = '';
-let targetTime ='09:59:53'
+let targetTime ='10:00:00'
+let searchSecondsBefore = 30;
 let passengerList = [];
 let infantList = [];
 let showInfant = false;
@@ -42,12 +43,19 @@ const PAYMENT_OPTIONS_WAIT_TIME = 10000;
 const NO_FOOD_DIALOG_WAIT_TIME = 2000;
 // Booking times are IST whatever the device's time zone.
 const IST_OFFSET_MS = 330 * 60 * 1000;
+// The first availability request leaves this long after the window opens, so
+// it reaches IRCTC just after the opening second (clocks agree within ~0.4 s).
+const OPENING_CLICK_DELAY_MS = 500;
+// Just after opening, check again sooner than the normal refresh interval.
+const FAST_REFRESH_WINDOW_MS = 15000;
+const FAST_REFRESH_MS = 2000;
 
 const defaultSettings = {
   automationStatus: false,
   username: '',
   password: '',
-  targetTime: '09:59:53',
+  targetTime: '10:00:00',
+  searchSecondsBefore: 30,
   passengerList: [],
   infantList: [],
   showInfant: false,
@@ -836,6 +844,7 @@ async function scrollToFoundTrainAndSelectClass() {
   }
   
   await delay(200);
+  await waitForOpening();
   await humanClick(selectedClass);
 
   Logger.info(
@@ -986,7 +995,7 @@ async function bookTicket() {
         Logger.warn('No availability received. Refreshing the class again.', availabilityError);
         await refreshTrain();
     }
-    await delay(refreshTime); // Adjust the delay as needed
+    await delay(getRefreshDelay());
 }
 
   // Proceed with booking the ticket
@@ -1000,10 +1009,15 @@ async function bookTicket() {
 }
 // Function to check for the presence of the popup and close it if it exists
 async function closePopupToProceed() {
-  let popup = document.querySelector(DIALOG_FROM);
-  
-  if (popup) {
-    await humanClick(document.querySelector(DIALOG_ACCEPT));
+  // The dialog element is always in the page; only its visible Yes button
+  // means IRCTC is asking. It opens a moment after Book Now is clicked.
+  const acceptButton = await waitForCondition(() => {
+    const button = document.querySelector(`${DIALOG_FROM} ${DIALOG_ACCEPT}`);
+    return isElementVisible(button) ? button : null;
+  }, 2000, 100);
+
+  if (acceptButton) {
+    await humanClick(acceptButton);
     Logger.info('Popup closed.');
   } else {
     Logger.info('Popup not found.');
@@ -1410,11 +1424,20 @@ async function addPassengerInputAndContinue() {
 async function clickReviewContinue() {
   const continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
 
-  if (continueButton) {
-    await humanClick(continueButton);
-  } else {
+  if (!continueButton) {
     Logger.warn('Continue button not found on the review page.');
+    return;
   }
+
+  // On trains with Aadhaar OTP, IRCTC keeps Continue disabled until the OTP is
+  // entered. Clicking it would only waste a request; leave it to the user.
+  if (continueButton.disabled || continueButton.classList.contains(BUTTON_DISABLE_CLASS)) {
+    Logger.warn('Review page is waiting for the Aadhaar OTP: generate it, enter it, then press Continue.');
+    continueButton.scrollIntoView({ block: 'center' });
+    return;
+  }
+
+  await humanClick(continueButton);
 }
 
 async function handleCaptchaAndContinue() {
@@ -1557,14 +1580,6 @@ async function clickEwalletConfirmButton() {
   }
 }
 
-function hasReachedTargetTime(currentTimeString, targetTimeString) {
-  const [currentHour, currentMinute, currentSecond] = currentTimeString.split(':').map(Number);
-  const [targetHour, targetMinute, targetSecond] = targetTimeString.split(':').map(Number);
-
-  return currentHour > targetHour ||
-    (currentHour === targetHour && currentMinute > targetMinute) ||
-    (currentHour === targetHour && currentMinute === targetMinute && currentSecond >= targetSecond);
-}
 // IRCTC opens bookings by its server clock. In tests the device clock (NTP)
 // matched IRCTC's servers within 0.1 s, while the header clock ran ~7 s fast:
 // it is the device clock plus an offset the page estimates once after loading.
@@ -1578,7 +1593,32 @@ function logPageClockOffset() {
   const toSeconds = (time) => time.split(':').reduce((total, part) => total * 60 + Number(part), 0);
   Logger.info('IRCTC page clock minus device clock (s):', toSeconds(timeMatch[1]) - toSeconds(getIstTimeString()));
 }
-function waitForTargetTime(targetTimeString) {
+// Booking windows open on a whole minute (08:00, 10:00, 11:00). Settings saved
+// by older versions held a time a few seconds earlier, e.g. 09:59:53, so round
+// up to the minute.
+function getOpeningTimeMs() {
+  const istDate = new Date(Date.now() + IST_OFFSET_MS).toISOString().slice(0, 10);
+  const opening = Date.parse(`${istDate}T${targetTime}+05:30`);
+  return Math.ceil(opening / 60000) * 60000;
+}
+// The search carries no availability and is not tied to the opening, so it runs
+// ahead of the rush. Only the class click below waits for the opening second:
+// any earlier, IRCTC just answers "not yet started".
+async function waitForOpening() {
+  if (!shouldUseTimedSearch()) return;
+
+  const wait = getOpeningTimeMs() + OPENING_CLICK_DELAY_MS - Date.now();
+  if (wait <= 0) return;
+
+  Logger.info('Waiting', (wait / 1000).toFixed(1), 's for booking to open before checking availability.');
+  await delay(wait);
+}
+function getRefreshDelay() {
+  const sinceOpening = Date.now() - getOpeningTimeMs();
+  const justOpened = shouldUseTimedSearch() && sinceOpening >= 0 && sinceOpening < FAST_REFRESH_WINDOW_MS;
+  return justOpened ? Math.min(FAST_REFRESH_MS, refreshTime) : refreshTime;
+}
+function waitForTargetTime() {
   const searchButton = document.querySelector(JOURNEY_SEARCH_BUTTON);
 
   if (!searchButton) {
@@ -1592,10 +1632,11 @@ function waitForTargetTime(targetTimeString) {
 
   logPageClockOffset();
 
+  const searchAt = getOpeningTimeMs() - searchSecondsBefore * 1000;
   const intervalId = setInterval(() => {
-    if (hasReachedTargetTime(getIstTimeString(), targetTimeString)) {
+    if (Date.now() >= searchAt) {
       clearInterval(intervalId);
-      Logger.info('Target time reached (device clock, IST):', getIstTimeString());
+      Logger.info('Search time reached (device clock, IST):', getIstTimeString());
       humanClick(searchButton);
     }
   }, 100);
@@ -1615,6 +1656,7 @@ async function getSettings() {
       username = items.username;
       password = items.password;
       targetTime = items.targetTime;
+      searchSecondsBefore = Number(items.searchSecondsBefore ?? 30);
       passengerList = items.passengerList;
       infantList = items.infantList || [];
       showInfant = items.showInfant || false;
@@ -1701,7 +1743,7 @@ async function executeFunctions() {
     await login();
     await waitForAppLoginToDisappear();
     await callSearchTrainComponent();
-    waitForTargetTime(targetTime);
+    waitForTargetTime();
     
     // wait for train list page to load
     await waitForElementToAppear(TRAIN_LIST_COMPONENT);

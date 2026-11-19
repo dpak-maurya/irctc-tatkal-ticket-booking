@@ -20,9 +20,10 @@ const HowToUse = () => {
           <ol>
             <li><code>Tatkal Start Timer</code>:
               <ul>
-                <li>For <code>AC class</code>, the Tatkal start timer is set to <code>09:59:53</code>.</li>
-                <li>For <code>Sleeper class</code>, it&apos;s set to <code>10:59:53</code>.</li>
+                <li><code>Booking Opens At</code> is set to <code>10:00:00</code> for <code>AC class</code> and <code>11:00:00</code> for <code>Sleeper class</code>.</li>
+                <li>The search runs <code>Search Seconds Before</code> (30 by default) ahead of that, and the first seat check goes out right after the opening time.</li>
                 <li>The timer follows your computer&apos;s clock (IST), not the clock shown on the IRCTC page, which runs a few seconds fast. Keep your computer&apos;s time set automatically.</li>
+                <li>Use the train&apos;s own From/To station codes, so IRCTC doesn&apos;t stop to confirm a different station before Book Now.</li>
               </ul>
             </li>
             <li><code>Refresh Time (ms)</code> is set to 5000ms (5 seconds).</li>

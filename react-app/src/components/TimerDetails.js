@@ -172,6 +172,32 @@ function TimerDetails() {
 
       <MyTimePicker formData={formData} handleChange={handleChange} isDisabled={isDisabled} />
 
+      <TextField
+        fullWidth
+        label={
+          <span>
+            Search Seconds Before
+            <Tooltip title="Search trains this many seconds before booking opens, then wait on the train list. The search shows no seat availability, so doing it early only keeps it out of the opening rush.">
+              <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
+            </Tooltip>
+          </span>
+          }
+        id="searchSecondsBefore"
+        name="searchSecondsBefore"
+        value={formData.searchSecondsBefore ?? 30}
+        onChange={handleChange}
+        margin="normal"
+        type="number"
+        variant="outlined"
+        placeholder="Enter seconds before booking opens"
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
+        }}
+        disabled={isDisabled}
+      />
+
       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.main', mt: 2, mb: 0.5 }}>
         Advanced Timing
       </Typography>
@@ -206,7 +232,7 @@ function TimerDetails() {
         label={
           <span>
             Login Minutes Before
-            <Tooltip title="Login at specified minutes(i.e. 2 minutes) before Tatkal start timer">
+            <Tooltip title="Login at specified minutes(i.e. 2 minutes) before booking opens">
               <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
             </Tooltip>
           </span>
