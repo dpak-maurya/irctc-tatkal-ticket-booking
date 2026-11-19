@@ -180,7 +180,12 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
   }
 
   if (!formData?.targetTime) {
-    errors.push('Booking start time is required.');
+    errors.push('Booking open time is required.');
+  }
+
+  const searchSecondsBefore = Number(formData?.searchSecondsBefore ?? 30);
+  if (!Number.isFinite(searchSecondsBefore) || searchSecondsBefore < 5 || searchSecondsBefore > 120) {
+    errors.push('Search seconds before must be between 5 and 120.');
   }
 
   if (!Number.isFinite(Number(formData?.refreshTime)) || Number(formData.refreshTime) <= 0) {

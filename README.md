@@ -52,6 +52,15 @@ To install the IRCTC Tatkal Booking Chrome Extension, follow these steps:
 
 Once installed, the extension will be available in your Chrome browser. Simply navigate to the IRCTC website and start using the extension to streamline your Tatkal ticket booking process.
 
+## Testing a branch
+
+`npm run build:test` builds the current branch into `builds/test/` (your `dist/` is left alone) and stamps it, so you always know which build is loaded:
+- `chrome://extensions` shows **Tatkal Ticket Booking (TEST 6.4.0)** and the branch and commit,
+- the toolbar icon shows a **6.4** badge,
+- the settings page shows a **TEST** chip, and Booking History logs record the build.
+
+Load `builds/test/` once with **Load unpacked**. After that, switch branch, run `npm run build:test` again and click **Reload**: Chrome keeps your settings because the folder stays the same. To keep several builds side by side, use `npm run build:test -- --keep` (one folder per branch) and turn on only one of them at a time, or both will try to book.
+
 ## Contributing
 
 Contributions to the IRCTC Tatkal Booking Chrome Extension are welcome! If you have any suggestions, bug reports, or feature requests, please feel free to open an issue or submit a pull request on the GitHub repository.

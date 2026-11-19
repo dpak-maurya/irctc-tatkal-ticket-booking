@@ -1,6 +1,6 @@
 // components/Footer.js
 import React from 'react';
-import { Stack, Button, Box, Container, useMediaQuery } from '@mui/material';
+import { Stack, Button, Box, Container, Typography, useMediaQuery } from '@mui/material';
 import ModalPopup from './ModalPopup';
 import { useModalContext } from '../contexts/ModalContext';
 import { useAppContext } from '../contexts/AppContext';
@@ -33,69 +33,57 @@ const Footer = () => {
 
   return (
     <Box
+      component="footer"
       sx={{
-        backgroundColor: '#fff',
-        padding: '10px 20px',
-        boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
-        position: 'fixed',
+        position: 'sticky',
         bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
+        zIndex: (theme) => theme.zIndex.appBar,
+        backgroundColor: '#fff',
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.06)',
       }}
     >
-      <Container>
-        <Stack
-          display='flex'
-          direction={isSmallScreen ? 'column' : 'row'}
-          justifyContent='space-between'
-          alignItems='center'
-        >
-          <Box>
-            {/* Unsaved changes warning */}
-            {isDirty && (
-              <Button color='error' variant="text" size='large' fullWidth={isSmallScreen}>
-                Unsaved changes!
-              </Button>
-            )}
-          </Box>
-          <Stack
-            display='flex'
-            direction='row'
-            spacing={3}
-            justifyContent={isSmallScreen ? 'center' : 'end'}
-            alignItems='center'
-            width={isSmallScreen ? '100%' : 'auto'}
-          >
-            {/* Reset Settings Button */}
-            <Button
-              variant='outlined'
-              color='secondary'
-              size='large'
-              onClick={() =>
-                openModal(
-                  'confirmation',
-                  'Clear Booking Details',
-                  'Are you sure you want to clear all booking details?',
-                  resetSettings
-                )
-              }
-              fullWidth={isSmallScreen}
-            >
-              Clear Booking Details
-            </Button>
+      <Container maxWidth="lg" sx={{ py: 1.25 }}>
+        <Stack direction="row" alignItems="center" justifyContent="flex-end" gap={1.5}>
+          {/* Unsaved changes warning */}
+          {isDirty && (
+            <Stack direction="row" alignItems="center" gap={0.75} sx={{ mr: 'auto', color: 'error.main', minWidth: 0 }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'error.main', flexShrink: 0 }} />
+              <Typography variant="body2" fontWeight={600} noWrap>
+                {isSmallScreen ? 'Unsaved' : 'Unsaved changes'}
+              </Typography>
+            </Stack>
+          )}
 
-            {/* Save Settings Button */}
-            <Button
-              variant='contained'
-              color='primary'
-              size='large'
-              onClick={handleSaveClick}
-              fullWidth={isSmallScreen}
-            >
-              Save Booking Details
-            </Button>
-          </Stack>
+          {/* Reset Settings Button */}
+          <Button
+            variant='outlined'
+            color='secondary'
+            size={isSmallScreen ? 'medium' : 'large'}
+            sx={{ whiteSpace: 'nowrap' }}
+            onClick={() =>
+              openModal(
+                'confirmation',
+                'Clear Booking Details',
+                'Are you sure you want to clear all booking details?',
+                resetSettings
+              )
+            }
+          >
+            {isSmallScreen ? 'Clear' : 'Clear Booking Details'}
+          </Button>
+
+          {/* Save Settings Button */}
+          <Button
+            variant='contained'
+            color='primary'
+            size={isSmallScreen ? 'medium' : 'large'}
+            sx={{ whiteSpace: 'nowrap' }}
+            onClick={handleSaveClick}
+          >
+            {isSmallScreen ? 'Save' : 'Save Booking Details'}
+          </Button>
         </Stack>
         {/* Modal Popup */}
         <ModalPopup

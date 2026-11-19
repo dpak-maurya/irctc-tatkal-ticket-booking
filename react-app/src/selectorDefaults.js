@@ -31,7 +31,7 @@ const SELECTOR_CATEGORIES = {
       JOURNEY_QUOTA: { label: 'Journey Quota Dropdown', default: '#journeyQuota>div' },
       JOURNEY_QUOTA_LIST: { label: 'Quota Dropdown Items', default: '#journeyQuota p-dropdownitem span' },
       JOURNEY_DATE: { label: 'Journey Date Input', default: 'input#jDate, #jDate input' },
-      CURRENT_TIME: { label: 'Current Time Display', default: 'app-header .h_head1>span strong' },
+      CURRENT_TIME: { label: 'IRCTC Page Clock (logging only)', default: 'app-header .h_head1>span strong' },
       JOURNEY_SEARCH_BUTTON: {
         label: 'Search Trains',
         default: 'app-jp-input button[type="submit"].search_btn',
@@ -59,6 +59,8 @@ const SELECTOR_CATEGORIES = {
       BOOK_NOW_BUTTON: { label: 'Book Now Button', default: 'button.btnDefault.train_Search' },
       BUTTON_DISABLE_CLASS: { label: 'Button Disabled Class', default: 'disable-book' },
       LINK_INSERTED: { label: 'Link Inserted Element', default: '.link.ng-star-inserted' },
+      LOADING_OVERLAY: { label: 'IRCTC Loading Overlay', default: 'div.my-loading' },
+      AVAILABILITY_ERROR: { label: 'Availability Error Text', default: 'p-toast .ui-toast-detail, app-train-avl-enq div.col-xs-12:not(:has(*))' },
     },
   },
   POPUP: {
@@ -66,6 +68,7 @@ const SELECTOR_CATEGORIES = {
     selectors: {
       DIALOG_FROM: { label: 'Confirm Dialog', default: 'p-confirmdialog[key="tofrom"]' },
       DIALOG_ACCEPT: { label: 'Dialog Accept Button', default: '.ui-confirmdialog-acceptbutton' },
+      IRCTC_TOAST: { label: 'IRCTC Message Pop-up (history only)', default: 'p-toast .ui-toast-message' },
     },
   },
   PASSENGER: {
@@ -118,6 +121,8 @@ const SELECTOR_CATEGORIES = {
       PAYMENT_PROVIDER: { label: 'Payment Bank/Provider (Precision)', default: '#bank-type .bank-text, #bank-type .pay_tax_text' },
       PAY_BUTTON: { label: 'Pay Button', default: 'button.btn-primary.ng-star-inserted' },
       PAY_BUTTON_TEXT: { label: 'Pay Button Text', default: 'Pay & Book ' },
+      BOOKING_CONFIRMATION: { label: 'Booking Confirmation (after payment)', default: 'app-booking-confirmation' },
+      BOOKING_FAILED: { label: 'Booking Failed Message (after payment)', default: 'app-booking-failed' },
     },
   },
   EWALLET: {

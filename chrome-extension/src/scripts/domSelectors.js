@@ -41,12 +41,15 @@ export const TRAIN_LIST_SELECTORS = {
     BOOK_NOW_BUTTON: 'button.btnDefault.train_Search',
     BUTTON_DISABLE_CLASS: 'disable-book',
     LINK_INSERTED: '.link.ng-star-inserted',
+    LOADING_OVERLAY: 'div.my-loading',
+    AVAILABILITY_ERROR: 'p-toast .ui-toast-detail, app-train-avl-enq div.col-xs-12:not(:has(*))',
 };
 
 // Popup Elements
 export const POPUP_SELECTORS = {
     DIALOG_FROM: 'p-confirmdialog[key="tofrom"]',
     DIALOG_ACCEPT: '.ui-confirmdialog-acceptbutton',
+    IRCTC_TOAST: 'p-toast .ui-toast-message',
 };
 
 // Generic Dialog and Language Selection
@@ -103,6 +106,8 @@ export const PAYMENT_SELECTORS = {
     PAYMENT_PROVIDER: '.bank-text',
     PAY_BUTTON: '.btn-primary.ng-star-inserted',
     PAY_BUTTON_TEXT: 'Pay & Book ',
+    BOOKING_CONFIRMATION: 'app-booking-confirmation',
+    BOOKING_FAILED: 'app-booking-failed',
 };
 
 // eWallet Elements

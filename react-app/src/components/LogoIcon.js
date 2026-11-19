@@ -1,9 +1,10 @@
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
-const LogoIcon = () => {
+const LogoIcon = ({ height = 50 }) => {
     return (
-        <svg width="40" height="50" viewBox="0 0 218 267" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width={Math.round((height * 218) / 267)} height={height} viewBox="0 0 218 267" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 70C0 31.3401 31.3401 0 70 0H148C186.66 0 218 31.3401 218 70V206C218 214.837 210.837 222 202 222H16C7.16344 222 0 214.837 0 206V70Z" fill="#415F91"/>
             <g filter="url(#filter0_d_305_29)">
                 <circle cx="109.75" cy="95.75" r="63.75" fill="#D6E3FF"/>
@@ -83,6 +84,10 @@ const LogoIcon = () => {
             </defs>
         </svg>
     );
+};
+
+LogoIcon.propTypes = {
+    height: PropTypes.number,
 };
 
 export default LogoIcon;

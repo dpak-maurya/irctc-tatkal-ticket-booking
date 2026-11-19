@@ -4,14 +4,7 @@ import dayjs from 'dayjs';
 import { sharedStyles } from '../styles';
 import MyDatePicker from './MyDatePicker';
 import { useAppContext } from '../contexts/AppContext';
-
-const getTargetTime = (quotaType, accommodationClass, isOpeningDayBooking, currentTargetTime) => {
-  if (quotaType === 'GENERAL') {
-    return isOpeningDayBooking ? '07:59:53' : currentTargetTime;
-  }
-  if (['SL', 'FC', '2S', 'VS'].includes(accommodationClass)) return '10:59:53';
-  return '09:59:53';
-};
+import { getTargetTime } from '../openingTimes';
 
 const isTatkalQuota = (quotaType) => ['TATKAL', 'PREMIUM TATKAL'].includes(quotaType);
 const formatStationCode = (value) => value.toUpperCase().replace(/[^A-Z]/g, '');
@@ -88,7 +81,7 @@ function TrainDetails() {
     setFormData((prevState) => ({
       ...prevState,
       isOpeningDayBooking: checked,
-      targetTime: checked ? '07:59:53' : prevState.targetTime,
+      targetTime: checked ? '08:00:00' : prevState.targetTime,
     }));
   };
 

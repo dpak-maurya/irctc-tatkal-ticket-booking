@@ -7,8 +7,10 @@ import {
 import { alpha } from '@mui/material/styles';
 import { Button, Typography, Box } from '@mui/material';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
+import PropTypes from 'prop-types';
 
-const BookingCountdown = () => {
+const BookingCountdown = ({ compact = false }) => {
     const {savedData,formData} = useAppContext();
     const { scheduleDate, targetTime, loginMinutesBefore } = savedData;
     const {automationStatus} = formData;
@@ -75,14 +77,14 @@ const BookingCountdown = () => {
             return '';
         }
 
-        return `Login starts in ${formatCountdownCompact(timeRemaining)}`;
+        return `${compact ? 'Login in' : 'Login starts in'} ${formatCountdownCompact(timeRemaining)}`;
     };
 
     const statusLabel = getStatusLabel();
     const showStatusLabel = automationStatus && Number.isFinite(timeRemaining) && timeRemaining > 0;
 
     return (
-        <Box sx={{ minWidth: '180px', maxWidth: '240px', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'right' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             {showStatusLabel ? (
                 <Box
                     sx={(theme) => ({
@@ -113,14 +115,20 @@ const BookingCountdown = () => {
                     id="book-button"
                     variant="outlined"
                     color="secondary"
+                    size="small"
+                    startIcon={<OpenInNewRoundedIcon fontSize="small" />}
                     onClick={() => window.open('https://www.irctc.co.in/nget/train-search', '_blank')}
-                    sx={{ maxWidth: '200px' }}
+                    sx={{ whiteSpace: 'nowrap', borderRadius: 999, px: 1.5 }}
                 >
-                    {isBookingReady ? 'Book Ticket on IRCTC' : 'Go to IRCTC Website'}
+                    {isBookingReady ? 'Book Ticket on IRCTC' : compact ? 'Open IRCTC' : 'Go to IRCTC Website'}
                 </Button>
             )}
         </Box>
     );
+};
+
+BookingCountdown.propTypes = {
+    compact: PropTypes.bool,
 };
 
 export default BookingCountdown;
