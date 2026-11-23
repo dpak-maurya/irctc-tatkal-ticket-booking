@@ -8,6 +8,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
 import PropTypes from 'prop-types';
 import { useAppContext } from '../contexts/AppContext';
+import { useModalContext } from '../contexts/ModalContext';
 
 const infantAgeOptions = [
   { value: 0, label: 'Below one year' },
@@ -54,6 +55,7 @@ function EditToolbar(props) {
 
 const InfantList = () => {
   const { formData, handleChange } = useAppContext();
+  const { openModal } = useModalContext();
   const [rows, setRows] = useState([]);
   const [rowModesModel, setRowModesModel] = useState({});
   const [rowSelection, setRowSelection] = useState([]);
@@ -116,7 +118,7 @@ const InfantList = () => {
     const isAgeValid = updatedRow.age !== '' && updatedRow.age >= 0 && updatedRow.age <= 4;
     
     if (!isAgeValid) {
-      return { ...updatedRow, error: true }; // Keeps the error indicator
+      throw new Error('Infant age must be selected.'); // Keeps the row in edit mode
     }
   
     const updatedRows = rows.map((row) => (row.id === newRow.id ? updatedRow : row));
@@ -124,6 +126,10 @@ const InfantList = () => {
     syncInfantList(updatedRows);
     
     return updatedRow;
+  };
+
+  const handleProcessRowUpdateError = (error) => {
+    openModal('error', 'Cannot Save Infant', error.message);
   };
 
   const handleRowModesModelChange = (newRowModesModel) => {
@@ -220,6 +226,7 @@ const InfantList = () => {
         onRowModesModelChange={handleRowModesModelChange}
         onRowEditStop={handleRowEditStop}
         processRowUpdate={processRowUpdate}
+        onProcessRowUpdateError={handleProcessRowUpdateError}
         checkboxSelection 
         rowSelectionModel={rowSelection}
         onRowSelectionModelChange={handleRowSelectionChange}

@@ -12,6 +12,7 @@ import CancelIcon from '@mui/icons-material/Close';
 import { DataGrid, GridToolbarContainer, GridActionsCellItem, GridRowModes } from '@mui/x-data-grid';
 import PropTypes from 'prop-types';
 import { useAppContext } from '../contexts/AppContext';
+import { useModalContext } from '../contexts/ModalContext';
 
 const genderOptions = [
   { value: 'M', label: 'Male' },
@@ -78,6 +79,7 @@ function EditToolbar(props) {
 
 const PassengerList = () => {
   const { formData, handleChange } = useAppContext();
+  const { openModal } = useModalContext();
   const [rows, setRows] = useState([]);
   const [rowModesModel, setRowModesModel] = useState({});
   const [rowSelection, setRowSelection] = useState([]);
@@ -142,7 +144,7 @@ const PassengerList = () => {
     const isAgeValid = newRow.age >= 1 && newRow.age <= 125 && newRow.age !== '' && !isNaN(newRow.age);
     
     if (!isAgeValid) {
-      return { ...newRow, error: true }; // Keeps the error indicator
+      throw new Error('Age must be between 1 and 125.'); // Keeps the row in edit mode
     }
   
     const updatedRows = rows.map((row) => (row.id === newRow.id ? updatedRow : row));
@@ -150,6 +152,10 @@ const PassengerList = () => {
     syncPassengerList(updatedRows);
     
     return updatedRow;
+  };
+
+  const handleProcessRowUpdateError = (error) => {
+    openModal('error', 'Cannot Save Passenger', error.message);
   };
 
   const handleRowModesModelChange = (newRowModesModel) => {
@@ -277,6 +283,7 @@ const PassengerList = () => {
         onRowModesModelChange={handleRowModesModelChange}
         onRowEditStop={handleRowEditStop}
         processRowUpdate={processRowUpdate}
+        onProcessRowUpdateError={handleProcessRowUpdateError}
         checkboxSelection // Enable checkbox selection
         rowSelectionModel={rowSelection}
         onRowSelectionModelChange={handleRowSelectionChange}
