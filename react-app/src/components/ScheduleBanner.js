@@ -5,11 +5,13 @@ import { useAppContext } from '../contexts/AppContext';
 import { formatDateTimeInIST, getLoginDateTime } from '../utils';
 
 function ScheduleBanner() {
-  const { formData } = useAppContext();
+  const { formData, savedData } = useAppContext();
+  // While automation is on, the armed schedule is the saved one, not the draft
+  const scheduleData = formData.automationStatus ? savedData : formData;
   const loginDateTime = getLoginDateTime(
-    formData.scheduleDate,
-    formData.targetTime,
-    formData.loginMinutesBefore
+    scheduleData.scheduleDate,
+    scheduleData.targetTime,
+    scheduleData.loginMinutesBefore
   );
 
   if (!loginDateTime) {
