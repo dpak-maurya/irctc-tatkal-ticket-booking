@@ -36,8 +36,10 @@ let preferredLanguage = 'English';
 
 const STORAGE_KEY = 'tatkalTicketBookingFormData';
 
-// How long a page gets to render its captcha before it is treated as captcha-less.
-const CAPTCHA_WAIT_TIME = 3000;
+// IRCTC hasn't shown a captcha for months, so look once and don't wait: a 3 s
+// wait here cost 3 s on the review page (23 Nov run). The prompt stays as a
+// fallback if a captcha is already on the page.
+const CAPTCHA_WAIT_TIME = 0;
 // The payment page mounts its tiles a moment after the component itself.
 const PAYMENT_OPTIONS_WAIT_TIME = 10000;
 // IRCTC opens its No Food confirmation straight after the checkbox is ticked.
@@ -343,7 +345,7 @@ async function waitForElementToAppear(selector, timeoutMs = 0) {
         clearInterval(interval);
         resolve(false);
       }
-    }, 500);
+    }, 100);
   });
 }
 
@@ -937,11 +939,14 @@ async function selectAvailableTicket() {
     // Check if the formatted date matches the desired date '25/04'
     if (day === tday && monthToNumber(month)===tmonth) {
       await humanClick(availableDateElement); // Click on the available date
-      await delay(100); // Adjust the delay as needed
 
-      // Check if the book ticket button is available
-      const bookTicketButton = rootElement.querySelector(BOOK_NOW_BUTTON);
-      if (bookTicketButton && !bookTicketButton.classList.contains(BUTTON_DISABLE_CLASS)) {
+      // Book Now turns on once IRCTC has this date's fare. Wait briefly for it
+      // rather than treating a slow switch as "not available" and asking again.
+      const bookTicketButton = await waitForCondition(() => {
+        const button = rootElement.querySelector(BOOK_NOW_BUTTON);
+        return button && !button.classList.contains(BUTTON_DISABLE_CLASS) ? button : null;
+      }, 1500, 50);
+      if (bookTicketButton) {
         await humanClick(bookTicketButton); // Click on the book ticket button
         bookNowClickedAt = Date.now();
         markTime('bookNow');
@@ -983,29 +988,36 @@ async function bookTicket() {
   observer.observe(rootElement, { childList: true, subtree: true });
   
   await scrollToFoundTrainAndSelectClass();
-
-  await delay(1000);
+  let lastCheckAt = Date.now();
+  const waitUntil = (time) => delay(Math.max(0, time - Date.now()));
 
   while (!isAvlEnquiryCompleted) {
-    // Check if any new mutations occurred since the last refresh
+    // Act on IRCTC's reply as soon as it lands (checked every 100 ms). The old
+    // loop only looked every 2 s, so a reply could sit unseen for up to 2 s
+    // (23 Nov run: seats noticed at +7.6 s). The spacing between checks sent to
+    // IRCTC is unchanged: no sooner than the refresh interval after the last one.
+    await waitForCondition(
+      () => mutationCompletionCounter > 0 ||
+        (Date.now() - lastCheckAt > 1000 && !isElementVisible(document.querySelector(LOADING_OVERLAY))),
+      Math.max(getRefreshDelay(), 1000),
+      100
+    );
+
     if (mutationCompletionCounter > 0) {
         try {
+            logStep('trainList', 'info', `IRCTC replied ${((Date.now() - lastCheckAt) / 1000).toFixed(1)} s after the seat check.`);
             logAvailability(rootElement);
             const ticketSelected = await selectAvailableTicket();
             if (ticketSelected) {
                 isAvlEnquiryCompleted = true;
                 return;
-            } else {
-                // If ticket selection failed, reset the completion flag
-                isAvlEnquiryCompleted = false;
-                // Reset the counters
-                mutationCompletionCounter = 0;
-                await refreshTrain(); // Refresh the train
             }
+            mutationCompletionCounter = 0;
+            await waitUntil(lastCheckAt + getRefreshDelay());
+            await refreshTrain(); // Refresh the train
+            lastCheckAt = Date.now();
         } catch (error) {
-            // Handle any errors that occur during ticket selection or train refresh
             Logger.error("An error occurred:", error);
-            // Optionally, you can choose to break the loop or handle the error differently
         }
     } else if (!isElementVisible(document.querySelector(LOADING_OVERLAY))) {
         // Nothing arrived and IRCTC is not waiting on a request, so the last
@@ -1024,10 +1036,12 @@ async function bookTicket() {
         }
         Logger.warn('No availability received. Refreshing the class again.', availabilityError);
         logStep('trainList', 'warn', 'No availability in the reply; checking again.');
+        await waitUntil(lastCheckAt + getRefreshDelay());
         await refreshTrain();
+        lastCheckAt = Date.now();
     }
-    await delay(getRefreshDelay());
-}
+    // Otherwise IRCTC is still working on the last check: keep waiting for it.
+  }
 
   // Proceed with booking the ticket
   const endTime = new Date(); // Record the end time
@@ -1424,39 +1438,6 @@ async function addPassengerInputAndContinue() {
    Logger.info(endTime);
 }
 
-// async function handleCaptchaAndContinue() {
-//   await waitForElementToAppear(REVIEW_CAPTCHA_IMAGE);
-//   // Find the captcha input element
-//   var captchaInput = document.getElementById(REVIEW_CAPTCHA_INPUT);
-
-//   // Scroll the captcha input field into view smoothly
-//   if (captchaInput) {
-//     await scrollToElement(captchaInput);
-//   }
-//   delay(100);
-//   // Prompt the user to enter the captcha value
-//   var trainHeader = document.querySelector(REVIEW_TRAIN_HEADER);
-//   var available = trainHeader.querySelector(REVIEW_AVAILABLE);
-//   var waitingList = trainHeader.querySelector(REVIEW_WAITING);
-//   var seatsAvailable = (available || waitingList)?.textContent;
-//   var captchaValue = prompt(
-//     'Current Seats Status: ' + seatsAvailable + '\nPlease enter the Captcha:'
-//   );
-
-//   // Fill the captcha input field with the provided value
-//   if (captchaInput && captchaValue) {
-//     await simulateTyping(captchaInput, captchaValue);
-//     await delay(50);
-//   }
-
-//   // Find the "Continue" button
-//   var continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
-
-//   // Click the "Continue" button
-//   if (continueButton) {
-//     await continueButton.click();
-//   }
-// }
 async function clickReviewContinue() {
   const continueButton = document.querySelector(REVIEW_SUBMIT_BUTTON);
 
@@ -1479,61 +1460,13 @@ async function clickReviewContinue() {
   logStep('review', 'info', 'Continue clicked.');
 }
 
-async function handleCaptchaAndContinue() {
-  // A missing review captcha is normal now; waiting for it used to stall the run
-  // one click short of payment (issue #94).
-  const captcha = await waitForUsableCaptcha(
-    () => document.querySelector(REVIEW_CAPTCHA_IMAGE),
-    () => document.getElementById(REVIEW_CAPTCHA_INPUT)
-  );
-
-  if (!captcha) {
-    Logger.info('No captcha on the review page. Continuing to payment.');
-    await clickReviewContinue();
-    return;
-  }
-
-  logStep('review', 'info', 'Review captcha shown.');
-  const captchaImage = captcha.image;
-  const captchaInput = captcha.input;
-
-  // Scroll the captcha input field into view smoothly
-  await scrollToElement(captchaInput);
-
-  await delay(100);
-
-  // Check if autoSolveCaptcha is enabled
-  if (autoSolveCaptcha) {
-    // Extract text from captcha image using OCR
-    let captchaText = await extractTextFromImage(captchaImage.src);
-    Logger.info("Review Captcha text:",captchaText);
-
-    // Fill the captcha input field with the extracted value
-    await simulateTyping(captchaInput, captchaText);
-    await delay(50);
-
-    // Check if autoSubmitCaptcha is enabled
-    if (autoSubmitCaptcha) {
-      await clickReviewContinue();
-    }
-  } else {
-    // Prompt the user to enter the captcha value
-    var trainHeader = document.querySelector(REVIEW_TRAIN_HEADER);
-    var available = trainHeader.querySelector(REVIEW_AVAILABLE);
-    var waitingList = trainHeader.querySelector(REVIEW_WAITING);
-    var seatsAvailable = (available || waitingList)?.textContent;
-
-    var captchaValue = prompt(
-      'Current Seats Status: ' + seatsAvailable + '\nPlease enter the Captcha:'
-    );
-
-    // Fill the captcha input field with the provided value
-    if (captchaValue) {
-      await simulateTyping(captchaInput, captchaValue);
-      await delay(50);
-      await clickReviewContinue();
-    }
-  }
+// IRCTC hasn't shown a review captcha for months: let the page settle for half a
+// second, then click Continue. (Waiting 3 s for a captcha cost 3 s on 23 Nov.)
+// On Aadhaar OTP trains Continue stays disabled and clickReviewContinue leaves
+// it to the user.
+async function continueFromReview() {
+  await delay(500);
+  await clickReviewContinue();
 }
 async function selectPaymentMethod() {
   // The tiles mount a moment after app-payment-options itself, so querying
@@ -1929,8 +1862,8 @@ async function executeFunctions() {
       ? `Review page loaded ${((Date.now() - bookNowClickedAt) / 1000).toFixed(1)} s after Book Now.`
       : 'Review page loaded.');
 
-    // Review and Captcha <Page 3>   (a prompt will appear to fill captcha)
-    await handleCaptchaAndContinue();
+    // Review journey <Page 3>
+    await continueFromReview();
 
     // Wait for the app-payment-options element to appear on the page after the transition
     await waitForElementToAppear(PAYMENT_COMPONENT);
