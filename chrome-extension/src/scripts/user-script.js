@@ -1569,7 +1569,8 @@ async function getSettings() {
       }
 
       const items = result[STORAGE_KEY] || defaultSettings;
-      Logger.info('Settings loaded:', items);
+      // Debug logs get pasted into bug reports; keep the password out of them.
+      Logger.info('Settings loaded:', { ...items, password: items.password ? '********' : '' });
       // Now 'items' will contain all the settings, either retrieved from storage or the defaults
       username = items.username;
       password = items.password;
