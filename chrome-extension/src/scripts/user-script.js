@@ -727,10 +727,26 @@ async function selectQuota(element,value) {
   // Get all list items within the autocomplete dropdown
   var listItems = document.querySelectorAll(JOURNEY_QUOTA_LIST);
 
+  // Prefer the item that is exactly the wanted quota, then one that starts
+  // with it, ignoring case and extra spaces: TATKAL is also part of
+  // PREMIUM TATKAL.
+  const normalize = (text) => text.trim().replace(/\s+/g, ' ').toLowerCase();
+  const wanted = normalize(value || '');
+  const items = Array.from(listItems);
+  const preferred = items.find((item) => normalize(item.textContent) === wanted)
+    || items.find((item) => normalize(item.textContent).startsWith(wanted + ' '));
+  if (preferred) {
+    await humanClick(preferred);
+    return;
+  }
+
   // Loop through each list item
   for (let item of listItems) {
     // Get the text content of the list item
     const itemText = item.textContent.trim();
+
+    // PREMIUM TATKAL contains TATKAL: never fall back to it for plain TATKAL
+    if (itemText.toLowerCase().includes('premium') && !value.toLowerCase().includes('premium')) continue;
 
     // Check if the text content contains the name substring (case-insensitive)
     if (itemText.toLowerCase().includes(value.toLowerCase())) {
