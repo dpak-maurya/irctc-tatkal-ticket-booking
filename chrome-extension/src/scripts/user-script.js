@@ -40,6 +40,8 @@ const CAPTCHA_WAIT_TIME = 3000;
 const PAYMENT_OPTIONS_WAIT_TIME = 10000;
 // IRCTC opens its No Food confirmation straight after the checkbox is ticked.
 const NO_FOOD_DIALOG_WAIT_TIME = 2000;
+// How long a name is retried against the IRCTC master list before giving up.
+const MASTER_PASSENGER_WAIT_TIME = 20000;
 // How long the train list gets to render its first row.
 const TRAIN_LIST_WAIT_TIME = 30000;
 // Once rows are showing, how long the wanted train gets to appear among them.
@@ -1096,9 +1098,39 @@ async function selectAutocompleteOption(index=0,name = passengerNames) {
   // Find the autocomplete input element
   var autocompleteInput = row.querySelector(PASSENGER_NAME_INPUT);
   var ageInput = row.querySelector(PASSENGER_AGE_INPUT);
-  name = name.trim().toLowerCase();
+  const savedName = name.trim();
+  name = savedName.toLowerCase();
+  const startTime = Date.now();
   // Wait until the age input field is not empty
   while (ageInput && ageInput.value === '') {
+    // No suggestion matched in time. Stop retyping the name, which would fight
+    // the user, say so, and wait for them to fill this row; the run then
+    // carries on with the next passenger.
+    if (Date.now() - startTime >= MASTER_PASSENGER_WAIT_TIME) {
+      alert(
+        'Passenger "' + savedName + '" was not found in your IRCTC master list.' +
+        '\nChoose passenger ' + (index + 1) + ' yourself. The automation carries on once that row is filled.'
+      );
+      // Filled means an age and a gender that have stopped changing, so that
+      // a row being completed by hand is not cut short part-way. The row is
+      // looked up again each time, because the user may remove or replace it.
+      const filledState = () => {
+        const currentRow = document.querySelectorAll(PASSENGER_COMPONENT)[index];
+        if (!currentRow) return 'gone';
+        const age = currentRow.querySelector(PASSENGER_AGE_INPUT);
+        const gender = currentRow.querySelector(PASSENGER_GENDER_INPUT);
+        if (!age || age.value === '' || (gender && gender.value === '')) return null;
+        return age.value + '|' + (gender ? gender.value : '');
+      };
+      let settledState = null;
+      for (;;) {
+        const state = filledState();
+        if (state === 'gone' || (state !== null && state === settledState)) break;
+        settledState = state;
+        await delay(1500);
+      }
+      break;
+    }
       // Focus on the autocomplete input to trigger the generation of options
     autocompleteInput.focus();
 
