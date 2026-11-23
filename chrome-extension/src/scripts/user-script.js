@@ -965,8 +965,8 @@ const observer = new MutationObserver((mutationsList, observer) => {
     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
       // Iterate over added nodes
       for (let node of mutation.addedNodes) {
-        // Check if node matches the selector. Angular also inserts text and
-        // comment nodes, which have no matches() and would end the whole batch.
+        // Check if node matches the selector. Text and comment nodes (Angular
+        // adds comment anchors) have no matches(), so skip anything but elements.
         if (node.nodeType === Node.ELEMENT_NODE && node.matches(LINK_INSERTED)) {
           mutationCompletionCounter++;
           Logger.info('Element refreshed: available accommodation classes');
@@ -1336,13 +1336,16 @@ async function confirmNoFoodDialog() {
   Logger.info('Confirmed the No Food dialog.');
 }
 async function selectPreferences(){
+  // Clicking a checkbox flips it, so only click when its current state differs
+  // from the saved preference. IRCTC may render either box already ticked.
   var autoUpgradationInput = document.getElementById(PASSENGER_PREFERENCE_AUTOUPGRADATION);
-  autoUpgradationInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  if(autoUpgradationInput && autoUpgradation)
-     await humanClick(autoUpgradationInput);
-  
+  if(autoUpgradationInput && autoUpgradationInput.checked !== autoUpgradation){
+    autoUpgradationInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    await humanClick(autoUpgradationInput);
+  }
+
   var confirmberthsInput = document.getElementById(PASSENGER_PREFERENCE_CONFIRMBERTHS);
-  if(confirmberthsInput && confirmberths)
+  if(confirmberthsInput && confirmberthsInput.checked !== confirmberths)
     await humanClick(confirmberthsInput);
 
   // Some trains (e.g. Tejas) ask "I don't want Food/Beverages" once for the
@@ -1638,7 +1641,8 @@ async function getSettings() {
       }
 
       const items = result[STORAGE_KEY] || defaultSettings;
-      Logger.info('Settings loaded:', items);
+      // Debug logs get pasted into bug reports; keep the password out of them.
+      Logger.info('Settings loaded:', { ...items, password: items.password ? '********' : '' });
       // Now 'items' will contain all the settings, either retrieved from storage or the defaults
       username = items.username;
       password = items.password;
@@ -1655,7 +1659,10 @@ async function getSettings() {
       quotaType = items.quotaType;
       isOpeningDayBooking = items.isOpeningDayBooking;
       accommodationClass = items.accommodationClass;
-      dateString = new Date(items.dateString).toLocaleDateString('en-GB');
+      // Stored as YYYY-MM-DD; IRCTC wants DD/MM/YYYY. Reorder the parts rather
+      // than going through Date, which reads the string as UTC midnight and
+      // lands on the previous day in timezones behind UTC.
+      dateString = (items.dateString || '').split('-').reverse().join('/');
       refreshTime = items.refreshTime;
       autoPay = items.autoPay;
       paymentType = items.paymentType;
