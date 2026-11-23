@@ -268,6 +268,10 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
     }
   }
 
+  if (formData?.mobileNumber && !/^\d{10}$/.test(formData.mobileNumber)) {
+    errors.push('Mobile number must be exactly 10 digits, or left empty to use the number on the IRCTC account.');
+  }
+
   if (forAutomation) {
     const loginDateTime = getLoginDateTime(
       formData?.scheduleDate,

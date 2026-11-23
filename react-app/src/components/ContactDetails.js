@@ -9,10 +9,10 @@ const ContactDetails = () => {
   const [error, setError] = useState('');
 
   const validateMobileNumber = (value) => {
-    // Check if value is empty
+    // An empty number is allowed: IRCTC then uses the one on the account
     if (!value) {
-      setError('Mobile number is required.');
-      return false;
+      setError('');
+      return true;
     }
     // Check if the value is a valid mobile number (10 digits)
     const mobilePattern = /^[0-9]{10}$/;
@@ -47,7 +47,6 @@ const ContactDetails = () => {
         onChange={handleInputChange}
         fullWidth
         margin="normal"
-        required
         helperText={"Please enter a valid mobile number (if empty IRCTC logged-in user's number will be taken by default)"}
         // Display error if there's an error
         error={Boolean(error)}
