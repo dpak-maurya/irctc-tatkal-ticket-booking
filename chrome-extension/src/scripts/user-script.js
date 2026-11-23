@@ -1775,7 +1775,9 @@ async function recordBookingResult() {
 
   if (shown === 'booked') {
     await delay(1000); // let the passenger table render
-    const text = document.querySelector(BOOKING_CONFIRMATION).textContent;
+    // innerText keeps the line breaks between fields; textContent glued
+    // "TQWL/15" to the next label ("Current Status") and recorded "TQWL/15C".
+    const text = document.querySelector(BOOKING_CONFIRMATION).innerText;
     const statuses = [...new Set(text.match(/\b(?:CNF|RAC|[A-Z]{0,4}WL)(?:\/[A-Z0-9]+)*/g) || [])];
     const pnr = (text.match(/PNR[^0-9]{0,20}(\d{10})/) || [])[1] || '';
     setResult({ pnr, statuses });
