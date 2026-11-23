@@ -1,5 +1,11 @@
 const IST_TIME_ZONE = 'Asia/Kolkata';
 const IST_OFFSET = '+05:30';
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
+
+// The right shape and a real date: 2030-13-45 is rejected like a half-typed one.
+const isCompleteDate = (value) =>
+  DATE_PATTERN.test(value) && !Number.isNaN(new Date(`${value}T00:00:00${IST_OFFSET}`).getTime());
 
 export const getTodayDateString = () =>
   new Intl.DateTimeFormat('en-CA', { timeZone: IST_TIME_ZONE }).format(new Date());
@@ -136,21 +142,27 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
 
   if (!formData?.dateString) {
     errors.push('Journey date is required.');
+  } else if (!isCompleteDate(formData.dateString)) {
+    errors.push('Journey date is incomplete. Enter the day, month and year.');
   } else if (formData.dateString < todayDate) {
     errors.push('Journey date cannot be in the past.');
   }
 
   if (!formData?.scheduleDate) {
     errors.push('Schedule date is required.');
+  } else if (!isCompleteDate(formData.scheduleDate)) {
+    errors.push('Schedule date is incomplete. Enter the day, month and year.');
   } else if (formData.scheduleDate < todayDate) {
     errors.push('Schedule date cannot be in the past.');
   }
 
-  if (formData?.scheduleDate && formData?.dateString && formData.scheduleDate > formData.dateString) {
+  const hasCompleteDates = isCompleteDate(formData?.scheduleDate) && isCompleteDate(formData?.dateString);
+
+  if (hasCompleteDates && formData.scheduleDate > formData.dateString) {
     errors.push('Schedule date cannot be after the journey date.');
   }
 
-  if (isTatkalQuota && formData?.scheduleDate && formData?.dateString) {
+  if (isTatkalQuota && hasCompleteDates) {
     const earliestTatkalScheduleDate = new Date(`${formData.dateString}T00:00:00${IST_OFFSET}`);
     earliestTatkalScheduleDate.setDate(earliestTatkalScheduleDate.getDate() - 2);
     const earliestTatkalScheduleDateString = new Intl.DateTimeFormat('en-CA', {
@@ -182,6 +194,8 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
 
   if (!formData?.targetTime) {
     errors.push('Booking start time is required.');
+  } else if (!TIME_PATTERN.test(formData.targetTime)) {
+    errors.push('Booking start time is incomplete. Enter the hours, minutes and seconds.');
   }
 
   if (!Number.isFinite(Number(formData?.refreshTime)) || Number(formData.refreshTime) <= 0) {
