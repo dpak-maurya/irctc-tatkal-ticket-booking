@@ -15,8 +15,10 @@ function TimerDetails() {
   const isDisabled = false;
   const todayDate = dayjs(getTodayDateString(), 'YYYY-MM-DD');
   const journeyDate = formData.dateString ? dayjs(formData.dateString, 'YYYY-MM-DD') : null;
-  const generalPrimaryDate = journeyDate ? journeyDate.subtract(61, 'day') : null;
-  const generalFallbackDate = journeyDate ? journeyDate.subtract(60, 'day') : null;
+  // General booking opens 60 days before the journey (D-60). D-61 is for trains
+  // that leave their first station the day before you board.
+  const generalOpeningDate = journeyDate ? journeyDate.subtract(60, 'day') : null;
+  const generalEarlyDate = journeyDate ? journeyDate.subtract(61, 'day') : null;
   const showGeneralOpeningDayTools = formData.quotaType === 'GENERAL' && formData.isOpeningDayBooking;
 
   const handleScheduleDateChange = (newValue) => {
@@ -134,8 +136,8 @@ function TimerDetails() {
               <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
                 <Button
                   size="small"
-                  variant={formData.scheduleDate === generalPrimaryDate?.format('YYYY-MM-DD') ? 'contained' : 'outlined'}
-                  onClick={() => setSuggestedScheduleDate(generalPrimaryDate)}
+                  variant={formData.scheduleDate === generalOpeningDate?.format('YYYY-MM-DD') ? 'contained' : 'outlined'}
+                  onClick={() => setSuggestedScheduleDate(generalOpeningDate)}
                   sx={{
                     minWidth: 'auto',
                     px: 1,
@@ -144,12 +146,12 @@ function TimerDetails() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  D-61: {generalPrimaryDate.format('DD MMM')}
+                  D-60: {generalOpeningDate.format('DD MMM')}
                 </Button>
                 <Button
                   size="small"
-                  variant={formData.scheduleDate === generalFallbackDate?.format('YYYY-MM-DD') ? 'contained' : 'outlined'}
-                  onClick={() => setSuggestedScheduleDate(generalFallbackDate)}
+                  variant={formData.scheduleDate === generalEarlyDate?.format('YYYY-MM-DD') ? 'contained' : 'outlined'}
+                  onClick={() => setSuggestedScheduleDate(generalEarlyDate)}
                   sx={{
                     minWidth: 'auto',
                     px: 1,
@@ -158,7 +160,7 @@ function TimerDetails() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  D-60: {generalFallbackDate.format('DD MMM')}
+                  D-61: {generalEarlyDate.format('DD MMM')}
                 </Button>
               </Stack>
             ) : (
@@ -171,6 +173,32 @@ function TimerDetails() {
       )}
 
       <MyTimePicker formData={formData} handleChange={handleChange} isDisabled={isDisabled} />
+
+      <TextField
+        fullWidth
+        label={
+          <span>
+            Search Seconds Before
+            <Tooltip title="Search trains this many seconds before booking opens, then wait on the train list. The search shows no seat availability, so doing it early only keeps it out of the opening rush.">
+              <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
+            </Tooltip>
+          </span>
+          }
+        id="searchSecondsBefore"
+        name="searchSecondsBefore"
+        value={formData.searchSecondsBefore ?? 30}
+        onChange={handleChange}
+        margin="normal"
+        type="number"
+        variant="outlined"
+        placeholder="Enter seconds before booking opens"
+        slotProps={{
+          input: {
+            sx: sharedStyles.input, // Apply shared input styles
+          }
+        }}
+        disabled={isDisabled}
+      />
 
       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.main', mt: 2, mb: 0.5 }}>
         Advanced Timing
@@ -206,7 +234,7 @@ function TimerDetails() {
         label={
           <span>
             Login Minutes Before
-            <Tooltip title="Login at specified minutes(i.e. 2 minutes) before Tatkal start timer">
+            <Tooltip title="Login at specified minutes(i.e. 2 minutes) before booking opens">
               <InfoOutlinedIcon fontSize="small" style={{ marginLeft: '4px', verticalAlign: 'text-bottom' }} />
             </Tooltip>
           </span>

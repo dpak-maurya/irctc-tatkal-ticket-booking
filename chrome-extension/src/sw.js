@@ -72,6 +72,21 @@ const syncBookingAlarm = async () => {
   chrome.alarms.create(BOOKING_ALARM, { when: loginDateTime.getTime() });
 };
 
+// Test builds (npm run build:test) carry build-info.json: show their version
+// on the toolbar icon. Release builds have no such file and no badge.
+const showTestBuildBadge = async () => {
+  try {
+    const response = await fetch(chrome.runtime.getURL('build-info.json'));
+    if (!response.ok) return;
+    const info = await response.json();
+    await chrome.action.setBadgeBackgroundColor({ color: '#9c27b0' });
+    await chrome.action.setBadgeText({ text: info.badge || 'TEST' });
+  } catch {
+    // Release build.
+  }
+};
+showTestBuildBadge();
+
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (reason == chrome.runtime.OnInstalledReason.INSTALL) {
     chrome.runtime.openOptionsPage();

@@ -9,7 +9,8 @@ module.exports = {
     // background: './src/background.js'
   },
   output: {
-    path: path.resolve(__dirname, '../dist'),
+    // dist/ for releases; npm run build:test sets BUILD_OUT to a folder in builds/.
+    path: process.env.BUILD_OUT ? path.resolve(process.env.BUILD_OUT) : path.resolve(__dirname, '../dist'),
     filename: '[name].js',
     clean: true
   },
@@ -34,7 +35,6 @@ module.exports = {
         { from: "manifest.json", to: "." },  
         { from: "src/sw.js", to: "." }, 
         { from: "assets", to: "assets" },
-        { from:"how-to-use.html", to:"."},
         {from:"options.css", to:"."}
       ]
     })

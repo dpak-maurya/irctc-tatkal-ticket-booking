@@ -5,7 +5,7 @@ const STORAGE_KEY = 'tatkalTicketBookingFormData';
 export let automationStatus = false;
 export let username = '';
 export let password = '';
-export let targetTime ='09:59:53';
+export let targetTime ='10:00:00';
 export let passengerList = [];
 export let infantList = [];
 export let showInfant = false;
@@ -34,7 +34,7 @@ const defaultSettings = {
   automationStatus: false,
   username: '',
   password: '',
-  targetTime: '09:59:53',
+  targetTime: '10:00:00',
   passengerList: [],
   infantList: [],
   showInfant: false,

@@ -1,6 +1,6 @@
 {
   "name": "tatkal-ticket-booking",
-  "version": "6.3.3",
+  "version": "6.4.0",
   "private": true,
   "workspaces": [
     "chrome-extension",
@@ -11,6 +11,7 @@
     "build:chrome": "cd chrome-extension && npm run build",
     "build:react": "cd react-app && npm run build",
     "build": "npm run build:chrome && npm run build:react",
+    "build:test": "node scripts/build-test.js",
     "clean": "node scripts/clean.js",
     "version:sync": "node scripts/sync-version.js",
     "version:bump:patch": "npm version patch --no-git-tag-version && npm run version:sync",
