@@ -92,7 +92,6 @@ const PassengerList = () => {
       .map((passenger) => passenger.id);
     setRowSelection(initiallySelectedIds);
 
-    console.log(formData.passengerList);
   }, [formData.passengerList]);
 
   // Sync passenger list with formData
@@ -164,7 +163,6 @@ const PassengerList = () => {
 
   // Handle selection change and update isSelected field
   const handleRowSelectionChange = (newSelection) => {
-    console.log(newSelection);
     setRowSelection(newSelection);
 
     const updatedRows = rows.map((row) => ({

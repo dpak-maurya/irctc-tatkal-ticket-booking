@@ -84,7 +84,6 @@ const PassengerNames = () => {
       .map((passenger) => passenger.id);
     setRowSelection(initiallySelectedIds);
     
-    console.log(formData.passengerNames);
 
   }, [formData.passengerNames]);
 
@@ -140,7 +139,6 @@ const PassengerNames = () => {
 
   // Handle selection change and update isSelected field
   const handleRowSelectionChange = (newSelection) => {
-    console.log(newSelection)
     setRowSelection(newSelection);
 
     const updatedRows = rows.map((row) => ({
