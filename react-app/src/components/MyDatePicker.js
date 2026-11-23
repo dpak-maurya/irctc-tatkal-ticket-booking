@@ -13,6 +13,8 @@ export default function MyDatePicker({ onDateChange }) {
   useEffect(() => {
     if (formData.dateString) {
       setSelectedDate(dayjs(formData.dateString, 'YYYY-MM-DD'));
+    } else {
+      setSelectedDate(null);
     }
   }, [formData.dateString]);
 

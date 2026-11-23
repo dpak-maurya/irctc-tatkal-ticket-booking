@@ -1,5 +1,11 @@
 const IST_TIME_ZONE = 'Asia/Kolkata';
 const IST_OFFSET = '+05:30';
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
+
+// The right shape and a real date: 2030-13-45 is rejected like a half-typed one.
+const isCompleteDate = (value) =>
+  DATE_PATTERN.test(value) && !Number.isNaN(new Date(`${value}T00:00:00${IST_OFFSET}`).getTime());
 
 export const getTodayDateString = () =>
   new Intl.DateTimeFormat('en-CA', { timeZone: IST_TIME_ZONE }).format(new Date());
@@ -126,30 +132,38 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
   const selectedPassengerList = (formData?.passengerList || []).filter(
     (passenger) => passenger?.isSelected
   );
-  const selectedInfantList = (formData?.infantList || []).filter(
+  // Infants are only booked while the infant section is switched on
+  const selectedInfantList = (formData?.showInfant ? formData?.infantList || [] : []).filter(
     (infant) => infant?.isSelected
   );
   const selectedMasterPassengers = (formData?.passengerNames || []).filter(
     (passenger) => passenger?.isSelected
   );
+  const maxPassengers = isTatkalQuota ? 4 : 6;
 
   if (!formData?.dateString) {
     errors.push('Journey date is required.');
+  } else if (!isCompleteDate(formData.dateString)) {
+    errors.push('Journey date is incomplete. Enter the day, month and year.');
   } else if (formData.dateString < todayDate) {
     errors.push('Journey date cannot be in the past.');
   }
 
   if (!formData?.scheduleDate) {
     errors.push('Schedule date is required.');
+  } else if (!isCompleteDate(formData.scheduleDate)) {
+    errors.push('Schedule date is incomplete. Enter the day, month and year.');
   } else if (formData.scheduleDate < todayDate) {
     errors.push('Schedule date cannot be in the past.');
   }
 
-  if (formData?.scheduleDate && formData?.dateString && formData.scheduleDate > formData.dateString) {
+  const hasCompleteDates = isCompleteDate(formData?.scheduleDate) && isCompleteDate(formData?.dateString);
+
+  if (hasCompleteDates && formData.scheduleDate > formData.dateString) {
     errors.push('Schedule date cannot be after the journey date.');
   }
 
-  if (isTatkalQuota && formData?.scheduleDate && formData?.dateString) {
+  if (isTatkalQuota && hasCompleteDates) {
     const earliestTatkalScheduleDate = new Date(`${formData.dateString}T00:00:00${IST_OFFSET}`);
     earliestTatkalScheduleDate.setDate(earliestTatkalScheduleDate.getDate() - 2);
     const earliestTatkalScheduleDateString = new Intl.DateTimeFormat('en-CA', {
@@ -181,6 +195,8 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
 
   if (!formData?.targetTime) {
     errors.push('Booking start time is required.');
+  } else if (!TIME_PATTERN.test(formData.targetTime)) {
+    errors.push('Booking start time is incomplete. Enter the hours, minutes and seconds.');
   }
 
   if (!Number.isFinite(Number(formData?.refreshTime)) || Number(formData.refreshTime) <= 0) {
@@ -194,6 +210,8 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
   if (formData?.masterData) {
     if (selectedMasterPassengers.length === 0) {
       errors.push('Select at least one passenger in Passenger Master Data, or turn off Use IRCTC Master Data.');
+    } else if (selectedMasterPassengers.length > maxPassengers) {
+      errors.push(`No more than ${maxPassengers} passengers can be selected in Passenger Master Data for one ticket in this quota.`);
     }
 
     const invalidMasterPassenger = selectedMasterPassengers.find(
@@ -206,6 +224,8 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
   } else {
     if (selectedPassengerList.length === 0) {
       errors.push('At least one normal passenger is required. Infant-only bookings without berth are not allowed.');
+    } else if (selectedPassengerList.length > maxPassengers) {
+      errors.push(`No more than ${maxPassengers} passengers can be selected for one ticket in this quota.`);
     }
 
     const invalidPassenger = selectedPassengerList.find((passenger) => {
@@ -246,21 +266,26 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
         );
       }
     }
+  }
 
-    const invalidInfant = selectedInfantList.find((infant) => {
-      const name = String(infant?.name || '').trim();
-      const age = infant?.age;
-      return (
-        !name ||
-        age === undefined ||
-        age === '' ||
-        !infant?.gender
-      );
-    });
+  // Infants are added for both passenger lists, so check them for both
+  const invalidInfant = selectedInfantList.find((infant) => {
+    const name = String(infant?.name || '').trim();
+    const age = infant?.age;
+    return (
+      !name ||
+      age === undefined ||
+      age === '' ||
+      !infant?.gender
+    );
+  });
 
-    if (invalidInfant) {
-      errors.push('Selected infants must have name, valid age, and gender.');
-    }
+  if (invalidInfant) {
+    errors.push('Selected infants must have name, valid age, and gender.');
+  }
+
+  if (formData?.mobileNumber && !/^\d{10}$/.test(formData.mobileNumber)) {
+    errors.push('Mobile number must be exactly 10 digits, or left empty to use the number on the IRCTC account.');
   }
 
   if (forAutomation) {

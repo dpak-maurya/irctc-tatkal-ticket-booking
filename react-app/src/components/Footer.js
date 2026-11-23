@@ -11,7 +11,18 @@ const Footer = () => {
   const { formData, isDirty, saveFormData, resetSettings } = useAppContext();
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
-  const handleSaveClick = () => {
+  const handleSaveClick = async () => {
+    // A row still being edited is not part of the form yet: saving now would
+    // keep its old values while reporting the details as saved.
+    if (document.querySelector('.MuiDataGrid-row--editing')) {
+      openModal(
+        'error',
+        'Cannot Save Booking Details',
+        'A passenger row is still being edited. Save or cancel that row first.'
+      );
+      return;
+    }
+
     const validationErrors = validateBookingForm(formData);
 
     if (validationErrors.length > 0) {
@@ -23,12 +34,33 @@ const Footer = () => {
       return;
     }
 
+    const isSaved = await saveFormData();
+
+    if (!isSaved) {
+      openModal(
+        'error',
+        'Cannot Save Booking Details',
+        'Your booking details could not be saved. Please try again.'
+      );
+      return;
+    }
+
     openModal(
       'success',
       'Save Booking Details',
-      'Your booking details have been saved.',
-      saveFormData
+      'Your booking details have been saved.'
     );
+  };
+
+  // Clear the saved details, and say so if they could not be removed
+  const handleClearConfirm = async () => {
+    if (!(await resetSettings())) {
+      openModal(
+        'error',
+        'Cannot Clear Booking Details',
+        'Your booking details could not be cleared. Please try again.'
+      );
+    }
   };
 
   return (
@@ -77,7 +109,7 @@ const Footer = () => {
                   'confirmation',
                   'Clear Booking Details',
                   'Are you sure you want to clear all booking details?',
-                  resetSettings
+                  handleClearConfirm
                 )
               }
               fullWidth={isSmallScreen}

@@ -15,8 +15,29 @@ const Header = () => {
   const { openModal } = useModalContext();
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
+  // Switch Auto Booking, and say so if the change could not be saved
+  const switchAutomation = async () => {
+    if (!(await toggleAutomation())) {
+      openModal(
+        'error',
+        'Cannot Change Auto Booking',
+        'The change could not be saved, so Auto Booking is as it was. Please try again.'
+      );
+    }
+  };
+
   const handleAutomationToggle = () => {
     if (!formData.automationStatus) {
+      // A row still being edited is not part of the form yet
+      if (document.querySelector('.MuiDataGrid-row--editing')) {
+        openModal(
+          'error',
+          'Cannot Start Automation',
+          'A passenger row is still being edited. Save or cancel that row first.'
+        );
+        return;
+      }
+
       const validationErrors = validateBookingForm(formData, { forAutomation: true });
 
       if (validationErrors.length > 0) {
@@ -30,7 +51,7 @@ const Header = () => {
     }
 
     if (formData.automationStatus) {
-      toggleAutomation();
+      switchAutomation();
       return;
     }
 
@@ -38,7 +59,7 @@ const Header = () => {
       'automation',
       'Start Auto Booking?',
       <BookingPlanSummary formData={formData} />,
-      toggleAutomation
+      switchAutomation
     );
   };
 

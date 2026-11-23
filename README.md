@@ -39,7 +39,7 @@ This Chrome extension is a personal project developed for educational purposes t
 ## Installation
 
 To install the IRCTC Tatkal Booking Chrome Extension, follow these steps:
-1. Download the extension files from the [release page](https://github.com/dpak-maurya/irctc-tatkal-ticket-booking/releases). For version v6.0.0 and onwards, please download asset file i.e v6.0.0-alpha.zip
+1. Download the extension files from the [release page](https://github.com/dpak-maurya/irctc-tatkal-ticket-booking/releases). For version v6.0.0 and onwards, please download the zip asset, for example irctc-tatkal-ticket-booking-v6.3.3.zip
 3. Extract the files to a folder on your computer.
 4. Open Google Chrome.
 5. Go to `chrome://extensions/`.
@@ -71,7 +71,7 @@ The information provided by [dpak-maurya/irctc-tatkal-ticket-booking] ("we," "us
 Under no circumstance shall we have any liability to you for any loss or damage of any kind incurred as a result of the use of the Repository or reliance on any information provided therein. Your use of the Repository and your reliance on any information on the Repository is solely at your own risk and must comply with applicable laws and regulations.
 
 ## Privacy Policy
-This Chrome extension does not store any personal data or sensitive information. All operations performed by this extension are conducted locally within your browser's storage.
-- **Data Collection:** This extension does not collect, store, or transmit any user data to third parties.
-- **Local Storage:** Any data that may be temporarily stored during usage (e.g., session data) is stored only in your browser's local storage and is not accessible outside of your device.
+This Chrome extension saves the details you enter on its options page so that it can fill in the IRCTC website for you: your IRCTC username and password, mobile number, passenger and infant details, and your journey and payment preferences.
+- **Data Collection:** Nothing is sent to the developers. The extension also contains an experimental captcha-reading feature that, when enabled, sends the captcha image to api.ocr.space, a third-party service, to be read. It is off by default and the options page has no setting for it. If you switched it on in version 6.2.0-beta.1, the only version that showed the setting, it stays on until you click "Clear Booking Details".
+- **Local Storage:** The saved details are kept in the browser's extension storage on this device. They are not encrypted, so anyone who can use this browser profile can read them, password included. They stay there until you click "Clear Booking Details" on the options page or remove the extension. Clearing removes them from the extension's storage; the browser may keep older copies in its profile files until the extension is removed.
 - **User Consent:** By using this extension, you acknowledge that you understand its purpose and agree to use it responsibly in accordance with IRCTC's terms of service.

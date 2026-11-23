@@ -40,6 +40,12 @@ const CAPTCHA_WAIT_TIME = 3000;
 const PAYMENT_OPTIONS_WAIT_TIME = 10000;
 // IRCTC opens its No Food confirmation straight after the checkbox is ticked.
 const NO_FOOD_DIALOG_WAIT_TIME = 2000;
+// How long a name is retried against the IRCTC master list before giving up.
+const MASTER_PASSENGER_WAIT_TIME = 20000;
+// How long the train list gets to render its first row.
+const TRAIN_LIST_WAIT_TIME = 30000;
+// Once rows are showing, how long the wanted train gets to appear among them.
+const TRAIN_RESULTS_WAIT_TIME = 5000;
 
 const defaultSettings = {
   automationStatus: false,
@@ -284,14 +290,50 @@ chrome.storage.local.get('debugMode', function(result) {
   }
 });
 
+// Switching Auto Booking off, or clearing the saved details, stops a run that
+// is already under way: the waits below then throw STOPPED, which ends the run
+// before its next click. The tab stays stopped until it is reloaded.
+let stopped = false;
+// True from the moment Auto Booking is seen switched off until it is seen on again.
+let switchedOff = false;
+const STOPPED = new Error('Auto Booking was switched off. Reload the page to run it again.');
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes[STORAGE_KEY]) {
+    const settings = changes[STORAGE_KEY].newValue;
+    if (!settings || !settings.automationStatus) {
+      stopped = true;
+      switchedOff = true;
+      username = '';
+      password = '';
+      mobileNumber = '';
+    } else if (switchedOff) {
+      // Switched back on: this tab does not pick that up by itself.
+      switchedOff = false;
+      alert('Auto Booking was switched on again. Reload this IRCTC tab to run it here.');
+    }
+  }
+});
+
+// For clicks started without await: the run reports the stop itself.
+function ignoreStop(error) {
+  if (error !== STOPPED) throw error;
+}
+
 // Define a function to wait for an element to appear on the page
 async function waitForElementToAppear(selector, timeoutMs = 0) {
   Logger.info('Waiting for element:', selector, timeoutMs > 0 ? `(timeout: ${timeoutMs}ms)` : '');
   const startTime = Date.now();
   
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const interval = setInterval(() => {
       try {
+        if (stopped) {
+          clearInterval(interval);
+          reject(STOPPED);
+          return;
+        }
+
         if (!selector || typeof selector !== 'string') {
           Logger.error('Invalid selector passed to waitForElementToAppear:', selector);
           clearInterval(interval);
@@ -390,7 +432,7 @@ function monthToNumber(month) {
 }
 // Function to introduce a small delay
 function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve, reject) => setTimeout(() => (stopped ? reject(STOPPED) : resolve()), ms));
 }
 
 // --- GHOST CURSOR UTILITIES ---
@@ -484,10 +526,10 @@ function textIncludes(text, searchText) {
   return text.trim().toLowerCase().includes(searchText.trim().toLowerCase());
 }
 function scrollToElement(element) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     // Wait for a brief moment for the scroll animation to complete
-    setTimeout(resolve, 1000);
+    delay(1000).then(resolve, reject);
   });
 }
 async function simulateTyping(element, text) {
@@ -668,7 +710,7 @@ async function typeDate(element, mydate) {
     element.dispatchEvent(new KeyboardEvent('keydown', { key: char }));
 
     // Wait for a short delay before typing the next character
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await delay(100);
   }
 
   // Trigger blur event to simulate losing focus
@@ -691,10 +733,26 @@ async function selectQuota(element,value) {
   // Get all list items within the autocomplete dropdown
   var listItems = document.querySelectorAll(JOURNEY_QUOTA_LIST);
 
+  // Prefer the item that is exactly the wanted quota, then one that starts
+  // with it, ignoring case and extra spaces: TATKAL is also part of
+  // PREMIUM TATKAL.
+  const normalize = (text) => text.trim().replace(/\s+/g, ' ').toLowerCase();
+  const wanted = normalize(value || '');
+  const items = Array.from(listItems);
+  const preferred = items.find((item) => normalize(item.textContent) === wanted)
+    || items.find((item) => normalize(item.textContent).startsWith(wanted + ' '));
+  if (preferred) {
+    await humanClick(preferred);
+    return;
+  }
+
   // Loop through each list item
   for (let item of listItems) {
     // Get the text content of the list item
     const itemText = item.textContent.trim();
+
+    // PREMIUM TATKAL contains TATKAL: never fall back to it for plain TATKAL
+    if (itemText.toLowerCase().includes('premium') && !value.toLowerCase().includes('premium')) continue;
 
     // Check if the text content contains the name substring (case-insensitive)
     if (itemText.toLowerCase().includes(value.toLowerCase())) {
@@ -718,6 +776,12 @@ async function waitForAppLoginToDisappear() {
   return new Promise((resolve, reject) => {
     // Create a mutation observer to watch for changes in the DOM
     const observer = new MutationObserver((mutationsList, observer) => {
+      if (stopped) {
+        observer.disconnect();
+        reject(STOPPED);
+        return;
+      }
+
       // Check if the app-login element is still in the DOM
       if (!document.contains(appLogin)) {
         // If the app-login element has been removed, resolve the promise
@@ -777,6 +841,19 @@ async function callSearchTrainComponent(){
 }
 async function findRootTrain() {
   await delay(500);
+  // The rows can render well after the list itself when the site is slow, so
+  // wait for the first train to show before looking for the wanted one, then
+  // keep looking for a while before deciding it is not listed. Both waits
+  // end at once when the passenger page is showing: the person has booked a
+  // train themselves and there is no list left to look in.
+  const bookedByHand = () => document.querySelector(PASSENGER_APP_COMPONENT);
+  const listed = await waitForCondition(() => document.querySelector(FIND_TRAIN_NUMBER) || bookedByHand(), TRAIN_LIST_WAIT_TIME);
+  if (listed) {
+    await waitForCondition(() => {
+      const headings = Array.from(document.querySelectorAll(FIND_TRAIN_NUMBER));
+      return headings.some((heading) => textIncludes(heading.textContent, trainNumber)) || bookedByHand();
+    }, TRAIN_RESULTS_WAIT_TIME);
+  }
   const trainHeadingElements = document.querySelectorAll(FIND_TRAIN_NUMBER);
 
   if (!trainHeadingElements || !trainHeadingElements.length) {
@@ -810,23 +887,29 @@ async function scrollToFoundTrainAndSelectClass() {
   const availableClasses = rootElement.querySelectorAll(AVAILABLE_CLASS);
   if (!availableClasses || !availableClasses.length) {
     Logger.warn('No available classes found.');
-    return;
+    return false;
   }
   await delay(500);
+  // Match the code in brackets, as in "Exec. Chair Car (EC)": the bare code EC
+  // is also part of "Second Sitting" and "AC 3 Economy".
+  const cells = Array.from(availableClasses).filter((cell) => cell.querySelector('strong'));
+  const textOf = (cell) => cell.querySelector('strong').textContent;
+  const code = accommodationClass.trim();
   let selectedClass = null;
-  for (let availableClass of availableClasses) {
-    const classNameElement = availableClass.querySelector('strong');
-    if (!classNameElement) continue;
-    const classText = classNameElement.textContent;
-    if (textIncludes(classText, accommodationClass)) {
-      selectedClass = availableClass;
-      break;
-    }
+  if (cells.some((cell) => /\(\w+\)/.test(textOf(cell)))) {
+    selectedClass = cells.find((cell) => textOf(cell).toUpperCase().includes(`(${code.toUpperCase()})`)) || null;
+  } else {
+    // Labels in some other format. Take one that has the code as a whole
+    // word; failing that, the old substring match, but only when it points
+    // at a single class, so that an ambiguous code is left to the user.
+    const wholeCode = new RegExp('\\b' + code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+    const loose = cells.filter((cell) => textIncludes(textOf(cell), code));
+    selectedClass = cells.find((cell) => wholeCode.test(textOf(cell))) || (loose.length === 1 ? loose[0] : null);
   }
 
   if (!selectedClass) {
     Logger.warn('No matching accommodation class found:', accommodationClass);
-    return;
+    return false;
   }
   
   await delay(200);
@@ -838,6 +921,7 @@ async function scrollToFoundTrainAndSelectClass() {
     ', and accommodation class:',
     accommodationClass
   );
+  return true;
 }
 // refresh the train by clicking selected open class tab
 async function refreshTrain() {
@@ -851,6 +935,7 @@ async function refreshTrain() {
       Logger.warn('Selected accommodation tab not found.');
     }
   } catch (error) {
+    if (error === STOPPED) throw error;
     Logger.error('An error occurred while refreshing the train:', error);
   }
 }
@@ -913,17 +998,33 @@ async function bookTicket() {
   await findRootTrain();
 
   // No train found;
-  if (trainFoundAtPosition === -1) return;
+  if (trainFoundAtPosition === -1) {
+    // Nothing to say if the person has booked another train meanwhile.
+    if (document.querySelector(PASSENGER_APP_COMPONENT)) return;
+    alert(`Train ${trainNumber} was not found in the search results. Check the train number, date and stations. The automation carries on if you book a train yourself.`);
+    return;
+  }
   let rootElement =
   document.querySelectorAll(TRAIN_COMPONENT)[trainFoundAtPosition];
   // Start observing mutations on the parent element
   observer.observe(rootElement, { childList: true, subtree: true });
   
-  await scrollToFoundTrainAndSelectClass();
+  const classSelected = await scrollToFoundTrainAndSelectClass();
+
+  // No class was clicked, so no availability will arrive by itself. Say so,
+  // and keep watching: if the user clicks a class on this train, the loop
+  // below carries on from there as it always has.
+  if (!classSelected) {
+    alert(`Class ${accommodationClass} was not found on train ${trainNumber}. Click the class you want on this train to carry on.`);
+  }
 
   await delay(1000);
 
   while (!isAvlEnquiryCompleted) {
+    // The user may have picked the class and pressed Book Now themselves:
+    // once the passenger page is showing there is nothing left to do here.
+    if (document.querySelector(PASSENGER_APP_COMPONENT)) return;
+
     // Check if any new mutations occurred since the last refresh
     if (mutationCompletionCounter > 0) {
         try {
@@ -939,6 +1040,7 @@ async function bookTicket() {
                 await refreshTrain(); // Refresh the train
             }
         } catch (error) {
+            if (error === STOPPED) throw error;
             // Handle any errors that occur during ticket selection or train refresh
             Logger.error("An error occurred:", error);
             // Optionally, you can choose to break the loop or handle the error differently
@@ -1001,9 +1103,39 @@ async function selectAutocompleteOption(index=0,name = passengerNames) {
   // Find the autocomplete input element
   var autocompleteInput = row.querySelector(PASSENGER_NAME_INPUT);
   var ageInput = row.querySelector(PASSENGER_AGE_INPUT);
-  name = name.trim().toLowerCase();
+  const savedName = name.trim();
+  name = savedName.toLowerCase();
+  const startTime = Date.now();
   // Wait until the age input field is not empty
   while (ageInput && ageInput.value === '') {
+    // No suggestion matched in time. Stop retyping the name, which would fight
+    // the user, say so, and wait for them to fill this row; the run then
+    // carries on with the next passenger.
+    if (Date.now() - startTime >= MASTER_PASSENGER_WAIT_TIME) {
+      alert(
+        'Passenger "' + savedName + '" was not found in your IRCTC master list.' +
+        '\nChoose passenger ' + (index + 1) + ' yourself. The automation carries on once that row is filled.'
+      );
+      // Filled means an age and a gender that have stopped changing, so that
+      // a row being completed by hand is not cut short part-way. The row is
+      // looked up again each time, because the user may remove or replace it.
+      const filledState = () => {
+        const currentRow = document.querySelectorAll(PASSENGER_COMPONENT)[index];
+        if (!currentRow) return 'gone';
+        const age = currentRow.querySelector(PASSENGER_AGE_INPUT);
+        const gender = currentRow.querySelector(PASSENGER_GENDER_INPUT);
+        if (!age || age.value === '' || (gender && gender.value === '')) return null;
+        return age.value + '|' + (gender ? gender.value : '');
+      };
+      let settledState = null;
+      for (;;) {
+        const state = filledState();
+        if (state === 'gone' || (state !== null && state === settledState)) break;
+        settledState = state;
+        await delay(1500);
+      }
+      break;
+    }
       // Focus on the autocomplete input to trigger the generation of options
     autocompleteInput.focus();
 
@@ -1050,9 +1182,19 @@ async function addMasterPassengerList() {
     const firstRow = document.querySelector(PASSENGER_REMOVE_ROW);
     await humanClick(firstRow);
     for (let index = 0; index < copyPassengerNames.length; index++) {
+      const rowsBefore = Array.from(document.querySelectorAll(PASSENGER_COMPONENT));
       await addNextRow();
       await delay(200);
-      await selectAutocompleteOption(index, copyPassengerNames[index]);
+      // Fill the row just added, which is the last one. The loop index is not
+      // its position once the person has removed a row. If the last row was
+      // there before, the page added none and that row is another passenger's.
+      const rows = document.querySelectorAll(PASSENGER_COMPONENT);
+      const lastRow = rows[rows.length - 1];
+      if (!lastRow || rowsBefore.includes(lastRow)) {
+        alert(`No passenger row could be added for "${copyPassengerNames[index]}". The automation stops here. Add the remaining passengers and finish the booking yourself.`);
+        throw new Error('No row was added for passenger "' + copyPassengerNames[index] + '".');
+      }
+      await selectAutocompleteOption(rows.length - 1, copyPassengerNames[index]);
     }
   }
 }
@@ -1164,6 +1306,9 @@ async function addCustomPassengerList() {
       await delay(100);
     }
   }
+}
+async function addInfantPassengers() {
+  const infantPassengers = showInfant ? (infantList || []).filter(p => p.isSelected) : [];
 
   // Iterate over infant passengers
   Logger.info(`Starting infant passenger loop. Count: ${infantPassengers.length}`);
@@ -1232,17 +1377,24 @@ async function confirmNoFoodDialog() {
   await waitForElementToDisappear(dialog, NO_FOOD_DIALOG_WAIT_TIME);
   Logger.info('Confirmed the No Food dialog.');
 }
+// A click flips a checkbox, so one is needed only when the box differs from the
+// saved preference; IRCTC may render it already ticked. If the element has no
+// checked state to read (a styled wrapper rather than the input itself), keep
+// the earlier behaviour and click only to turn the option on.
+function checkboxNeedsClick(input, wanted) {
+  if (!input) return false;
+  if (typeof input.checked !== 'boolean') return Boolean(wanted);
+  return input.checked !== Boolean(wanted);
+}
 async function selectPreferences(){
-  // Clicking a checkbox flips it, so only click when its current state differs
-  // from the saved preference. IRCTC may render either box already ticked.
   var autoUpgradationInput = document.getElementById(PASSENGER_PREFERENCE_AUTOUPGRADATION);
-  if(autoUpgradationInput && autoUpgradationInput.checked !== autoUpgradation){
+  if(checkboxNeedsClick(autoUpgradationInput, autoUpgradation)){
     autoUpgradationInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
     await humanClick(autoUpgradationInput);
   }
 
   var confirmberthsInput = document.getElementById(PASSENGER_PREFERENCE_CONFIRMBERTHS);
-  if(confirmberthsInput && confirmberthsInput.checked !== confirmberths)
+  if(checkboxNeedsClick(confirmberthsInput, confirmberths))
     await humanClick(confirmberthsInput);
 
   // Some trains (e.g. Tejas) ask "I don't want Food/Beverages" once for the
@@ -1307,6 +1459,8 @@ async function addPassengerInputAndContinue() {
   else{
     await addCustomPassengerList();
   }
+  // Infants are added the same way for both lists
+  await addInfantPassengers();
   await addMobileNumber();
   
   await selectPreferences();
@@ -1434,6 +1588,8 @@ async function handleCaptchaAndContinue() {
   }
 }
 async function selectPaymentMethod() {
+  // An empty saved value would match every tile
+  if (!paymentMethod) return false;
   // The tiles mount a moment after app-payment-options itself, so querying
   // straight away used to run against an empty list and select nothing (#94).
   await waitForElementToAppear(PAYMENT_METHOD, PAYMENT_OPTIONS_WAIT_TIME);
@@ -1451,14 +1607,17 @@ async function selectPaymentMethod() {
         // Click on the element
         await humanClick(element);
         Logger.info('Clicked on :', paymentMethod);
-        return; // Exit the loop after clicking the element
+        return true; // Exit the loop after clicking the element
       }
     }
   } else {
     Logger.info('No elements found with the specified classes.');
   }
+  return false;
 }
 async function selectPaymentProvider() {
+  // An empty saved value would match every tile
+  if (!paymentProvider) return false;
   // The provider list only renders after a payment method has been picked.
   await waitForElementToAppear(PAYMENT_PROVIDER, PAYMENT_OPTIONS_WAIT_TIME);
 
@@ -1475,11 +1634,12 @@ async function selectPaymentProvider() {
         // Simulate a click on the element
         await humanClick(element);
         Logger.info('Selected text:', element.textContent);
-        return; // Exit the loop after selecting the text
+        return true; // Exit the loop after selecting the text
       }
     }
   }
   Logger.info("No text found containing",paymentProvider);
+  return false;
 }
 async function clickPayButton() {
   // Find the button with the class "btn-primary" and "ng-star-inserted"
@@ -1490,9 +1650,11 @@ async function clickPayButton() {
     // Simulate a click on the button
     await humanClick(button);
     Logger.info('Clicked on button:', button.textContent);
+    return true;
   } else {
     Logger.info("No button found containing 'Pay'.");
   }
+  return false;
 }
 
 // Function to click the confirm button in the eWallet component
@@ -1534,11 +1696,16 @@ function waitForTargetTime(targetTimeString) {
   }
 
   if (!shouldUseTimedSearch()) {
-    humanClick(searchButton);
+    humanClick(searchButton).catch(ignoreStop);
     return;
   }
 
   const intervalId = setInterval(() => {
+    if (stopped) {
+      clearInterval(intervalId);
+      return;
+    }
+
     // Extract the current time element
     const currentTimeElement = document.querySelector(CURRENT_TIME);
 
@@ -1558,7 +1725,7 @@ function waitForTargetTime(targetTimeString) {
     }
 
     if (hasReachedTargetTime(timeMatch[1], targetTimeString)) {
-      humanClick(searchButton);
+      humanClick(searchButton).catch(ignoreStop);
       clearInterval(intervalId);
     }
   }, 1000);
@@ -1597,7 +1764,8 @@ async function getSettings() {
       refreshTime = items.refreshTime;
       autoPay = items.autoPay;
       paymentType = items.paymentType;
-      paymentMethod = items.paymentMethod;
+      // Versions before 6.1.4 saved the wallet method under its old name
+      paymentMethod = items.paymentMethod === 'IRCTC eWallet' ? EWALLET_IRCTC_DEFAULT : items.paymentMethod;
       paymentProvider = items.paymentProvider;
       autoProcessPopup = items.autoProcessPopup;
       mobileNumber = items.mobileNumber;
@@ -1696,19 +1864,37 @@ async function executeFunctions() {
     await waitForElementToAppear(PAYMENT_COMPONENT);
 
     // Payment Selection <Page 4>
-    await selectPaymentMethod();
-    await selectPaymentProvider();
+    const methodSelected = await selectPaymentMethod();
+    // With Pay & Book on, a missed method already hands the page to the
+    // user, so no provider is looked for under whatever else is open.
+    const providerSelected = (methodSelected || !autoPay) && await selectPaymentProvider();
 
     if (autoPay) {
-      await clickPayButton();
+      // Never press Pay & Book on an option other than the saved one: tell
+      // the user what was missing and leave the payment page to them.
+      if (!providerSelected) {
+        const notFound = methodSelected
+          ? 'payment provider "' + paymentProvider + '"'
+          : 'payment method "' + paymentMethod + '"';
+        alert(
+          'Pay & Book was not clicked: ' + notFound + ' not found on the payment page.' +
+          '\nPlease choose the payment option and pay yourself.'
+        );
+        return;
+      }
+      const payClicked = await clickPayButton();
 
       // Payment Confirmation for Ewallet <Page 5>
-      if (paymentMethod === EWALLET_IRCTC_DEFAULT) {
+      if (payClicked && paymentMethod === EWALLET_IRCTC_DEFAULT) {
         await waitForElementToAppear(EWALLET_COMPONENT);
         await clickEwalletConfirmButton();
       }
     }
   } catch (error) {
+    if (error === STOPPED) {
+      Logger.info(error.message);
+      return;
+    }
     Logger.error("An error occurred during execution:", error);
     // You can add additional error handling here if needed
   }
