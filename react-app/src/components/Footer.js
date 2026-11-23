@@ -11,7 +11,7 @@ const Footer = () => {
   const { formData, isDirty, saveFormData, resetSettings } = useAppContext();
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
-  const handleSaveClick = () => {
+  const handleSaveClick = async () => {
     const validationErrors = validateBookingForm(formData);
 
     if (validationErrors.length > 0) {
@@ -23,11 +23,21 @@ const Footer = () => {
       return;
     }
 
+    const isSaved = await saveFormData();
+
+    if (!isSaved) {
+      openModal(
+        'error',
+        'Cannot Save Booking Details',
+        'Your booking details could not be saved. Please try again.'
+      );
+      return;
+    }
+
     openModal(
       'success',
       'Save Booking Details',
-      'Your booking details have been saved.',
-      saveFormData
+      'Your booking details have been saved.'
     );
   };
 

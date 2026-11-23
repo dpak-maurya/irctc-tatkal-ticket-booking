@@ -57,8 +57,10 @@ export const AppProvider = ({ children }) => {
       await saveFormDataToStorage(formData);
       setSavedData(formData);
       setIsDirty(false);
+      return true;
     } catch (error) {
       console.error('Failed to save data:', error);
+      return false;
     }
   };
 
