@@ -94,20 +94,25 @@ export const AppProvider = ({ children }) => {
       await saveFormDataToStorage(updatedData);
       setSavedData(updatedData);
       setFormData((prevState) => ({ ...prevState, automationStatus: turningOn }));
+      return true;
     } catch (error) {
       console.error('Failed to toggle automation status:', error);
+      return false;
     }
   };
 
   const resetSettings = async () => {
-    setFormData(defaultSettings);
-    setSavedData(defaultSettings);
     try {
+      // Remove first: if that fails the page must keep showing what is saved.
       await removeFormDataFromStorage();
     } catch (error) {
       console.error('Failed to reset settings:', error);
+      return false;
     }
+    setFormData(defaultSettings);
+    setSavedData(defaultSettings);
     setIsDirty(false);
+    return true;
   };
 
   return (

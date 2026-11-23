@@ -15,6 +15,17 @@ const Header = () => {
   const { openModal } = useModalContext();
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
+  // Switch Auto Booking, and say so if the change could not be saved
+  const switchAutomation = async () => {
+    if (!(await toggleAutomation())) {
+      openModal(
+        'error',
+        'Cannot Change Auto Booking',
+        'The change could not be saved, so Auto Booking is as it was. Please try again.'
+      );
+    }
+  };
+
   const handleAutomationToggle = () => {
     if (!formData.automationStatus) {
       const validationErrors = validateBookingForm(formData, { forAutomation: true });
@@ -30,7 +41,7 @@ const Header = () => {
     }
 
     if (formData.automationStatus) {
-      toggleAutomation();
+      switchAutomation();
       return;
     }
 
@@ -38,7 +49,7 @@ const Header = () => {
       'automation',
       'Start Auto Booking?',
       <BookingPlanSummary formData={formData} />,
-      toggleAutomation
+      switchAutomation
     );
   };
 

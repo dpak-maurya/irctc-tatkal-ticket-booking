@@ -41,6 +41,17 @@ const Footer = () => {
     );
   };
 
+  // Clear the saved details, and say so if they could not be removed
+  const handleClearConfirm = async () => {
+    if (!(await resetSettings())) {
+      openModal(
+        'error',
+        'Cannot Clear Booking Details',
+        'Your booking details could not be cleared. Please try again.'
+      );
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -87,7 +98,7 @@ const Footer = () => {
                   'confirmation',
                   'Clear Booking Details',
                   'Are you sure you want to clear all booking details?',
-                  resetSettings
+                  handleClearConfirm
                 )
               }
               fullWidth={isSmallScreen}
