@@ -897,8 +897,9 @@ const observer = new MutationObserver((mutationsList, observer) => {
     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
       // Iterate over added nodes
       for (let node of mutation.addedNodes) {
-        // Check if node matches the selector
-        if (node.matches(LINK_INSERTED)) {
+        // Check if node matches the selector. Text and comment nodes (Angular
+        // adds comment anchors) have no matches(), so skip anything but elements.
+        if (node.nodeType === Node.ELEMENT_NODE && node.matches(LINK_INSERTED)) {
           mutationCompletionCounter++;
           Logger.info('Element refreshed: available accommodation classes');
         }
