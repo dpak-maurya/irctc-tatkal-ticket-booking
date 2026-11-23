@@ -284,14 +284,50 @@ chrome.storage.local.get('debugMode', function(result) {
   }
 });
 
+// Switching Auto Booking off, or clearing the saved details, stops a run that
+// is already under way: the waits below then throw STOPPED, which ends the run
+// before its next click. The tab stays stopped until it is reloaded.
+let stopped = false;
+// True from the moment Auto Booking is seen switched off until it is seen on again.
+let switchedOff = false;
+const STOPPED = new Error('Auto Booking was switched off. Reload the page to run it again.');
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes[STORAGE_KEY]) {
+    const settings = changes[STORAGE_KEY].newValue;
+    if (!settings || !settings.automationStatus) {
+      stopped = true;
+      switchedOff = true;
+      username = '';
+      password = '';
+      mobileNumber = '';
+    } else if (switchedOff) {
+      // Switched back on: this tab does not pick that up by itself.
+      switchedOff = false;
+      alert('Auto Booking was switched on again. Reload this IRCTC tab to run it here.');
+    }
+  }
+});
+
+// For clicks started without await: the run reports the stop itself.
+function ignoreStop(error) {
+  if (error !== STOPPED) throw error;
+}
+
 // Define a function to wait for an element to appear on the page
 async function waitForElementToAppear(selector, timeoutMs = 0) {
   Logger.info('Waiting for element:', selector, timeoutMs > 0 ? `(timeout: ${timeoutMs}ms)` : '');
   const startTime = Date.now();
   
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const interval = setInterval(() => {
       try {
+        if (stopped) {
+          clearInterval(interval);
+          reject(STOPPED);
+          return;
+        }
+
         if (!selector || typeof selector !== 'string') {
           Logger.error('Invalid selector passed to waitForElementToAppear:', selector);
           clearInterval(interval);
@@ -390,7 +426,7 @@ function monthToNumber(month) {
 }
 // Function to introduce a small delay
 function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve, reject) => setTimeout(() => (stopped ? reject(STOPPED) : resolve()), ms));
 }
 
 // --- GHOST CURSOR UTILITIES ---
@@ -484,10 +520,10 @@ function textIncludes(text, searchText) {
   return text.trim().toLowerCase().includes(searchText.trim().toLowerCase());
 }
 function scrollToElement(element) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     // Wait for a brief moment for the scroll animation to complete
-    setTimeout(resolve, 1000);
+    delay(1000).then(resolve, reject);
   });
 }
 async function simulateTyping(element, text) {
@@ -668,7 +704,7 @@ async function typeDate(element, mydate) {
     element.dispatchEvent(new KeyboardEvent('keydown', { key: char }));
 
     // Wait for a short delay before typing the next character
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await delay(100);
   }
 
   // Trigger blur event to simulate losing focus
@@ -718,6 +754,12 @@ async function waitForAppLoginToDisappear() {
   return new Promise((resolve, reject) => {
     // Create a mutation observer to watch for changes in the DOM
     const observer = new MutationObserver((mutationsList, observer) => {
+      if (stopped) {
+        observer.disconnect();
+        reject(STOPPED);
+        return;
+      }
+
       // Check if the app-login element is still in the DOM
       if (!document.contains(appLogin)) {
         // If the app-login element has been removed, resolve the promise
@@ -851,6 +893,7 @@ async function refreshTrain() {
       Logger.warn('Selected accommodation tab not found.');
     }
   } catch (error) {
+    if (error === STOPPED) throw error;
     Logger.error('An error occurred while refreshing the train:', error);
   }
 }
@@ -939,6 +982,7 @@ async function bookTicket() {
                 await refreshTrain(); // Refresh the train
             }
         } catch (error) {
+            if (error === STOPPED) throw error;
             // Handle any errors that occur during ticket selection or train refresh
             Logger.error("An error occurred:", error);
             // Optionally, you can choose to break the loop or handle the error differently
@@ -1541,11 +1585,16 @@ function waitForTargetTime(targetTimeString) {
   }
 
   if (!shouldUseTimedSearch()) {
-    humanClick(searchButton);
+    humanClick(searchButton).catch(ignoreStop);
     return;
   }
 
   const intervalId = setInterval(() => {
+    if (stopped) {
+      clearInterval(intervalId);
+      return;
+    }
+
     // Extract the current time element
     const currentTimeElement = document.querySelector(CURRENT_TIME);
 
@@ -1565,7 +1614,7 @@ function waitForTargetTime(targetTimeString) {
     }
 
     if (hasReachedTargetTime(timeMatch[1], targetTimeString)) {
-      humanClick(searchButton);
+      humanClick(searchButton).catch(ignoreStop);
       clearInterval(intervalId);
     }
   }, 1000);
@@ -1717,6 +1766,10 @@ async function executeFunctions() {
       }
     }
   } catch (error) {
+    if (error === STOPPED) {
+      Logger.info(error.message);
+      return;
+    }
     Logger.error("An error occurred during execution:", error);
     // You can add additional error handling here if needed
   }
