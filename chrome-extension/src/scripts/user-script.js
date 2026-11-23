@@ -1191,6 +1191,7 @@ async function addMasterPassengerList() {
       const rows = document.querySelectorAll(PASSENGER_COMPONENT);
       const lastRow = rows[rows.length - 1];
       if (!lastRow || rowsBefore.includes(lastRow)) {
+        alert(`No passenger row could be added for "${copyPassengerNames[index]}". The automation stops here. Add the remaining passengers and finish the booking yourself.`);
         throw new Error('No row was added for passenger "' + copyPassengerNames[index] + '".');
       }
       await selectAutocompleteOption(rows.length - 1, copyPassengerNames[index]);
