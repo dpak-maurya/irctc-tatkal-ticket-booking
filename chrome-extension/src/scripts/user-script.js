@@ -843,12 +843,15 @@ async function findRootTrain() {
   await delay(500);
   // The rows can render well after the list itself when the site is slow, so
   // wait for the first train to show before looking for the wanted one, then
-  // keep looking for a while before deciding it is not listed.
-  const listed = await waitForCondition(() => document.querySelector(FIND_TRAIN_NUMBER), TRAIN_LIST_WAIT_TIME);
+  // keep looking for a while before deciding it is not listed. Both waits
+  // end at once when the passenger page is showing: the person has booked a
+  // train themselves and there is no list left to look in.
+  const bookedByHand = () => document.querySelector(PASSENGER_APP_COMPONENT);
+  const listed = await waitForCondition(() => document.querySelector(FIND_TRAIN_NUMBER) || bookedByHand(), TRAIN_LIST_WAIT_TIME);
   if (listed) {
     await waitForCondition(() => {
       const headings = Array.from(document.querySelectorAll(FIND_TRAIN_NUMBER));
-      return headings.some((heading) => textIncludes(heading.textContent, trainNumber));
+      return headings.some((heading) => textIncludes(heading.textContent, trainNumber)) || bookedByHand();
     }, TRAIN_RESULTS_WAIT_TIME);
   }
   const trainHeadingElements = document.querySelectorAll(FIND_TRAIN_NUMBER);
@@ -996,6 +999,8 @@ async function bookTicket() {
 
   // No train found;
   if (trainFoundAtPosition === -1) {
+    // Nothing to say if the person has booked another train meanwhile.
+    if (document.querySelector(PASSENGER_APP_COMPONENT)) return;
     alert(`Train ${trainNumber} was not found in the search results. Check the train number, date and stations. The automation carries on if you book a train yourself.`);
     return;
   }
