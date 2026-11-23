@@ -28,6 +28,16 @@ const Header = () => {
 
   const handleAutomationToggle = () => {
     if (!formData.automationStatus) {
+      // A row still being edited is not part of the form yet
+      if (document.querySelector('.MuiDataGrid-row--editing')) {
+        openModal(
+          'error',
+          'Cannot Start Automation',
+          'A passenger row is still being edited. Save or cancel that row first.'
+        );
+        return;
+      }
+
       const validationErrors = validateBookingForm(formData, { forAutomation: true });
 
       if (validationErrors.length > 0) {

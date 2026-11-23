@@ -12,6 +12,17 @@ const Footer = () => {
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
   const handleSaveClick = async () => {
+    // A row still being edited is not part of the form yet: saving now would
+    // keep its old values while reporting the details as saved.
+    if (document.querySelector('.MuiDataGrid-row--editing')) {
+      openModal(
+        'error',
+        'Cannot Save Booking Details',
+        'A passenger row is still being edited. Save or cancel that row first.'
+      );
+      return;
+    }
+
     const validationErrors = validateBookingForm(formData);
 
     if (validationErrors.length > 0) {
