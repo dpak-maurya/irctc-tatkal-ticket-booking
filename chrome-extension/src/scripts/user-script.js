@@ -1259,6 +1259,9 @@ async function addCustomPassengerList() {
       await delay(100);
     }
   }
+}
+async function addInfantPassengers() {
+  const infantPassengers = showInfant ? (infantList || []).filter(p => p.isSelected) : [];
 
   // Iterate over infant passengers
   Logger.info(`Starting infant passenger loop. Count: ${infantPassengers.length}`);
@@ -1409,6 +1412,8 @@ async function addPassengerInputAndContinue() {
   else{
     await addCustomPassengerList();
   }
+  // Infants are added the same way for both lists
+  await addInfantPassengers();
   await addMobileNumber();
   
   await selectPreferences();

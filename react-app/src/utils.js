@@ -132,7 +132,8 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
   const selectedPassengerList = (formData?.passengerList || []).filter(
     (passenger) => passenger?.isSelected
   );
-  const selectedInfantList = (formData?.infantList || []).filter(
+  // Infants are only booked while the infant section is switched on
+  const selectedInfantList = (formData?.showInfant ? formData?.infantList || [] : []).filter(
     (infant) => infant?.isSelected
   );
   const selectedMasterPassengers = (formData?.passengerNames || []).filter(
@@ -265,21 +266,22 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
         );
       }
     }
+  }
 
-    const invalidInfant = selectedInfantList.find((infant) => {
-      const name = String(infant?.name || '').trim();
-      const age = infant?.age;
-      return (
-        !name ||
-        age === undefined ||
-        age === '' ||
-        !infant?.gender
-      );
-    });
+  // Infants are added for both passenger lists, so check them for both
+  const invalidInfant = selectedInfantList.find((infant) => {
+    const name = String(infant?.name || '').trim();
+    const age = infant?.age;
+    return (
+      !name ||
+      age === undefined ||
+      age === '' ||
+      !infant?.gender
+    );
+  });
 
-    if (invalidInfant) {
-      errors.push('Selected infants must have name, valid age, and gender.');
-    }
+  if (invalidInfant) {
+    errors.push('Selected infants must have name, valid age, and gender.');
   }
 
   if (formData?.mobileNumber && !/^\d{10}$/.test(formData.mobileNumber)) {
