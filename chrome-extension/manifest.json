@@ -25,7 +25,8 @@
   ],
   "host_permissions": [
     "https://www.irctc.co.in/*",
-    "https://api.ocr.space/*"
+    "https://api.ocr.space/*",
+    "https://cdn.corover.ai/*"
   ],
   "action": {
     "default_icon": {
