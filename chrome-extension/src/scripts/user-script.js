@@ -1585,7 +1585,10 @@ async function getSettings() {
       quotaType = items.quotaType;
       isOpeningDayBooking = items.isOpeningDayBooking;
       accommodationClass = items.accommodationClass;
-      dateString = new Date(items.dateString).toLocaleDateString('en-GB');
+      // Stored as YYYY-MM-DD; IRCTC wants DD/MM/YYYY. Reorder the parts rather
+      // than going through Date, which reads the string as UTC midnight and
+      // lands on the previous day in timezones behind UTC.
+      dateString = (items.dateString || '').split('-').reverse().join('/');
       refreshTime = items.refreshTime;
       autoPay = items.autoPay;
       paymentType = items.paymentType;
