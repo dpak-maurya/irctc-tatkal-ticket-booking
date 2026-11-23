@@ -55,6 +55,18 @@
               echo "tag_name=none" >> $GITHUB_ENV
             fi
   
+        # Ensure the tag matches the version in package.json
+        - name: Check if tag matches package version
+          if: env.tag_name != 'none'
+          run: |
+            TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+            TAG_VERSION="${TAG_VERSION%%-*}"
+            PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+            if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
+              echo "❌ Tag $tag_name needs version $TAG_VERSION in package.json, but it is $PACKAGE_VERSION. Bump the version before tagging."
+              exit 1
+            fi
+  
         # Ensure dist folder exists after build
         - name: Check if dist exists
           if: env.tag_name != 'none'
