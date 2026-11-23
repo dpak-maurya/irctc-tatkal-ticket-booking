@@ -1232,17 +1232,24 @@ async function confirmNoFoodDialog() {
   await waitForElementToDisappear(dialog, NO_FOOD_DIALOG_WAIT_TIME);
   Logger.info('Confirmed the No Food dialog.');
 }
+// A click flips a checkbox, so one is needed only when the box differs from the
+// saved preference; IRCTC may render it already ticked. If the element has no
+// checked state to read (a styled wrapper rather than the input itself), keep
+// the earlier behaviour and click only to turn the option on.
+function checkboxNeedsClick(input, wanted) {
+  if (!input) return false;
+  if (typeof input.checked !== 'boolean') return Boolean(wanted);
+  return input.checked !== Boolean(wanted);
+}
 async function selectPreferences(){
-  // Clicking a checkbox flips it, so only click when its current state differs
-  // from the saved preference. IRCTC may render either box already ticked.
   var autoUpgradationInput = document.getElementById(PASSENGER_PREFERENCE_AUTOUPGRADATION);
-  if(autoUpgradationInput && autoUpgradationInput.checked !== autoUpgradation){
+  if(checkboxNeedsClick(autoUpgradationInput, autoUpgradation)){
     autoUpgradationInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
     await humanClick(autoUpgradationInput);
   }
 
   var confirmberthsInput = document.getElementById(PASSENGER_PREFERENCE_CONFIRMBERTHS);
-  if(confirmberthsInput && confirmberthsInput.checked !== confirmberths)
+  if(checkboxNeedsClick(confirmberthsInput, confirmberths))
     await humanClick(confirmberthsInput);
 
   // Some trains (e.g. Tejas) ask "I don't want Food/Beverages" once for the
