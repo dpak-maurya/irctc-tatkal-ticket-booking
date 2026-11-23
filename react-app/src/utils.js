@@ -132,6 +132,7 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
   const selectedMasterPassengers = (formData?.passengerNames || []).filter(
     (passenger) => passenger?.isSelected
   );
+  const maxPassengers = isTatkalQuota ? 4 : 6;
 
   if (!formData?.dateString) {
     errors.push('Journey date is required.');
@@ -194,6 +195,8 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
   if (formData?.masterData) {
     if (selectedMasterPassengers.length === 0) {
       errors.push('Select at least one passenger in Passenger Master Data, or turn off Use IRCTC Master Data.');
+    } else if (selectedMasterPassengers.length > maxPassengers) {
+      errors.push(`No more than ${maxPassengers} passengers can be selected in Passenger Master Data for one ticket in this quota.`);
     }
 
     const invalidMasterPassenger = selectedMasterPassengers.find(
@@ -206,6 +209,8 @@ export const validateBookingForm = (formData, { forAutomation = false } = {}) =>
   } else {
     if (selectedPassengerList.length === 0) {
       errors.push('At least one normal passenger is required. Infant-only bookings without berth are not allowed.');
+    } else if (selectedPassengerList.length > maxPassengers) {
+      errors.push(`No more than ${maxPassengers} passengers can be selected for one ticket in this quota.`);
     }
 
     const invalidPassenger = selectedPassengerList.find((passenger) => {
