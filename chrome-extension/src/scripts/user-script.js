@@ -1604,7 +1604,8 @@ async function getSettings() {
       refreshTime = items.refreshTime;
       autoPay = items.autoPay;
       paymentType = items.paymentType;
-      paymentMethod = items.paymentMethod;
+      // Versions before 6.1.4 saved the wallet method under its old name
+      paymentMethod = items.paymentMethod === 'IRCTC eWallet' ? EWALLET_IRCTC_DEFAULT : items.paymentMethod;
       paymentProvider = items.paymentProvider;
       autoProcessPopup = items.autoProcessPopup;
       mobileNumber = items.mobileNumber;

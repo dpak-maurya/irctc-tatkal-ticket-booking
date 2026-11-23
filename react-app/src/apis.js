@@ -15,6 +15,16 @@ export const getFormDataFromStorage = async () => {
             await saveFormDataToStorage(defaultSettings);
             resolve(defaultSettings); // Return default settings
           } else {
+            if (result[STORAGE_KEY].paymentMethod === 'IRCTC eWallet') {
+              // Rename the Wallets payment method saved by older versions
+              result[STORAGE_KEY].paymentMethod = 'E-Wallet';
+              try {
+                await saveFormDataToStorage(result[STORAGE_KEY]);
+              } catch (error) {
+                // Still load the page; the corrected value is written at the next save
+                console.error('Failed to save migrated settings:', error);
+              }
+            }
             resolve({ ...defaultSettings, ...result[STORAGE_KEY] });
           }
         }

@@ -105,7 +105,7 @@ function PaymentDetails() {
           disabled
           sx={{ backgroundColor: 'white' }}
         >
-          {formData.paymentType && paymentMethodOptions[formData.paymentType].map((method) => (
+          {formData.paymentType && (paymentMethodOptions[formData.paymentType] || []).map((method) => (
             <MenuItem key={method} value={method}>{method}</MenuItem>
           ))}
         </Select>
@@ -125,7 +125,7 @@ function PaymentDetails() {
           disabled
           sx={{ backgroundColor: 'white' }}
         >
-          {formData.paymentMethod && paymentProviderOptions[formData.paymentMethod].map((provider) => (
+          {formData.paymentMethod && (paymentProviderOptions[formData.paymentMethod] || []).map((provider) => (
             <MenuItem key={provider} value={provider}>{provider}</MenuItem>
           ))}
         </Select>
