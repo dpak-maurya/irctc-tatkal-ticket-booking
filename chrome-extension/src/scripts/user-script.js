@@ -855,15 +855,21 @@ async function scrollToFoundTrainAndSelectClass() {
     return;
   }
   await delay(500);
+  // Match the code in brackets, as in "Exec. Chair Car (EC)": the bare code EC
+  // is also part of "Second Sitting" and "AC 3 Economy".
+  const cells = Array.from(availableClasses).filter((cell) => cell.querySelector('strong'));
+  const textOf = (cell) => cell.querySelector('strong').textContent;
+  const code = accommodationClass.trim();
   let selectedClass = null;
-  for (let availableClass of availableClasses) {
-    const classNameElement = availableClass.querySelector('strong');
-    if (!classNameElement) continue;
-    const classText = classNameElement.textContent;
-    if (textIncludes(classText, accommodationClass)) {
-      selectedClass = availableClass;
-      break;
-    }
+  if (cells.some((cell) => /\(\w+\)/.test(textOf(cell)))) {
+    selectedClass = cells.find((cell) => textOf(cell).toUpperCase().includes(`(${code.toUpperCase()})`)) || null;
+  } else {
+    // Labels in some other format. Take one that has the code as a whole
+    // word; failing that, the old substring match, but only when it points
+    // at a single class, so that an ambiguous code is left to the user.
+    const wholeCode = new RegExp('\\b' + code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+    const loose = cells.filter((cell) => textIncludes(textOf(cell), code));
+    selectedClass = cells.find((cell) => wholeCode.test(textOf(cell))) || (loose.length === 1 ? loose[0] : null);
   }
 
   if (!selectedClass) {
