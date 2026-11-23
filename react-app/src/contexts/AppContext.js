@@ -81,15 +81,19 @@ export const AppProvider = ({ children }) => {
 
   const toggleAutomation = async () => {
     try {
+      const turningOn = !formData.automationStatus;
+      // Switching on saves the form as it stands; it has just been validated.
+      // Switching off only flips the switch in what is already saved, so
+      // edits that were never saved are not written along with it.
       const updatedData = {
-        ...formData,
-        automationStatus: !formData.automationStatus,
+        ...(turningOn ? formData : savedData),
+        automationStatus: turningOn,
       };
 
-      setFormData(updatedData);
-      setSavedData(updatedData);
-      setIsDirty(false);
+      // Write first: if that fails the switch must keep showing what is saved.
       await saveFormDataToStorage(updatedData);
+      setSavedData(updatedData);
+      setFormData((prevState) => ({ ...prevState, automationStatus: turningOn }));
     } catch (error) {
       console.error('Failed to toggle automation status:', error);
     }
