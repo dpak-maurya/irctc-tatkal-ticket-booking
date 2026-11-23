@@ -40,6 +40,10 @@ const CAPTCHA_WAIT_TIME = 3000;
 const PAYMENT_OPTIONS_WAIT_TIME = 10000;
 // IRCTC opens its No Food confirmation straight after the checkbox is ticked.
 const NO_FOOD_DIALOG_WAIT_TIME = 2000;
+// How long the train list gets to render its first row.
+const TRAIN_LIST_WAIT_TIME = 30000;
+// Once rows are showing, how long the wanted train gets to appear among them.
+const TRAIN_RESULTS_WAIT_TIME = 5000;
 
 const defaultSettings = {
   automationStatus: false,
@@ -835,6 +839,16 @@ async function callSearchTrainComponent(){
 }
 async function findRootTrain() {
   await delay(500);
+  // The rows can render well after the list itself when the site is slow, so
+  // wait for the first train to show before looking for the wanted one, then
+  // keep looking for a while before deciding it is not listed.
+  const listed = await waitForCondition(() => document.querySelector(FIND_TRAIN_NUMBER), TRAIN_LIST_WAIT_TIME);
+  if (listed) {
+    await waitForCondition(() => {
+      const headings = Array.from(document.querySelectorAll(FIND_TRAIN_NUMBER));
+      return headings.some((heading) => textIncludes(heading.textContent, trainNumber));
+    }, TRAIN_RESULTS_WAIT_TIME);
+  }
   const trainHeadingElements = document.querySelectorAll(FIND_TRAIN_NUMBER);
 
   if (!trainHeadingElements || !trainHeadingElements.length) {
@@ -868,7 +882,7 @@ async function scrollToFoundTrainAndSelectClass() {
   const availableClasses = rootElement.querySelectorAll(AVAILABLE_CLASS);
   if (!availableClasses || !availableClasses.length) {
     Logger.warn('No available classes found.');
-    return;
+    return false;
   }
   await delay(500);
   // Match the code in brackets, as in "Exec. Chair Car (EC)": the bare code EC
@@ -890,7 +904,7 @@ async function scrollToFoundTrainAndSelectClass() {
 
   if (!selectedClass) {
     Logger.warn('No matching accommodation class found:', accommodationClass);
-    return;
+    return false;
   }
   
   await delay(200);
@@ -902,6 +916,7 @@ async function scrollToFoundTrainAndSelectClass() {
     ', and accommodation class:',
     accommodationClass
   );
+  return true;
 }
 // refresh the train by clicking selected open class tab
 async function refreshTrain() {
@@ -978,17 +993,31 @@ async function bookTicket() {
   await findRootTrain();
 
   // No train found;
-  if (trainFoundAtPosition === -1) return;
+  if (trainFoundAtPosition === -1) {
+    alert(`Train ${trainNumber} was not found in the search results. Check the train number, date and stations. The automation carries on if you book a train yourself.`);
+    return;
+  }
   let rootElement =
   document.querySelectorAll(TRAIN_COMPONENT)[trainFoundAtPosition];
   // Start observing mutations on the parent element
   observer.observe(rootElement, { childList: true, subtree: true });
   
-  await scrollToFoundTrainAndSelectClass();
+  const classSelected = await scrollToFoundTrainAndSelectClass();
+
+  // No class was clicked, so no availability will arrive by itself. Say so,
+  // and keep watching: if the user clicks a class on this train, the loop
+  // below carries on from there as it always has.
+  if (!classSelected) {
+    alert(`Class ${accommodationClass} was not found on train ${trainNumber}. Click the class you want on this train to carry on.`);
+  }
 
   await delay(1000);
 
   while (!isAvlEnquiryCompleted) {
+    // The user may have picked the class and pressed Book Now themselves:
+    // once the passenger page is showing there is nothing left to do here.
+    if (document.querySelector(PASSENGER_APP_COMPONENT)) return;
+
     // Check if any new mutations occurred since the last refresh
     if (mutationCompletionCounter > 0) {
         try {
