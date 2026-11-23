@@ -69,8 +69,7 @@
           if: env.tag_name != 'none'
           run: |
             ZIP_NAME="${{ github.event.repository.name }}-${{ env.tag_name }}"
-            mv dist "$ZIP_NAME"
-            zip -r "$ZIP_NAME.zip" "$ZIP_NAME"
+            (cd dist && zip -r "../$ZIP_NAME.zip" .)
   
         # Create GitHub Release if a tag is pushed
         - name: Create GitHub Release
