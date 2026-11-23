@@ -1177,9 +1177,18 @@ async function addMasterPassengerList() {
     const firstRow = document.querySelector(PASSENGER_REMOVE_ROW);
     await humanClick(firstRow);
     for (let index = 0; index < copyPassengerNames.length; index++) {
+      const rowsBefore = Array.from(document.querySelectorAll(PASSENGER_COMPONENT));
       await addNextRow();
       await delay(200);
-      await selectAutocompleteOption(index, copyPassengerNames[index]);
+      // Fill the row just added, which is the last one. The loop index is not
+      // its position once the person has removed a row. If the last row was
+      // there before, the page added none and that row is another passenger's.
+      const rows = document.querySelectorAll(PASSENGER_COMPONENT);
+      const lastRow = rows[rows.length - 1];
+      if (!lastRow || rowsBefore.includes(lastRow)) {
+        throw new Error('No row was added for passenger "' + copyPassengerNames[index] + '".');
+      }
+      await selectAutocompleteOption(rows.length - 1, copyPassengerNames[index]);
     }
   }
 }
