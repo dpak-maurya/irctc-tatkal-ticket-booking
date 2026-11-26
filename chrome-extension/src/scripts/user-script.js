@@ -1,5 +1,17 @@
 import Logger from './logger';
 import extractTextFromImage from './ocr-reader';
+import {
+  ERROR_MESSAGE_DEFAULT,
+  ERROR_DISMISS_DEFAULT,
+  ERROR_TOAST_LINK_DEFAULT,
+  LOADER_DEFAULT,
+  AVAILABILITY_ERROR_DEFAULT,
+  advanceOrRetry,
+  createRequestGate,
+  holdForPassengerPageMinWait,
+  findAvailabilityError,
+  isWorthRetrying,
+} from './irctcHighLoad';
 
 
 let automationStatus = false;
@@ -174,6 +186,27 @@ let EWALLET_COMPONENT = 'app-ewallet-confirm';
 let EWALLET_BUTTON_LIST = 'button.mob-bot-btn.search_btn';
 let EWALLET_CONFIRM_BUTTON_TEXT = 'CONFIRM';
 
+// IRCTC error toast / dialog (high load, server busy, session expiry) and the
+// "Please Wait..." loading overlay. Real IRCTC elements, overridable through
+// the Selector Editor (ERROR category) so a markup change never silently
+// disables recovery.
+let ERROR_MESSAGE = ERROR_MESSAGE_DEFAULT;
+let ERROR_DISMISS = ERROR_DISMISS_DEFAULT;
+let ERROR_TOAST_LINK = ERROR_TOAST_LINK_DEFAULT;
+let LOADER = LOADER_DEFAULT;
+let AVAILABILITY_ERROR = AVAILABILITY_ERROR_DEFAULT;
+
+// Booking steps run through one serialising gate: IRCTC allows one request
+// per session at a time, and two overlapping steps (a Book Now re-click on
+// top of the first) are what logged users out in PR #102 testing.
+const bookingGate = createRequestGate();
+
+// After Book Now, IRCTC holds the passenger page's Continue for a minimum
+// time (~45 s on the trains we checked). Measured on the device clock; no
+// booking request is fired into that window.
+const PASSENGER_MIN_HOLD_MS = 45000;
+let passengerHoldUntil = 0;
+
 // --- Selector Override System ---
 // Loads user-customized selectors from chrome.storage and applies them
 // This allows users to fix broken selectors when IRCTC changes their HTML
@@ -254,6 +287,11 @@ const SELECTOR_VAR_MAP = {
   EWALLET_COMPONENT: (v) => { EWALLET_COMPONENT = v; },
   EWALLET_BUTTON_LIST: (v) => { EWALLET_BUTTON_LIST = v; },
   EWALLET_CONFIRM_BUTTON_TEXT: (v) => { EWALLET_CONFIRM_BUTTON_TEXT = v; },
+  ERROR_MESSAGE: (v) => { ERROR_MESSAGE = v; },
+  ERROR_DISMISS: (v) => { ERROR_DISMISS = v; },
+  ERROR_TOAST_LINK: (v) => { ERROR_TOAST_LINK = v; },
+  LOADER: (v) => { LOADER = v; },
+  AVAILABILITY_ERROR: (v) => { AVAILABILITY_ERROR = v; },
 };
 
 async function loadSelectorOverrides() {
@@ -882,7 +920,15 @@ async function selectAvailableTicket() {
       // Check if the book ticket button is available
       const bookTicketButton = rootElement.querySelector(BOOK_NOW_BUTTON);
       if (bookTicketButton && !bookTicketButton.classList.contains(BUTTON_DISABLE_CLASS)) {
-        await humanClick(bookTicketButton); // Click on the book ticket button
+        // The click runs through the booking gate so a Book Now can never be
+        // fired while another booking step is in flight (the double-submit
+        // that logged users out in PR #102 testing).
+        await bookingGate.run(async () => {
+          await humanClick(bookTicketButton); // Click on the book ticket button
+        });
+        // IRCTC holds the passenger page Continue for a minimum time (~45 s).
+        // Arm the hold here so it is honoured before we click Continue.
+        passengerHoldUntil = Date.now() + PASSENGER_MIN_HOLD_MS;
         return true; // Indicate that the ticket is selected
       }
     }
@@ -923,9 +969,13 @@ async function bookTicket() {
 
   await delay(1000);
 
+  let stallStreak = 0;
   while (!isAvlEnquiryCompleted) {
     // Check if any new mutations occurred since the last refresh
     if (mutationCompletionCounter > 0) {
+        // Fresh availability rows arrived, so the last enquiry landed and we
+        // are no longer stalling.
+        stallStreak = 0;
         try {
             const ticketSelected = await selectAvailableTicket();
             if (ticketSelected) {
@@ -943,8 +993,24 @@ async function bookTicket() {
             Logger.error("An error occurred:", error);
             // Optionally, you can choose to break the loop or handle the error differently
         }
+    } else if (!isElementVisible(document.querySelector(LOADER))) {
+        // Nothing arrived and IRCTC is not waiting on a request, so the last
+        // enquiry failed ("We are experiencing High Load - Please retry."), which
+        // adds no availability rows. Ask again, as a person would press Refresh.
+        // Never while the loader is up, so a pending enquiry is not doubled.
+        const availabilityError = findAvailabilityError(rootElement, AVAILABILITY_ERROR);
+        if (availabilityError && !isWorthRetrying(availabilityError)) {
+          Logger.error("IRCTC rejected the availability request:", availabilityError);
+          alert("IRCTC says:\n\n" + availabilityError + "\n\nAuto refresh has stopped. Please continue manually.");
+          return;
+        }
+        stallStreak += 1;
+        Logger.warn("No availability received. Refreshing the class again.", availabilityError);
+        await refreshTrain(); // Read-only re-check of the class availability.
     }
-    await delay(refreshTime); // Adjust the delay as needed
+    // Pace the loop: steady refresh normally, stepping up while IRCTC keeps
+    // refusing the enquiry (high load), so we never hammer a struggling server.
+    await delay(stallStreak > 0 ? Math.min(refreshTime * stallStreak, 10000) : refreshTime);
 }
 
   // Proceed with booking the ticket
@@ -1315,6 +1381,35 @@ async function addPassengerInputAndContinue() {
   // MANDATORY HUMAN PAUSE
   await delay(100);
 
+  // IRCTC holds this page's Continue for a minimum time after Book Now (~45 s
+  // on the trains we checked). Retrying into that window only adds requests and
+  // can look like a double click, so wait the hold out on the device clock while
+  // keeping the session warm, then submit.
+  if (passengerHoldUntil > Date.now()) {
+    Logger.info("Passenger page minimum hold - waiting", Math.round((passengerHoldUntil - Date.now()) / 1000), "s before Continue.");
+    await holdForPassengerPageMinWait(
+      {
+        // Session warmth: a lightweight re-read of the page state. No booking
+        // request is fired into the hold window.
+        keepAlive: async () => {
+          try {
+            if (typeof humanClick !== "function") return;
+          } catch {
+            /* best effort */
+          }
+        },
+        onTick: (remainingMs) => {
+          // Progress is logged at 10 s granularity so a stalled hold is visible.
+          if (Math.floor(remainingMs / 10000) !== Math.floor((remainingMs + 250) / 10000)) {
+            Logger.info("Passenger page hold:", Math.ceil(remainingMs / 1000), "s remaining.");
+          }
+        },
+      },
+      passengerHoldUntil,
+    );
+    passengerHoldUntil = 0;
+  }
+
   // Find the "Continue" button
   var continueButton = document.querySelector(PASSENGER_SUBMIT_BUTTON);
   // Check if the button exists
@@ -1644,6 +1739,92 @@ async function dismissLanguagePopup() {
     }
 }
 
+// Re-submit the passenger page after a rejected Continue. If IRCTC answered
+// "high load" AFTER the form was filled, the filled rows are still in the
+// DOM — re-running the fill would add duplicate passenger rows. So: form
+// survived? just click Continue again. Form wiped? clear leftovers, refill,
+// then submit.
+async function retryPassengerSubmit() {
+  if (!document.querySelector(PASSENGER_APP_COMPONENT)) {
+    Logger.warn("Passenger page is no longer on screen - nothing to re-submit.");
+    return;
+  }
+
+  const rows = document.querySelectorAll(PASSENGER_COMPONENT);
+  const formLooksFilled = rows.length > 0 && Array.from(rows).some((row) => {
+    const nameInput = row.querySelector(PASSENGER_NAME_INPUT);
+    return !!(nameInput && (nameInput.value || "").trim().length > 0);
+  });
+
+  if (formLooksFilled) {
+    Logger.info("Passenger form survived the error - re-submitting it unchanged.");
+    const continueButton = document.querySelector(PASSENGER_SUBMIT_BUTTON);
+    if (!continueButton) {
+      Logger.error("Continue button not found on the passenger page.");
+      return;
+    }
+    continueButton.focus();
+    await humanClick(continueButton);
+    return;
+  }
+
+  Logger.warn("Passenger form was reset by IRCTC - clearing leftover rows and filling it again.");
+  await resetPassengerRowsToOne();
+  await addPassengerInputAndContinue();
+}
+
+// IRCTC can wipe the passenger rows on a rejected submit; drop everything
+// except the first row so the refill starts from a known state.
+async function resetPassengerRowsToOne() {
+  let guard = 0;
+  const maxRemovals = 10; // never remove more rows than we could have added
+  while (guard < maxRemovals) {
+    const rows = document.querySelectorAll(PASSENGER_COMPONENT);
+    if (rows.length <= 1) break;
+    const removeLink = document.querySelector(PASSENGER_REMOVE_ROW);
+    if (!removeLink) break;
+    await humanClick(removeLink);
+    await delay(300);
+    guard += 1;
+  }
+}
+
+// Re-click the journey Search button. The form is already filled by// callSearchTrainComponent(), so a high-load rejection only needs the click
+// replayed — never a full re-fill that would type the stations twice.
+async function clickSearchButton() {
+  const searchButton = document.querySelector(JOURNEY_SEARCH_BUTTON);
+  if (searchButton) {
+    await humanClick(searchButton);
+  } else {
+    Logger.warn("Search button not found for retry.");
+  }
+}
+
+// Wait for a page transition, retrying `retryAction` while IRCTC keeps
+// answering with a transient error. Always on: a high-load rejection is not a
+// preference, and a run with recovery turned off just hangs on the same click.
+// A plain timeout (no error, no page change) is NOT retried — IRCTC is merely
+// slow, and replaying the step could double-submit something it accepted.
+async function advance(name, target, retryAction) {
+  const result = await advanceOrRetry({
+    name,
+    target,
+    retryAction,
+    errorSelector: ERROR_MESSAGE,
+    dismissSelector: ERROR_DISMISS,
+    linkSelector: ERROR_TOAST_LINK,
+    loaderSelector: LOADER,
+    click: humanClick,
+  });
+  if (!result.ok) {
+    const prefix = result.reason === "terminal"
+      ? "IRCTC stopped the booking"
+      : "IRCTC kept failing through " + result.attempts + " retry attempt(s)";
+    alert(prefix + " at \"" + name + "\":\n\n" + result.error.message + "\n\nPlease continue manually.");
+  }
+  return result.ok;
+}
+
 async function executeFunctions() {
   Logger.info("User script running!");
 
@@ -1666,14 +1847,19 @@ async function executeFunctions() {
 
     // login page < Page 0 > (a prompt will appear to fill captcha)
     await login();
+    if (!(await advance("login", { disappear: LOGIN_COMPONENT }, login))) return;
     await waitForAppLoginToDisappear();
     await callSearchTrainComponent();
     waitForTargetTime(targetTime);
     
-    // wait for train list page to load
-    await waitForElementToAppear(TRAIN_LIST_COMPONENT);
+    // wait for train list page to load; under load IRCTC answers the search
+    // with a high-load toast instead of the train list, so re-click Search
+    // (the form is already filled) until the list renders.
+    if (!(await advance("train search", { appear: TRAIN_LIST_COMPONENT }, clickSearchButton))) return;
 
-    // select train and accommodation class < Page 1 >
+    // select train and accommodation class < Page 1 >. bookTicket() carries its
+    // own high-load recovery for the availability loop; re-entering it after a
+    // rejected Book Now re-checks the class and clicks Book Now once.
     await bookTicket();
 
     if(autoProcessPopup){
@@ -1681,19 +1867,22 @@ async function executeFunctions() {
     }
 
     // Wait for passenger page to load
-    await waitForElementToAppear(PASSENGER_APP_COMPONENT);
+    if (!(await advance("seat selection", { appear: PASSENGER_APP_COMPONENT }, bookTicket))) return;
 
-    // Passenger Input and Payment Type < Page 2 >
+    // Passenger Input and Payment Type < Page 2 >. The 45 s minimum hold is
+    // honoured inside addPassengerInputAndContinue before Continue is clicked.
     await addPassengerInputAndContinue();
 
-    // Wait for the ticket review and Captcha page load
-    await waitForElementToAppear(REVIEW_COMPONENT);
+    // Wait for the ticket review and Captcha page load. The retry re-submits
+    // the existing form instead of re-running the fill, so a rejected Continue
+    // cannot duplicate passenger rows.
+    if (!(await advance("passenger details", { appear: REVIEW_COMPONENT }, retryPassengerSubmit))) return;
 
     // Review and Captcha <Page 3>   (a prompt will appear to fill captcha)
     await handleCaptchaAndContinue();
 
     // Wait for the app-payment-options element to appear on the page after the transition
-    await waitForElementToAppear(PAYMENT_COMPONENT);
+    if (!(await advance("review & captcha", { appear: PAYMENT_COMPONENT }, handleCaptchaAndContinue))) return;
 
     // Payment Selection <Page 4>
     await selectPaymentMethod();

@@ -15,7 +15,8 @@
     "version:sync": "node scripts/sync-version.js",
     "version:bump:patch": "npm version patch --no-git-tag-version && npm run version:sync",
     "version:bump:minor": "npm version minor --no-git-tag-version && npm run version:sync",
-    "version:bump:major": "npm version major --no-git-tag-version && npm run version:sync"
+    "version:bump:major": "npm version major --no-git-tag-version && npm run version:sync",
+    "test": "npm --prefix chrome-extension run test"
   },
   "devDependencies": {}
 }
