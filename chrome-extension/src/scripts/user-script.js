@@ -984,14 +984,7 @@ async function bookTicket() {
 
   let stallStreak = 0;
   const MAX_REFRESH_RETRIES = 12;
-  const AVAILABILITY_BUDGET_MS = 45 * 60 * 1000; // never wait forever
-  const loopStartedAt = Date.now();
   while (!isAvlEnquiryCompleted) {
-    if (Date.now() - loopStartedAt > AVAILABILITY_BUDGET_MS) {
-      Logger.error("Availability wait exceeded 45 minutes — stopping to avoid hanging the run.");
-      alert("No confirmed seat appeared within 45 minutes. Auto refresh has stopped; please continue manually.");
-      return;
-    }
     // Check if any new mutations occurred since the last refresh
     if (mutationCompletionCounter > 0) {
         // Fresh availability rows arrived, so the last enquiry landed and we
@@ -1045,7 +1038,7 @@ async function bookTicket() {
     }
     // Pace the loop: steady refresh normally, stepping up while IRCTC keeps
     // refusing the enquiry (high load), so we never hammer a struggling server.
-    await delay(stallStreak > 0 ? Math.min(refreshTime * stallStreak, 45000) : refreshTime);
+    await delay(stallStreak > 0 ? Math.min(refreshTime * stallStreak, 10000) : refreshTime);
   }
 
   // Proceed with booking the ticket
