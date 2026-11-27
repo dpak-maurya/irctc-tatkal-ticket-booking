@@ -11,6 +11,9 @@ import {
   holdForPassengerPageMinWait,
   findAvailabilityError,
   isWorthRetrying,
+  waitForQuiet,
+  waitForLoaderToClear,
+  dismissIrctcError,
 } from './irctcHighLoad';
 
 
@@ -877,16 +880,26 @@ async function scrollToFoundTrainAndSelectClass() {
     accommodationClass
   );
 }
-// refresh the train by clicking selected open class tab
+// refresh the train by re-clicking the selected accommodation class so IRCTC re-sends the availability enquiry.
 async function refreshTrain() {
   try {
     const rootElement = document.querySelectorAll(TRAIN_COMPONENT)[trainFoundAtPosition];
-    const selectedTab = rootElement.querySelector(SELECTED_CLASS_TAB);
+    if (!rootElement) { Logger.warn('refreshTrain: train row not found.'); return; }
+    const classes = rootElement.querySelectorAll(AVAILABLE_CLASS);
+    let target = null;
+    for (const el of classes) {
+      const nameEl = el.querySelector('strong');
+      if (!nameEl) continue;
+      if (textIncludes(nameEl.textContent, accommodationClass)) { target = el; break; }
+    }
     await delay(100);
-    if (selectedTab) {
-      await humanClick(selectedTab);
-    } else {
-      Logger.warn('Selected accommodation tab not found.');
+    if (target) { await humanClick(target); }
+    else {
+      // IRCTC removes the class buttons after a failed enquiry; fall back to
+      // the tab strip so the enquiry is still re-sent.
+      const firstTab = rootElement.querySelector('p-tabmenu li a>div') || rootElement.querySelector(SELECTED_CLASS_TAB);
+      if (firstTab) { Logger.warn('refreshTrain: class buttons missing, using tab fallback.'); await humanClick(firstTab); }
+      else { Logger.warn('refreshTrain: no class tab or button to refresh with.'); }
     }
   } catch (error) {
     Logger.error('An error occurred while refreshing the train:', error);
@@ -970,7 +983,15 @@ async function bookTicket() {
   await delay(1000);
 
   let stallStreak = 0;
+  const MAX_REFRESH_RETRIES = 12;
+  const AVAILABILITY_BUDGET_MS = 45 * 60 * 1000; // never wait forever
+  const loopStartedAt = Date.now();
   while (!isAvlEnquiryCompleted) {
+    if (Date.now() - loopStartedAt > AVAILABILITY_BUDGET_MS) {
+      Logger.error("Availability wait exceeded 45 minutes — stopping to avoid hanging the run.");
+      alert("No confirmed seat appeared within 45 minutes. Auto refresh has stopped; please continue manually.");
+      return;
+    }
     // Check if any new mutations occurred since the last refresh
     if (mutationCompletionCounter > 0) {
         // Fresh availability rows arrived, so the last enquiry landed and we
@@ -991,7 +1012,6 @@ async function bookTicket() {
         } catch (error) {
             // Handle any errors that occur during ticket selection or train refresh
             Logger.error("An error occurred:", error);
-            // Optionally, you can choose to break the loop or handle the error differently
         }
     } else if (!isElementVisible(document.querySelector(LOADER))) {
         // Nothing arrived and IRCTC is not waiting on a request, so the last
@@ -1004,14 +1024,29 @@ async function bookTicket() {
           alert("IRCTC says:\n\n" + availabilityError + "\n\nAuto refresh has stopped. Please continue manually.");
           return;
         }
+        if (stallStreak >= MAX_REFRESH_RETRIES) {
+          Logger.error("Max availability refresh retries reached — stopping to avoid hammering IRCTC.");
+          alert("IRCTC keeps returning high load. Auto refresh stopped after " + MAX_REFRESH_RETRIES + " retries. Please continue manually.");
+          return;
+        }
         stallStreak += 1;
         Logger.warn("No availability received. Refreshing the class again.", availabilityError);
+        // Dismiss any lingering IRCTC error toast before re-requesting.
+        await dismissIrctcError({ dismissSelector: ERROR_DISMISS_DEFAULT, click: humanClick });
         await refreshTrain(); // Read-only re-check of the class availability.
+        // Wait for IRCTC to answer: either new rows appear or the error toast shows.
+        const settled = await waitForQuiet({
+          errorSelector: AVAILABILITY_ERROR,
+          loaderSelector: LOADER_DEFAULT,
+          settleMs: 1500,
+          timeoutMs: 8000,
+        });
+        if (!settled) Logger.warn("Page did not settle after refresh; retrying anyway.");
     }
     // Pace the loop: steady refresh normally, stepping up while IRCTC keeps
     // refusing the enquiry (high load), so we never hammer a struggling server.
-    await delay(stallStreak > 0 ? Math.min(refreshTime * stallStreak, 10000) : refreshTime);
-}
+    await delay(stallStreak > 0 ? Math.min(refreshTime * stallStreak, 45000) : refreshTime);
+  }
 
   // Proceed with booking the ticket
   const endTime = new Date(); // Record the end time
