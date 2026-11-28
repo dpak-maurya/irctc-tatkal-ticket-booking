@@ -1038,7 +1038,7 @@ async function bookTicket() {
     }
     // Pace the loop: steady refresh normally, stepping up while IRCTC keeps
     // refusing the enquiry (high load), so we never hammer a struggling server.
-    await delay(stallStreak > 0 ? Math.min(refreshTime * stallStreak, 10000) : refreshTime);
+    await delay(stallStreak > 0 ? refreshTime * stallStreak : refreshTime);
   }
 
   // Proceed with booking the ticket
