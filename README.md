@@ -52,6 +52,16 @@ To install the IRCTC Tatkal Booking Chrome Extension, follow these steps:
 
 Once installed, the extension will be available in your Chrome browser. Simply navigate to the IRCTC website and start using the extension to streamline your Tatkal ticket booking process.
 
+### High-load recovery (Tatkal window)
+
+During the Tatkal open IRCTC often answers a click with an error toast ("We are experiencing high load, please retry") instead of the next page. The extension recovers automatically:
+
+- **Every booking step retries** on a recognised transient error, with capped exponential backoff and jitter, until the step lands or the recovery budget runs out. A plain slow page is never replayed — only a toast IRCTC itself rejects is retried, so nothing is double-submitted.
+- **One request at a time.** Booking steps run through a serialising gate and never fire while IRCTC's "Please Wait..." overlay is up, which is what caused the double-submit logout during peak load.
+- **Terminal errors stop the run** (IP block, date outside the Tatkal window, session expired) with an alert instead of burning the retry budget.
+- **45-second passenger-page hold** is honoured after Book Now (IRCTC holds Continue for a minimum time); no booking request is fired into that window.
+- The toast/loader selectors are real IRCTC elements and are **overridable in the options page** ("Error Handling Elements") when IRCTC changes its markup.
+
 ## Contributing
 
 Contributions to the IRCTC Tatkal Booking Chrome Extension are welcome! If you have any suggestions, bug reports, or feature requests, please feel free to open an issue or submit a pull request on the GitHub repository.
